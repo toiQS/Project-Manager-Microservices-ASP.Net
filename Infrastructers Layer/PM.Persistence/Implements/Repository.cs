@@ -1,11 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PM.Domain;
 using PM.Domain.Interfaces;
-using System.Linq.Expressions;
 
 namespace PM.Persistence.Implements
 {
-    internal class Repository<T, TKey> : IRepository<T, TKey> where T : class where TKey : notnull
+    public class Repository<T, TKey> : IRepository<T, TKey> where T : class where TKey : notnull
     {
         private readonly ApplicationDbContext _context;
         private readonly DbSet<T> _dbSet;
