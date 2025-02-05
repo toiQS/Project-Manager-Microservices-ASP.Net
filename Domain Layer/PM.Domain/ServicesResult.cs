@@ -42,12 +42,12 @@
         /// Constructor for creating a success result with data.
         /// </summary>
         /// <param name="data">The data associated with the success result.</param>
-        public ServicesResult(T data, string? message)
+        public ServicesResult(T data)
         {
             if (data is null)
             {
                 Status = true;
-                Message = $"No data available, {message}";
+                Message = $"No data available in this table";
             }
             else
             {
@@ -66,9 +66,9 @@
         /// </summary>
         /// <param name="data">The data to include in the result.</param>
         /// <returns>A success <see cref="ServicesResult{T}"/> instance.</returns>
-        public static ServicesResult<T> Success(T data, string message)
+        public static ServicesResult<T> Success(T data)
         {
-            return new ServicesResult<T>(data, message);
+            return new ServicesResult<T>(data);
         }
 
         /// <summary>
