@@ -30,14 +30,14 @@ namespace PM.Domain.Interfaces
         Task<bool> ExistsAsync(TKey primaryKey);
 
         /// <summary>
-        /// Tìm kiếm một phần tử theo điều kiện.
+        /// Lấy đơn dữ liệu bằng thuộc tính và giá trị
         /// </summary>
-        Task<ServicesResult<T>> FindOneAsync(Expression<Func<T, bool>> predicate);
+        Task<ServicesResult<T>> GetOneByKeyAndValue(string key, TKey value);
 
         /// <summary>
-        /// Tìm kiếm danh sách phần tử theo điều kiện.
+        /// Lấy đa dữ liệu bằng thuộc tính và giá trị
         /// </summary>
-        Task<ServicesResult<IEnumerable<T>>> FindManyAsync(Expression<Func<T, bool>> predicate);
+        Task<ServicesResult<IEnumerable<T>>> GetManyByKeyAndValue(string key, TKey value);
 
         /// <summary>
         /// Lấy dữ liệu có phân trang.
