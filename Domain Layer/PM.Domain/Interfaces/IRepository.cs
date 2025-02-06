@@ -28,6 +28,8 @@ namespace PM.Domain.Interfaces
         /// Kiểm tra sự tồn tại của bản ghi.
         /// </summary>
         Task<bool> ExistsAsync(TKey primaryKey);
+        
+        Task<bool> ExistAsync(string key, TKey value);
 
         /// <summary>
         /// Lấy đơn dữ liệu bằng thuộc tính và giá trị
