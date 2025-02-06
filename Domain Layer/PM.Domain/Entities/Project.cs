@@ -8,6 +8,7 @@ namespace PM.Domain.Entities
         [Key]
         public string Id { get; set; } // Mã dự án
         public string Name { get; set; } // Tên dự án
+        public string Description { get; set; } // Miêu tả dự án
         [ForeignKey(nameof(Status))]
         public int StatusId { get; set; } // ID tình trạng
         public DateTime CreatedDate { get; set; } // Ngày tạo
