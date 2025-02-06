@@ -106,6 +106,13 @@ namespace PM.Persistence.Implements
             if (primaryKey == null) return false;
             return await _dbSet.AnyAsync(t => EF.Property<object>(t, "Id").Equals(primaryKey));
         }
+        public async Task<bool> ExistAsync(string key, TKey value)
+        {
+            if (string.IsNullOrEmpty(key) || value == null)
+                return false;
+            return await _dbSet.AnyAsync(t => EF.Property<object>(t, key).Equals(value));
+        }
+
 
         public async Task<ServicesResult<T>> GetOneByKeyAndValue(string key, TKey value)
         {
