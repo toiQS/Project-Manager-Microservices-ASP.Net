@@ -14,6 +14,7 @@ namespace PM.Domain.Interfaces
         IRepository<ProjectMember, string> ProjectMemberRepository { get; }
         IRepository<Status,int> StatusRepository { get; }
         IRepository<User,string> UserRepository { get; }
+        IRepository<Plan,string> PlanRepository { get; }
         Task<int> SaveChangesAsync();
     }
 }
