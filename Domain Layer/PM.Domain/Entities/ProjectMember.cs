@@ -13,6 +13,7 @@ namespace PM.Domain.Entities
         public string UserId { get; set; } // Mã người dùng
         [ForeignKey(nameof(RoleInProject))]
         public string RoleId { get; set; } // Vai trò trong dự án
+        public string PositionWork { get; set; } = string.Empty;
 
         public Project Project { get; set; } // Liên kết đến dự án
         public User User { get; set; } // Liên kết đến người dùng
