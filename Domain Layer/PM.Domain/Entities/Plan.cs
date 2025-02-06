@@ -10,6 +10,7 @@ namespace PM.Domain.Entities
         [ForeignKey(nameof(Project))]
         public string ProjectId { get; set; } // Mã dự án
         public string Name { get; set; } // Tên kế hoạch
+        public string Description { get; set; } // miêu tả kể hoạch
         public DateTime StartDate { get; set; } // Ngày bắt đầu
         public DateTime EndDate { get; set; } // Ngày kết thúc
         [ForeignKey(nameof(Status))]
