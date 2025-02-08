@@ -2,7 +2,7 @@
 {
     public class UpdateMember
     {
-        public string RoleNameUserInProject { get; set; } = string.Empty; // role of user in this project
-        public string PositionNameInProject {  get; set; } = string.Empty;
+        public string PositionWork {  get; set; }
+        
     }
 }
