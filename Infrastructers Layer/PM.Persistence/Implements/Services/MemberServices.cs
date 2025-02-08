@@ -147,15 +147,19 @@ namespace PM.Persistence.Implements.Services
 
             try
             {
+                // Check if the user exists
                 var userExists = await _unitOfWork.UserRepository.ExistAsync("Id", userId);
                 if (!userExists) return ServicesResult<DetailMember>.Failure("User not found");
 
+                // Retrieve project members
                 var members = await _unitOfWork.ProjectMemberRepository.GetManyByKeyAndValue("ProjectId", projectId);
                 if (!members.Status || members.Data == null) return ServicesResult<DetailMember>.Failure("Error: No members found in this project");
 
+                // Check if the user is already a member
                 if (members.Data.Any(x => x.UserId == addMember.UserId))
                     return ServicesResult<DetailMember>.Failure("Member already exists in this project");
 
+                // Create new project member
                 var newMember = new ProjectMember
                 {
                     Id = Guid.NewGuid().ToString(), // Generate a unique ID
@@ -168,24 +172,27 @@ namespace PM.Persistence.Implements.Services
                 var addResult = await _unitOfWork.ProjectMemberRepository.AddAsync(newMember);
                 if (!addResult.Status) return ServicesResult<DetailMember>.Failure(addResult.Message);
 
-                //tạo bảng ghi
+                // Log the action
                 var infoMember = await _unitOfWork.UserRepository.GetOneByKeyAndValue("Id", addMember.UserId);
-                if(infoMember.Status == false) return ServicesResult<DetailMember>.Failure(infoMember.Message);
-                var project = await _unitOfWork.ProjectRepository.GetOneByKeyAndValue("Id",projectId);
-                if(project.Status == false ) return ServicesResult<DetailMember>.Failure(project.Message);
+                if (!infoMember.Status) return ServicesResult<DetailMember>.Failure(infoMember.Message);
+                var project = await _unitOfWork.ProjectRepository.GetOneByKeyAndValue("Id", projectId);
+                if (!project.Status) return ServicesResult<DetailMember>.Failure(project.Message);
                 var infoUser = await _unitOfWork.UserRepository.GetOneByKeyAndValue("Id", userId);
-                if (infoUser.Status == false) return ServicesResult<DetailMember>.Failure(infoMember.Message);
+                if (!infoUser.Status) return ServicesResult<DetailMember>.Failure(infoUser.Message);
+
                 var log = new ActivityLog()
                 {
-                    Id ="",
-                    Action = $"Add member {newMember.Id} {infoMember.Data.NickName} to project {project.Data.Name} by {userId} {infoUser.Data.NickName}",
+                    Id = Guid.NewGuid().ToString(),
+                    Action = $"Added member {infoMember.Data.NickName} to project {project.Data.Name} by {infoUser.Data.NickName}",
                     ActionDate = DateTime.Now,
-                    ProjectId=projectId,
-                    UserId=userId,
+                    ProjectId = projectId,
+                    UserId = userId,
                 };
+
                 var responseAddLog = await _unitOfWork.ActivityLogRepository.AddAsync(log);
-                if(!responseAddLog.Status) return ServicesResult<DetailMember>.Failure(responseAddLog.Message);
-                // tạo kết quả trả về cho hoạt động
+                if (!responseAddLog.Status) return ServicesResult<DetailMember>.Failure(responseAddLog.Message);
+
+                // Return detailed member information
                 return await GetDetailMember(newMember.Id);
             }
             catch (Exception ex)
@@ -198,49 +205,61 @@ namespace PM.Persistence.Implements.Services
                 _unitOfWork.Dispose();
             }
         }
+
+        /// <summary>
+        /// Updates an existing project member.
+        /// </summary>
         public async Task<ServicesResult<DetailMember>> UpdateMember(string userId, string memberId, UpdateMember updateMember)
         {
-            if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(memberId) || updateMember == null) return ServicesResult<DetailMember>.Failure("");
+            if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(memberId) || updateMember == null)
+                return ServicesResult<DetailMember>.Failure("Invalid input parameters");
+
             try
             {
-                var member = await _unitOfWork.ProjectMemberRepository.GetOneByKeyAndValue("Id",memberId);
-                if(member.Status == false) return ServicesResult<DetailMember>.Failure(member.Message);
+                // Retrieve member
+                var member = await _unitOfWork.ProjectMemberRepository.GetOneByKeyAndValue("Id", memberId);
+                if (!member.Status) return ServicesResult<DetailMember>.Failure(member.Message);
 
-                var memberProject = await _unitOfWork.ProjectMemberRepository.GetManyByKeyAndValue("ProjectId",member.Data.ProjectId);
-                if (memberProject.Status == false || !memberProject.Data.Any()) return ServicesResult<DetailMember>.Failure(memberProject.Message ?? "Error when get any members in this project");
-                
-                var isCheck = memberProject.Data.Any(x => x.ProjectId == member.Data.ProjectId && x.UserId == userId && x.RoleId == _ownRoleId);
-                if (isCheck == false) return ServicesResult<DetailMember>.Failure("User is not owner of project");
+                // Verify if the user is the project owner
+                var memberProject = await _unitOfWork.ProjectMemberRepository.GetManyByKeyAndValue("ProjectId", member.Data.ProjectId);
+                if (!memberProject.Status || !memberProject.Data.Any()) return ServicesResult<DetailMember>.Failure("Error retrieving project members");
 
+                var isOwner = memberProject.Data.Any(x => x.ProjectId == member.Data.ProjectId && x.UserId == userId && x.RoleId == _ownRoleId);
+                if (!isOwner) return ServicesResult<DetailMember>.Failure("User is not the owner of the project");
+
+                // Update member details
                 member.Data.PositionWork = updateMember.PositionWork;
                 member.Data.ProjectId = updateMember.ProjectId;
                 member.Data.UserId = updateMember.UserId;
-                
+
                 var responseUpdate = await _unitOfWork.ProjectMemberRepository.UpdateAsync(member.Data);
-                if(responseUpdate.Status == false) return ServicesResult<DetailMember>.Failure(responseUpdate.Message);
+                if (!responseUpdate.Status) return ServicesResult<DetailMember>.Failure(responseUpdate.Message);
 
-
-                //tạo bảng ghi
+                // Log the action
                 var infoMember = await _unitOfWork.UserRepository.GetOneByKeyAndValue("Id", updateMember.UserId);
-                if (infoMember.Status == false) return ServicesResult<DetailMember>.Failure(infoMember.Message);
+                if (!infoMember.Status) return ServicesResult<DetailMember>.Failure(infoMember.Message);
                 var project = await _unitOfWork.ProjectRepository.GetOneByKeyAndValue("Id", member.Data.ProjectId);
-                if (project.Status == false) return ServicesResult<DetailMember>.Failure(project.Message);
+                if (!project.Status) return ServicesResult<DetailMember>.Failure(project.Message);
                 var infoUser = await _unitOfWork.UserRepository.GetOneByKeyAndValue("Id", userId);
-                if (infoUser.Status == false) return ServicesResult<DetailMember>.Failure(infoMember.Message);
+                if (!infoUser.Status) return ServicesResult<DetailMember>.Failure(infoUser.Message);
+
                 var log = new ActivityLog()
                 {
-                    Id ="",
-                    Action = $"{infoUser.Data.NickName} was updated a member in project {project.Data.Id} {project.Data.Name}",
+                    Id = Guid.NewGuid().ToString(),
+                    Action = $"{infoUser.Data.NickName} updated a member in project {project.Data.Name}",
+                    ActionDate = DateTime.Now,
                     ProjectId = member.Data.ProjectId,
                     UserId = userId
                 };
+
                 var responseAddLog = await _unitOfWork.ActivityLogRepository.AddAsync(log);
-                if(responseAddLog.Status == false) return ServicesResult<DetailMember>.Failure(responseAddLog.Message);
+                if (!responseAddLog.Status) return ServicesResult<DetailMember>.Failure(responseAddLog.Message);
+
                 return await GetDetailMember(memberId);
             }
             catch (Exception ex)
             {
-                return ServicesResult<DetailMember>.Failure("");
+                return ServicesResult<DetailMember>.Failure(ex.Message);
             }
             finally
             {
@@ -248,9 +267,10 @@ namespace PM.Persistence.Implements.Services
                 _unitOfWork.Dispose();
             }
         }
+
         public Task<ServicesResult<IEnumerable<IndexMember>>> DeleteMember(string userId, string memberId)
         {
-
+            
         }
     }
 }
