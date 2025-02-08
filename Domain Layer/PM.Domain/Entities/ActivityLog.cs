@@ -15,6 +15,6 @@ namespace PM.Domain.Entities
         public DateTime ActionDate { get; set; } // Ngày thực hiện
 
         public User User { get; set; } // Liên kết đến người dùng
-        public Project Project { get; set; } // Liên kết đến dự án
+        public Project? Project { get; set; } // Liên kết đến dự án
     }
 }
