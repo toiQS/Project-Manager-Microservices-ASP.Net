@@ -10,6 +10,7 @@ namespace PM.Persistence.Implements.Services
     internal class MemberServices
     {
         private readonly IUnitOfWork _unitOfWork;
+        private string _ownRoleId;
         /// <summary>
         /// Retrieves all members.
         /// </summary>
@@ -182,6 +183,8 @@ namespace PM.Persistence.Implements.Services
                     ProjectId=projectId,
                     UserId=userId,
                 };
+                var responseAddLog = await _unitOfWork.ActivityLogRepository.AddAsync(log);
+                if(!responseAddLog.Status) return ServicesResult<DetailMember>.Failure(responseAddLog.Message);
                 // tạo kết quả trả về cho hoạt động
                 return await GetDetailMember(newMember.Id);
             }
@@ -195,10 +198,59 @@ namespace PM.Persistence.Implements.Services
                 _unitOfWork.Dispose();
             }
         }
-        public Task<ServicesResult<DetailMember>> UpdateMember(string userId, string memberId, UpdateMember updateMember)
+        public async Task<ServicesResult<DetailMember>> UpdateMember(string userId, string memberId, UpdateMember updateMember)
+        {
+            if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(memberId) || updateMember == null) return ServicesResult<DetailMember>.Failure("");
+            try
+            {
+                var member = await _unitOfWork.ProjectMemberRepository.GetOneByKeyAndValue("Id",memberId);
+                if(member.Status == false) return ServicesResult<DetailMember>.Failure(member.Message);
+
+                var memberProject = await _unitOfWork.ProjectMemberRepository.GetManyByKeyAndValue("ProjectId",member.Data.ProjectId);
+                if (memberProject.Status == false || !memberProject.Data.Any()) return ServicesResult<DetailMember>.Failure(memberProject.Message ?? "Error when get any members in this project");
+                
+                var isCheck = memberProject.Data.Any(x => x.ProjectId == member.Data.ProjectId && x.UserId == userId && x.RoleId == _ownRoleId);
+                if (isCheck == false) return ServicesResult<DetailMember>.Failure("User is not owner of project");
+
+                member.Data.PositionWork = updateMember.PositionWork;
+                member.Data.ProjectId = updateMember.ProjectId;
+                member.Data.UserId = updateMember.UserId;
+                
+                var responseUpdate = await _unitOfWork.ProjectMemberRepository.UpdateAsync(member.Data);
+                if(responseUpdate.Status == false) return ServicesResult<DetailMember>.Failure(responseUpdate.Message);
+
+
+                //tạo bảng ghi
+                var infoMember = await _unitOfWork.UserRepository.GetOneByKeyAndValue("Id", updateMember.UserId);
+                if (infoMember.Status == false) return ServicesResult<DetailMember>.Failure(infoMember.Message);
+                var project = await _unitOfWork.ProjectRepository.GetOneByKeyAndValue("Id", member.Data.ProjectId);
+                if (project.Status == false) return ServicesResult<DetailMember>.Failure(project.Message);
+                var infoUser = await _unitOfWork.UserRepository.GetOneByKeyAndValue("Id", userId);
+                if (infoUser.Status == false) return ServicesResult<DetailMember>.Failure(infoMember.Message);
+                var log = new ActivityLog()
+                {
+                    Id ="",
+                    Action = $"{infoUser.Data.NickName} was updated a member in project {project.Data.Id} {project.Data.Name}",
+                    ProjectId = member.Data.ProjectId,
+                    UserId = userId
+                };
+                var responseAddLog = await _unitOfWork.ActivityLogRepository.AddAsync(log);
+                if(responseAddLog.Status == false) return ServicesResult<DetailMember>.Failure(responseAddLog.Message);
+                return await GetDetailMember(memberId);
+            }
+            catch (Exception ex)
+            {
+                return ServicesResult<DetailMember>.Failure("");
+            }
+            finally
+            {
+                await _unitOfWork.SaveChangesAsync();
+                _unitOfWork.Dispose();
+            }
+        }
+        public Task<ServicesResult<IEnumerable<IndexMember>>> DeleteMember(string userId, string memberId)
         {
 
         }
-        public Task<ServicesResult<IEnumerable<IndexMember>>> DeleteMember(string userId, string memberId);
     }
 }
