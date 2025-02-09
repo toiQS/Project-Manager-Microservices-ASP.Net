@@ -1,7 +1,9 @@
-﻿using PM.Domain;
+﻿using Microsoft.SqlServer.Server;
+using PM.Domain;
 using PM.Domain.Entities;
 using PM.Domain.Interfaces;
 using PM.Domain.Models.members;
+using PM.Domain.Models.projects;
 using PM.Domain.Models.tasks;
 using Shared.member;
 
@@ -268,9 +270,61 @@ namespace PM.Persistence.Implements.Services
             }
         }
 
-        public Task<ServicesResult<IEnumerable<IndexMember>>> DeleteMember(string userId, string memberId)
+        public async Task<ServicesResult<IEnumerable<IndexMember>>> DeleteMember(string userId, string memberId)
         {
-            
+            if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(memberId)) return ServicesResult<IEnumerable<IndexMember>>.Failure("");
+            try
+            {
+                // Retrieve member
+                var member = await _unitOfWork.ProjectMemberRepository.GetOneByKeyAndValue("Id", memberId);
+                if (!member.Status) return ServicesResult<IEnumerable<IndexMember>>.Failure(member.Message);
+
+                // Verify if the user is the project owner
+                var memberProject = await _unitOfWork.ProjectMemberRepository.GetManyByKeyAndValue("ProjectId", member.Data.ProjectId);
+                if (!memberProject.Status || !memberProject.Data.Any()) return ServicesResult<IEnumerable<IndexMember>>.Failure("Error retrieving project members");
+
+                var isOwner = memberProject.Data.Any(x => x.ProjectId == member.Data.ProjectId && x.UserId == userId && x.RoleId == _ownRoleId);
+                if (!isOwner) return ServicesResult<IEnumerable<IndexMember>>.Failure("User is not the owner of the project");
+
+                var misstions = await _unitOfWork.MissionAssignmentRepository.GetManyByKeyAndValue("ProjectMemberId",memberId);
+                if (misstions.Status == false) return ServicesResult<IEnumerable<IndexMember>>.Failure(misstions.Message);
+
+                if (!misstions.Data.Any())
+                {
+                    var actionDelete = await _unitOfWork.ProjectMemberRepository.DeleteAsync(memberId);
+                    if(actionDelete.Status == false) return ServicesResult<IEnumerable<IndexMember>>.Failure(actionDelete.Message);
+                }
+                foreach (var item in misstions.Data)
+                {
+                   var actionDeleteMission = await _unitOfWork.MissionAssignmentRepository.DeleteAsync(item.MissionId);
+                    if(!actionDeleteMission.Status) return ServicesResult<IEnumerable<IndexMember>>.Failure(actionDeleteMission.Message);
+                }
+                // Log the action
+                var infoOwner = await _unitOfWork.UserRepository.GetOneByKeyAndValue("Id", userId);
+                if (infoOwner.Status == false) return ServicesResult<IEnumerable<IndexMember>>.Failure(infoOwner.Message);
+                var infoProject = await _unitOfWork.ProjectRepository.GetOneByKeyAndValue("Id", member.Data.ProjectId);
+                var log = new ActivityLog()
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    Action = $"{infoOwner.Data.NickName} delete a member and delete misstion depend to him/her in project {infoProject.Data.Name}",
+                    ActionDate = DateTime.Now,
+                    ProjectId = member.Data.ProjectId,
+                    UserId = userId
+                };
+
+                var responseAddLog = await _unitOfWork.ActivityLogRepository.AddAsync(log);
+                if (!responseAddLog.Status) return ServicesResult<IEnumerable<IndexMember>>.Failure(responseAddLog.Message);
+                return await GetMemberInProject(infoProject.Data.Id);
+            }
+            catch (Exception ex)
+            {
+                return ServicesResult<IEnumerable<IndexMember>>.Failure("");
+            }
+            finally
+            {
+                await _unitOfWork.SaveChangesAsync();
+                _unitOfWork.Dispose();
+            }
         }
     }
 }
