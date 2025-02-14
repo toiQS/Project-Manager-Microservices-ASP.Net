@@ -1,6 +1,6 @@
 ﻿using PM.Domain.Models.members;
 
-namespace PM.Domain.Models.tasks
+namespace PM.Domain.Models.missions
 {
     public class AddTask
     {
