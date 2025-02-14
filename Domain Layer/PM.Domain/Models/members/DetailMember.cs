@@ -1,4 +1,4 @@
-﻿using PM.Domain.Models.tasks;
+﻿using PM.Domain.Models.missions;
 
 namespace Shared.member
 {
@@ -8,6 +8,6 @@ namespace Shared.member
         public string MemberName { get; set; }
         public string RoleMember {  get; set; }
         public string PositionWork { get; set; }
-        public List<IndexTask> Tasks { get; set; }
+        public List<IndexMission> missions { get; set; }
     }
 }
