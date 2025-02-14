@@ -10,7 +10,7 @@ namespace PM.Domain.Entities
         [ForeignKey(nameof(User))]
         public string UserId { get; set; } // Mã người dùng
         [ForeignKey(nameof(Project))]
-        public string ProjectId { get; set; } // Mã dự án
+        public string? ProjectId { get; set; } // Mã dự án
         public string Action { get; set; } // Hành động thực hiện
         public DateTime ActionDate { get; set; } // Ngày thực hiện
 
