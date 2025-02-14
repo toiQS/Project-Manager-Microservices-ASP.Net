@@ -8,7 +8,7 @@ using PM.Domain.Models.projects;
 
 namespace PM.Persistence.Implements.Services
 {
-    public class ProjectServices
+    public class ProjectServices : IProjectServices
     {
         #region Contructor
         private readonly IUnitOfWork _unitOfWork;
