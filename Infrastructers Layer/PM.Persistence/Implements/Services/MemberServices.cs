@@ -1,13 +1,14 @@
 ﻿using PM.Domain;
 using PM.Domain.Entities;
 using PM.Domain.Interfaces;
+using PM.Domain.Interfaces.Services;
 using PM.Domain.Models.members;
 using PM.Domain.Models.missions;
 using Shared.member;
 
 namespace PM.Persistence.Implements.Services
 {
-    internal class MemberServices
+    internal class MemberServices : IMemberServices
     {
         private readonly IUnitOfWork _unitOfWork;
         private string _ownRoleId;
