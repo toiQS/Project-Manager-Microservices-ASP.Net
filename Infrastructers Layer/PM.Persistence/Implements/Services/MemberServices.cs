@@ -1,9 +1,7 @@
-﻿using Microsoft.SqlServer.Server;
-using PM.Domain;
+﻿using PM.Domain;
 using PM.Domain.Entities;
 using PM.Domain.Interfaces;
 using PM.Domain.Models.members;
-using PM.Domain.Models.projects;
 using PM.Domain.Models.tasks;
 using Shared.member;
 
@@ -149,6 +147,8 @@ namespace PM.Persistence.Implements.Services
 
             try
             {
+                var own = await GetOwnRole();
+                if(own .Status == false) return ServicesResult<DetailMember>.Failure(own.Message);
                 // Check if the user exists
                 var userExists = await _unitOfWork.UserRepository.ExistAsync("Id", userId);
                 if (!userExists) return ServicesResult<DetailMember>.Failure("User not found");
@@ -157,6 +157,8 @@ namespace PM.Persistence.Implements.Services
                 var members = await _unitOfWork.ProjectMemberRepository.GetManyByKeyAndValue("ProjectId", projectId);
                 if (!members.Status || members.Data == null) return ServicesResult<DetailMember>.Failure("Error: No members found in this project");
 
+                var isCheckRole = members.Data.Where(x => x.UserId == userId && x.ProjectId == projectId && x.RoleId == _ownRoleId ).Any();
+                if (!isCheckRole) return ServicesResult<DetailMember>.Failure("User has not enough role in this project");
                 // Check if the user is already a member
                 if (members.Data.Any(x => x.UserId == addMember.UserId))
                     return ServicesResult<DetailMember>.Failure("Member already exists in this project");
@@ -218,6 +220,9 @@ namespace PM.Persistence.Implements.Services
 
             try
             {
+
+                var own = await GetOwnRole();
+                if (own.Status == false) return ServicesResult<DetailMember>.Failure(own.Message);
                 // Retrieve member
                 var member = await _unitOfWork.ProjectMemberRepository.GetOneByKeyAndValue("Id", memberId);
                 if (!member.Status) return ServicesResult<DetailMember>.Failure(member.Message);
@@ -346,6 +351,30 @@ namespace PM.Persistence.Implements.Services
             finally
             {
                 await _unitOfWork.SaveChangesAsync();
+                _unitOfWork.Dispose();
+            }
+        }
+        /// <summary>
+        /// Gets the role ID for the owner role.
+        /// </summary>
+        /// <returns>Service result indicating success or failure</returns>
+        private async Task<ServicesResult<bool>> GetOwnRole()
+        {
+            try
+            {
+                var ownRole = await _unitOfWork.RoleInProjectRepository.GetOneByKeyAndValue("Name", "Owner");
+                if (!ownRole.Status)
+                    return ServicesResult<bool>.Failure(ownRole.Message);
+
+                _ownRoleId = ownRole.Data.Id;
+                return ServicesResult<bool>.Success(true);
+            }
+            catch (Exception ex)
+            {
+                return ServicesResult<bool>.Failure(ex.Message);
+            }
+            finally
+            {
                 _unitOfWork.Dispose();
             }
         }
