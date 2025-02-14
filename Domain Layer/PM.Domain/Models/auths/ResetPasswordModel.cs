@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.missions;
-
-namespace PM.Domain.Models.auths
+﻿namespace PM.Domain.Models.auths
 {
     public class ResetPasswordModel
     {
