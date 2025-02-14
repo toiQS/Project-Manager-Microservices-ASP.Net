@@ -12,6 +12,10 @@ namespace PM.Persistence.Implements.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private string _ownRoleId;
+        public MemberServices(IUnitOfWork unitOfWork)
+        {
+            _unitOfWork = unitOfWork;
+        }
         /// <summary>
         /// Retrieves all members.
         /// </summary>

@@ -16,6 +16,11 @@ namespace PM.Persistence.Implements.Services
         private string _leader;
         private string _manager;
         //eveyone can create, update, and delete when your role is owner, leader, manager
+        public PlanServices(IUnitOfWork unitOfWork)
+        {
+            _unitOfWork = unitOfWork;
+           
+        }
 
         #region Retrieves all plans in the system
         /// <summary>

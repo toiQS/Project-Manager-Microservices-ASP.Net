@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using PM.Domain.Entities;
@@ -7,7 +6,6 @@ using PM.Domain.Interfaces;
 using PM.Domain.Interfaces.Services;
 using PM.Persistence.Implements;
 using PM.Persistence.Implements.Services;
-using System.Security.Permissions;
 
 namespace PM.Persistence
 {
@@ -38,6 +36,9 @@ namespace PM.Persistence
             services.AddScoped<IRepository<Status,int>, Repository<Status, int>>();
             services.AddScoped<IRepository<Plan, string>, Repository<Plan, string>>();
 
+
+            //unit of work
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
             //services
             services.AddScoped<IProjectServices, ProjectServices>();
             services.AddScoped<IPlanServices, PlanServices>();

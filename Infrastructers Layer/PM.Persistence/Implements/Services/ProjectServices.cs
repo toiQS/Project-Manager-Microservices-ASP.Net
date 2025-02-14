@@ -15,10 +15,9 @@ namespace PM.Persistence.Implements.Services
         private string _ownRoleId;
         private readonly IPlanServices _planServices;
         private readonly IMemberServices _memberServices;
-        public ProjectServices(IUnitOfWork unitOfWork, string ownRoleId, IPlanServices planServices, IMemberServices memberServices)
+        public ProjectServices(IUnitOfWork unitOfWork, IPlanServices planServices, IMemberServices memberServices)
         {
             _unitOfWork = unitOfWork;
-            _ownRoleId = ownRoleId;
             _planServices = planServices;
             _memberServices = memberServices;
         }
