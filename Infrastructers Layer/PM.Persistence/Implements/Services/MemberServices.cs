@@ -2,7 +2,7 @@
 using PM.Domain.Entities;
 using PM.Domain.Interfaces;
 using PM.Domain.Models.members;
-using PM.Domain.Models.tasks;
+using PM.Domain.Models.missions;
 using Shared.member;
 
 namespace PM.Persistence.Implements.Services
@@ -107,10 +107,10 @@ namespace PM.Persistence.Implements.Services
                 if (!role.Status) return ServicesResult<DetailMember>.Failure(role.Message);
                 response.RoleMember = role.Data.Name;
 
-                var tasks = await _unitOfWork.MissionAssignmentRepository.GetManyByKeyAndValue("ProjectMemberId", memberId);
-                if (!tasks.Status) return ServicesResult<DetailMember>.Failure(tasks.Message);
+                var missions = await _unitOfWork.MissionAssignmentRepository.GetManyByKeyAndValue("ProjectMemberId", memberId);
+                if (!missions.Status) return ServicesResult<DetailMember>.Failure(missions.Message);
 
-                foreach (var item in tasks.Data)
+                foreach (var item in missions.Data)
                 {
                     var task = await _unitOfWork.MissionRepository.GetOneByKeyAndValue("Id", item.MissionId);
                     if (!task.Status) return ServicesResult<DetailMember>.Failure(task.Message);
@@ -118,10 +118,10 @@ namespace PM.Persistence.Implements.Services
                     var status = await _unitOfWork.StatusRepository.GetOneByKeyAndValue("Id", task.Data.StatusId);
                     if (!status.Status) return ServicesResult<DetailMember>.Failure(status.Message);
 
-                    response.Tasks.Add(new IndexTask
+                    response.missions.Add(new IndexMission
                     {
-                        TaskId = task.Data.Id,
-                        TaskName = task.Data.Name,
+                        MissionId = task.Data.Id,
+                        MissionName = task.Data.Name,
                         Status = status.Data.Name
                     });
                 }
