@@ -3,7 +3,7 @@ using Shared.member;
 
 namespace PM.Domain.Interfaces.Services
 {
-    internal interface IMemberServices
+    public interface IMemberServices
     {
         public Task<ServicesResult<IEnumerable<IndexMember>>> GetMembers();
         public Task<ServicesResult<IEnumerable<IndexMember>>> GetMemberInProject(string projectId);
