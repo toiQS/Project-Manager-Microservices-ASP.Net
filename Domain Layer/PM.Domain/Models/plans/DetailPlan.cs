@@ -1,4 +1,7 @@
 ﻿using PM.Domain.Entities;
+using PM.Domain.Models.members;
+using PM.Domain.Models.missions;
+using PM.Domain.Models.progressReports;
 
 namespace PM.Domain.Models.plans
 {
@@ -11,7 +14,7 @@ namespace PM.Domain.Models.plans
         public string Description {  get; set; } = string.Empty;
         public DateOnly StartDate { get; set; } // Ngày bắt đầu
         public DateOnly EndDate { get; set; } // Ngày kết thúc
-        public ICollection<Mission> Missions { get; set; } // Các nhiệm vụ
-        public ICollection<ProgressReport> ProgressReports { get; set; } // Báo cáo tiến độ
+        public ICollection<IndexMission> Missions { get; set; } // Các nhiệm vụ
+        public ICollection<IndexRepost> ProgressReports { get; set; } // Báo cáo tiến độ
     }
 }
