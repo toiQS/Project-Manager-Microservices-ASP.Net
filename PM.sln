@@ -23,6 +23,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RootAPIs", "APIs Layer\Root
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PM.Application", "Application Layer\PM.Application\PM.Application.csproj", "{C681C129-9ABE-4290-95D6-A13C99EF5B74}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AuthAPIs", "APIs Layer\AuthAPIs\AuthAPIs.csproj", "{44F76C75-3829-4F22-B3F0-FCFCCCA461ED}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -49,6 +51,10 @@ Global
 		{C681C129-9ABE-4290-95D6-A13C99EF5B74}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C681C129-9ABE-4290-95D6-A13C99EF5B74}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C681C129-9ABE-4290-95D6-A13C99EF5B74}.Release|Any CPU.Build.0 = Release|Any CPU
+		{44F76C75-3829-4F22-B3F0-FCFCCCA461ED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{44F76C75-3829-4F22-B3F0-FCFCCCA461ED}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{44F76C75-3829-4F22-B3F0-FCFCCCA461ED}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{44F76C75-3829-4F22-B3F0-FCFCCCA461ED}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -59,6 +65,7 @@ Global
 		{7B760225-021E-40DE-8AFF-6D3B3A427D1C} = {9BA8FBB6-2910-49F1-9F6B-764DACE990AE}
 		{940F45E8-DD92-4481-9C43-C28243E23A2C} = {D6146194-E044-4AD0-B62C-6DC960FB8649}
 		{C681C129-9ABE-4290-95D6-A13C99EF5B74} = {D266E074-49AA-4EDD-94F4-E9EEB26126CD}
+		{44F76C75-3829-4F22-B3F0-FCFCCCA461ED} = {D6146194-E044-4AD0-B62C-6DC960FB8649}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C895F6A9-DBC0-4EDF-A441-7CB6B92CB0BD}

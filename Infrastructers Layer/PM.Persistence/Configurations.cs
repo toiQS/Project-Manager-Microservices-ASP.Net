@@ -25,15 +25,15 @@ namespace PM.Persistence
         {
             //repository
             services.AddScoped<IRepository<ActivityLog, string>, Repository<ActivityLog, string>>();
-            services.AddScoped<IRepository<Document, string>, Repository<Document,string>>();
+            services.AddScoped<IRepository<Document, string>, Repository<Document, string>>();
             services.AddScoped<IRepository<ProjectMember, string>, Repository<ProjectMember, string>>();
-            services.AddScoped<IRepository<Project,string> , Repository<Project, string>>();
+            services.AddScoped<IRepository<Project, string>, Repository<Project, string>>();
             services.AddScoped<IRepository<Mission, string>, Repository<Mission, string>>();
             services.AddScoped<IRepository<User, string>, Repository<User, string>>();
             services.AddScoped<IRepository<MissionAssignment, string>, Repository<MissionAssignment, string>>();
             services.AddScoped<IRepository<ProgressReport, string>, Repository<ProgressReport, string>>();
-            services.AddScoped<IRepository<RoleInProject,string>, Repository<RoleInProject, string>>();
-            services.AddScoped<IRepository<Status,int>, Repository<Status, int>>();
+            services.AddScoped<IRepository<RoleInProject, string>, Repository<RoleInProject, string>>();
+            services.AddScoped<IRepository<Status, int>, Repository<Status, int>>();
             services.AddScoped<IRepository<Plan, string>, Repository<Plan, string>>();
 
 

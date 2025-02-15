@@ -15,7 +15,7 @@ namespace PM.Application
         }
         private static void RegisterServices(this IServiceCollection services, IConfiguration configuration)
         {
-            services.AddScoped<IAuthLogic, AuthLogic>();
+            //services.AddScoped<IAuthLogic, AuthLogic>();
         }
     }
 }
