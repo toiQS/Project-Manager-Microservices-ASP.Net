@@ -21,7 +21,10 @@ namespace PM.Persistence
         public static void RegisterDatabase(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseSqlServer(configuration.GetConnectionString("DockerConnectString")));
+            {
+                options.UseSqlServer(configuration.GetConnectionString("DockerConnectString"));
+                options.EnableSensitiveDataLogging();
+            });
         }
         private static void RegisterServices(this IServiceCollection services, IConfiguration configuration)
         {

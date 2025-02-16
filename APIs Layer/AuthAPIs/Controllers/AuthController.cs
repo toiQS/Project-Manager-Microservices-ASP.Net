@@ -33,20 +33,7 @@ namespace AuthAPIs.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, "Error in Login");
             }
         }
-        [HttpPost("login-method-second")]
-        public async Task<IActionResult> LoginMethodSecond([FromBody] LoginModel request)
-        {
-            try
-            {
-                var response = await _authLogic.Login(request);
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error in Login");
-                return StatusCode(StatusCodes.Status500InternalServerError, "Error in Login");
-            }
-        }
+        
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterModel request)
         {

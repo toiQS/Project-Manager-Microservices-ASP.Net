@@ -1,11 +1,10 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using PM.Domain.Models.auths;
 using PM.Domain;
 using PM.Domain.Entities;
-using PM.Domain.Models.users;
-using PM.Domain.Interfaces.Services;
-using System.Data.Entity.Infrastructure.Design;
 using PM.Domain.Interfaces;
+using PM.Domain.Interfaces.Services;
+using PM.Domain.Models.auths;
+using PM.Domain.Models.users;
 
 namespace PM.Persistence.Implements.Services
 {
@@ -13,15 +12,21 @@ namespace PM.Persistence.Implements.Services
     {
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
-        private readonly IUnitOfWork _unitOfWork;   
+        //private readonly IUnitOfWork _unitOfWork;   
 
-        public AuthServices(
-            UserManager<User> userManager,
-            SignInManager<User> signInManager, IUnitOfWork unitOfWork)
+        //public AuthServices(
+        //    UserManager<User> userManager,
+        //    SignInManager<User> signInManager, IUnitOfWork unitOfWork)
+        //{
+        //    _userManager = userManager;
+        //    _signInManager = signInManager;
+        //    _unitOfWork = unitOfWork;
+        //}
+
+        public AuthServices(UserManager<User> userManager, SignInManager<User> signInManager)
         {
             _userManager = userManager;
             _signInManager = signInManager;
-            _unitOfWork = unitOfWork;
         }
 
         public async Task<ServicesResult<DetailAppUser>> LoginAsync(LoginModel loginModel)
@@ -57,37 +62,37 @@ namespace PM.Persistence.Implements.Services
                 return ServicesResult<DetailAppUser>.Failure($"An error occurred: {ex.Message}");
             }
         }
-        public async Task<ServicesResult<DetailAppUser>> LoginMethodSecondAsync(LoginModel loginModel)
-        {
-            if (loginModel is null)
-                return ServicesResult<DetailAppUser>.Failure("User Name and Password may not be null");
+        //public async Task<ServicesResult<DetailAppUser>> LoginMethodSecondAsync(LoginModel loginModel)
+        //{
+        //    if (loginModel is null)
+        //        return ServicesResult<DetailAppUser>.Failure("User Name and Password may not be null");
 
-            try
-            {
-                var isUserValid = await _unitOfWork.UserRepository.GetOneByKeyAndValue("Email", loginModel.Email);
-                if (isUserValid == null)
-                    return ServicesResult<DetailAppUser>.Failure("Invalid email");
-                var isPasswordValid = await _userManager.CheckPasswordAsync(isUserValid.Data, loginModel.Password);
-                if (!isPasswordValid)
-                    return ServicesResult<DetailAppUser>.Failure("Invalid password");
-                await _signInManager.SignInAsync(isUserValid.Data, isPersistent: false);
-                var detailAppUser = new DetailAppUser
-                {
-                    UserId = isUserValid.Data.Id,
-                    UserName = isUserValid.Data.UserName ?? string.Empty, // Handle possible null reference
-                    Email = isUserValid.Data.Email,
-                    FullName = isUserValid.Data.FullName ?? string.Empty, // Handle possible null reference
-                    Phone = isUserValid.Data.PhoneNumber ?? string.Empty, // Handle possible null reference
-                    Avata = isUserValid.Data.AvatarPath ?? string.Empty // Handle possible null reference
-                };
-                return ServicesResult<DetailAppUser>.Success(detailAppUser);
-            }
-            catch (Exception ex)
-            {
-                // Log exception here
-                return ServicesResult<DetailAppUser>.Failure($"An error occurred: {ex.Message}");
-            }
-        }
+        //    try
+        //    {
+        //        var isUserValid = await _unitOfWork.UserRepository.GetOneByKeyAndValue("Email", loginModel.Email);
+        //        if (isUserValid == null)
+        //            return ServicesResult<DetailAppUser>.Failure("Invalid email");
+        //        var isPasswordValid = await _userManager.CheckPasswordAsync(isUserValid.Data, loginModel.Password);
+        //        if (!isPasswordValid)
+        //            return ServicesResult<DetailAppUser>.Failure("Invalid password");
+        //        await _signInManager.SignInAsync(isUserValid.Data, isPersistent: false);
+        //        var detailAppUser = new DetailAppUser
+        //        {
+        //            UserId = isUserValid.Data.Id,
+        //            UserName = isUserValid.Data.UserName ?? string.Empty, // Handle possible null reference
+        //            Email = isUserValid.Data.Email,
+        //            FullName = isUserValid.Data.FullName ?? string.Empty, // Handle possible null reference
+        //            Phone = isUserValid.Data.PhoneNumber ?? string.Empty, // Handle possible null reference
+        //            Avata = isUserValid.Data.AvatarPath ?? string.Empty // Handle possible null reference
+        //        };
+        //        return ServicesResult<DetailAppUser>.Success(detailAppUser);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        // Log exception here
+        //        return ServicesResult<DetailAppUser>.Failure($"An error occurred: {ex.Message}");
+        //    }
+        //}
 
         public async Task<ServicesResult<DetailAppUser>> RegisterAsync(RegisterModel registerModel)
         {
@@ -98,28 +103,25 @@ namespace PM.Persistence.Implements.Services
             {
                 var user = new User
                 {
-                   Email = registerModel.Email,
-                   UserName = registerModel.UserName,
+                    UserName = registerModel.UserName,
+                    Email = registerModel.Email
                 };
 
                 var result = await _userManager.CreateAsync(user, registerModel.Password);
                 if (!result.Succeeded)
                     return ServicesResult<DetailAppUser>.Failure(string.Join(", ", result.Errors.Select(e => e.Description)));
-                var detail = new DetailAppUser
+                return ServicesResult<DetailAppUser>.Success(new DetailAppUser
                 {
                     UserId = user.Id,
                     UserName = user.UserName,
-                    Email = user.Email,
-                    FullName = user.FullName,
-                    Phone = user.PhoneNumber,
-                    Avata = user.AvatarPath
-                };
-                return ServicesResult<DetailAppUser>.Success(detail);
+                    Email = user.Email
+                });
+
             }
             catch (Exception ex)
             {
                 // Log exception here
-                return ServicesResult<DetailAppUser>.Failure($"An error occurred: {ex.Message}");
+                return ServicesResult<DetailAppUser>.Failure($"An error occurred: {ex.StackTrace}");
             }
         }
 
