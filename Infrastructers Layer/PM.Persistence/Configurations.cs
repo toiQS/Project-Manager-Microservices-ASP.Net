@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using PM.Domain.Entities;
@@ -15,6 +16,7 @@ namespace PM.Persistence
         {
             RegisterDatabase(services, configuration);
             RegisterServices(services, configuration);
+            RegisterIdentity(services, configuration);
         }
         public static void RegisterDatabase(this IServiceCollection services, IConfiguration configuration)
         {
@@ -36,13 +38,46 @@ namespace PM.Persistence
             services.AddScoped<IRepository<Status, int>, Repository<Status, int>>();
             services.AddScoped<IRepository<Plan, string>, Repository<Plan, string>>();
 
+            services.AddScoped<UserManager<User>>();
 
             //unit of work
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             //services
+            services.AddScoped<IAuthServices, AuthServices>();
             services.AddScoped<IProjectServices, ProjectServices>();
             services.AddScoped<IPlanServices, PlanServices>();
             services.AddScoped<IMemberServices, MemberServices>();
+        }
+        private static void RegisterIdentity(this IServiceCollection services, IConfiguration configuration)
+        {
+            //services.AddIdentity<User, IdentityRole>()
+            //    .AddEntityFrameworkStores<ApplicationDbContext>()
+            //    .AddDefaultTokenProviders();
+            services.AddIdentity<User, IdentityRole>(options =>
+            {
+                options.Password.RequiredLength = 3;
+                options.Password.RequireNonAlphanumeric = false;
+                options.Password.RequireDigit = false;
+                options.Password.RequireLowercase = false;
+                options.Password.RequireUppercase = false;
+                options.User.RequireUniqueEmail = true;
+
+            }).AddEntityFrameworkStores<ApplicationDbContext>()
+           .AddDefaultTokenProviders();
+
+            services.Configure<IdentityOptions>(options =>
+            {
+                // Default Password settings.
+                options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
+                options.Lockout.MaxFailedAccessAttempts = 5;
+                options.Lockout.AllowedForNewUsers = true;
+                options.Password.RequireDigit = true;
+                options.Password.RequireLowercase = true;
+                options.Password.RequireNonAlphanumeric = true;
+                options.Password.RequireUppercase = true;
+                options.Password.RequiredLength = 6;
+                options.Password.RequiredUniqueChars = 1;
+            });
         }
     }
 }

@@ -36,7 +36,7 @@ namespace PM.Persistence.Implements.Services
                     {
                         UserAvata = user.Data.AvatarPath,
                         PositionWorkName = member.PositionWork,
-                        UserName = user.Data.NickName,
+                        UserName = user.Data.UserName,
                         RoleUserInProjectId = member.Id
                     });
                 }
@@ -70,7 +70,7 @@ namespace PM.Persistence.Implements.Services
                     {
                         UserAvata = user.Data.AvatarPath,
                         PositionWorkName = member.PositionWork,
-                        UserName = user.Data.NickName,
+                        UserName = user.Data.UserName,
                         RoleUserInProjectId = member.Id
                     });
                 }
@@ -104,7 +104,7 @@ namespace PM.Persistence.Implements.Services
                 var response = new DetailMember
                 {
                     MemberId = memberId,
-                    MemberName = user.Data.NickName,
+                    MemberName = user.Data.UserName,
                     PositionWork = member.Data.PositionWork
                 };
 
@@ -192,7 +192,7 @@ namespace PM.Persistence.Implements.Services
                 var log = new ActivityLog()
                 {
                     Id = Guid.NewGuid().ToString(),
-                    Action = $"Added member {infoMember.Data.NickName} to project {project.Data.Name} by {infoUser.Data.NickName}",
+                    Action = $"Added member {infoMember.Data.UserName} to project {project.Data.Name} by {infoUser.Data.UserName}",
                     ActionDate = DateTime.Now,
                     ProjectId = projectId,
                     UserId = userId,
@@ -258,7 +258,7 @@ namespace PM.Persistence.Implements.Services
                 var log = new ActivityLog()
                 {
                     Id = Guid.NewGuid().ToString(),
-                    Action = $"{infoUser.Data.NickName} updated a member in project {project.Data.Name}",
+                    Action = $"{infoUser.Data.UserName} updated a member in project {project.Data.Name}",
                     ActionDate = DateTime.Now,
                     ProjectId = member.Data.ProjectId,
                     UserId = userId
@@ -336,7 +336,7 @@ namespace PM.Persistence.Implements.Services
                 var log = new ActivityLog()
                 {
                     Id = "",
-                    Action = $"{ownerInfo.Data.NickName} removed a member and deleted related missions in project {projectInfo.Data.Name}",
+                    Action = $"{ownerInfo.Data.UserName} removed a member and deleted related missions in project {projectInfo.Data.Name}",
                     ActionDate = DateTime.Now,
                     ProjectId = member.Data.ProjectId,
                     UserId = userId

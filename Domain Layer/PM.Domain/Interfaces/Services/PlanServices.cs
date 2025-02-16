@@ -223,7 +223,7 @@ namespace PM.Domain.Interfaces.Services
                 var log = new ActivityLog
                 {
                     Id = Guid.NewGuid().ToString(),
-                    Action = $"{memberInfo.Data.NickName} created a plan {plan.Name} in project {project.Data.Name}.",
+                    Action = $"{memberInfo.Data.UserName} created a plan {plan.Name} in project {project.Data.Name}.",
                     ProjectId = projectId,
                     ActionDate = DateTime.Now,
                     UserId = memberInfo.Data.Id
@@ -298,7 +298,7 @@ namespace PM.Domain.Interfaces.Services
                 var log = new ActivityLog
                 {
                     Id = Guid.NewGuid().ToString(),
-                    Action = $"{memberInfo.Data.NickName} updated the plan {plan.Data.Name} in project {plan.Data.Project.Name}.",
+                    Action = $"{memberInfo.Data.UserName} updated the plan {plan.Data.Name} in project {plan.Data.Project.Name}.",
                     ActionDate = DateTime.Now,
                     ProjectId = plan.Data.ProjectId,
                     UserId = memberInfo.Data.Id

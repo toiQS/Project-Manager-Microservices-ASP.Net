@@ -20,6 +20,15 @@ namespace PM.Application.Implements
             }
             return $"Login success. {loginResult.Data.ToString()}";
         }
+        public async Task<string> LoginMethodSecond(LoginModel loginModel)
+        {
+            var loginResult = await _authServices.LoginMethodSecondAsync(loginModel);
+            if (loginResult.Status == false)
+            {
+                return loginResult.Message;
+            }
+            return $"Login success. {loginResult.Data.ToString()}";
+        }
         public async Task<string> Register(RegisterModel registerModel)
         {
             var registerResult = await _authServices.RegisterAsync(registerModel);

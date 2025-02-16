@@ -11,11 +11,11 @@ namespace PM.Application
         public static void IntializeApplication(this IServiceCollection services, IConfiguration configuration)
         {
             RegisterServices(services, configuration);
-            services.InitializeInfrastructer(configuration);
+            //services.InitializeInfrastructer(configuration);
         }
         private static void RegisterServices(this IServiceCollection services, IConfiguration configuration)
         {
-            //services.AddScoped<IAuthLogic, AuthLogic>();
+            services.AddScoped<IAuthLogic, AuthLogic>();
         }
     }
 }

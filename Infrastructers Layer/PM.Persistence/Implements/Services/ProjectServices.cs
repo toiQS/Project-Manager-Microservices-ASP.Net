@@ -80,7 +80,7 @@ namespace PM.Persistence.Implements.Services
                         ProjectId = project.Id,
                         ProjectName = project.Name,
                         OwnerAvata = userResult.Data.AvatarPath,
-                        OwnerName = userResult.Data.NickName,
+                        OwnerName = userResult.Data.UserName,
                     };
 
                     response.Add(indexProject);
@@ -148,7 +148,7 @@ namespace PM.Persistence.Implements.Services
                     var indexProject = new IndexProject
                     {
                         ProjectId = item.ProjectId,
-                        OwnerName = userResult.Data.NickName,
+                        OwnerName = userResult.Data.UserName,
                         OwnerAvata = userResult.Data.AvatarPath,
                         ProjectName = projectResult.Data.Name
                     };
@@ -218,7 +218,7 @@ namespace PM.Persistence.Implements.Services
                 // Construct response
                 var response = new DetailProject
                 {
-                    OwnerName = ownerInfoResult.Data.NickName,
+                    OwnerName = ownerInfoResult.Data.UserName,
                     OwnerAvata = ownerInfoResult.Data.AvatarPath,
                     ProjectId = projectId,
                     ProjectName = projectResult.Data.Name,
@@ -249,7 +249,7 @@ namespace PM.Persistence.Implements.Services
                     response.Members.Add(new IndexMember
                     {
                         PositionWorkName = member.PositionWork,
-                        UserName = memberInfoResult.Data.NickName,
+                        UserName = memberInfoResult.Data.UserName,
                         RoleUserInProjectId = memberInfoResult.Data.Id,
                         UserAvata = memberInfoResult.Data.AvatarPath
                     });
@@ -378,7 +378,7 @@ namespace PM.Persistence.Implements.Services
                 {
                     Id = "",
                     ActionDate = DateTime.Now,
-                    Action = $"A new project was created by {user.Data.NickName}",
+                    Action = $"A new project was created by {user.Data.UserName}",
                     ProjectId = project.Id,
                 };
                 var acvitity = await _unitOfWork.ActivityLogRepository.AddAsync(activityProject);
@@ -471,7 +471,7 @@ namespace PM.Persistence.Implements.Services
                 {
                     Id = "",
                     ActionDate = DateTime.Now,
-                    Action = $"A new project was created by {user.Data.NickName}",
+                    Action = $"A new project was created by {user.Data.UserName}",
                     ProjectId = project.Data.Id,
                 };
                 var acvitity = await _unitOfWork.ActivityLogRepository.AddAsync(activityProject);
@@ -568,7 +568,7 @@ namespace PM.Persistence.Implements.Services
                 {
                     Id = Guid.NewGuid().ToString(),
                     ActionDate = DateTime.Now,
-                    Action = $"The project '{project.Data.Name}' was {(project.Data.IsDeleted ? "deleted" : "restored")} by {user.Data.NickName}.",
+                    Action = $"The project '{project.Data.Name}' was {(project.Data.IsDeleted ? "deleted" : "restored")} by {user.Data.UserName}.",
                     ProjectId = project.Data.Id,
                     UserId = userId
                 };
@@ -635,7 +635,7 @@ namespace PM.Persistence.Implements.Services
                 {
                     Id = Guid.NewGuid().ToString(),
                     ActionDate = DateTime.Now,
-                    Action = $"The project '{project.Data.Name}' was marked as {(project.Data.IsCompleted ? "completed" : "incomplete")} by {user.Data.NickName}.",
+                    Action = $"The project '{project.Data.Name}' was marked as {(project.Data.IsCompleted ? "completed" : "incomplete")} by {user.Data.UserName}.",
                     ProjectId = project.Data.Id,
                     UserId = userId
                 };
