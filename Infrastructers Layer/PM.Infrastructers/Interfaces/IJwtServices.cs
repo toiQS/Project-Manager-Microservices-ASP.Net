@@ -1,15 +1,13 @@
 ﻿using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
 using PM.Domain;
+using PM.Domain.Models.users;
 
 namespace PM.Infrastructers.Interfaces
 {
     public interface IJwtServices
     {
-        public ServicesResult<string> GenerateToken();
-        public ServicesResult<string> RefreshToken(string token);
-        public ServicesResult<string> JwtExpirationHanding(string token);
-        public ServicesResult<string> CheckToken(string token);
-        public ServicesResult<string> CancelToken(string token);
-        public ServicesResult<string> HandleToken(string token);
+        public ServicesResult<string> GenerateToken(DetailAppUser detailAppUser);
+       
+        public ServicesResult<DetailAppUser> ParseToken(string token);
     }
 }

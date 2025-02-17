@@ -12,7 +12,7 @@ namespace PM.Persistence
 {
     public static class Configurations
     {
-        public static void InitializeInfrastructer(this IServiceCollection services, IConfiguration configuration)
+        public static void InitializePersistence(this IServiceCollection services, IConfiguration configuration)
         {
             RegisterDatabase(services, configuration);
             RegisterServices(services, configuration);

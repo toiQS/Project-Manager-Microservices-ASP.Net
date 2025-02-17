@@ -21,7 +21,7 @@ namespace PM.Persistence
         public DbSet<RoleInProject> RoleInProject { get; set; }
         public DbSet<Status> Status { get; set; }
         public DbSet<User> User { get; set; }
-
+        public DbSet<RefreshToken> RefreshToken { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

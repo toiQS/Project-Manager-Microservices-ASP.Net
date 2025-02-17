@@ -12,6 +12,7 @@ namespace PM.Application
         {
             RegisterServices(services, configuration);
             //services.InitializeInfrastructer(configuration);
+            services.InitializeInfrastructer(configuration);
         }
         private static void RegisterServices(this IServiceCollection services, IConfiguration configuration)
         {
