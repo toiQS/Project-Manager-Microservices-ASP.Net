@@ -15,11 +15,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Application Layer\PM.Application\PM.Application.csproj" />
+    <Folder Include="Controllers\" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Controllers\" />
+    <ProjectReference Include="..\..\Infrastructers Layer\PM.Persistence\PM.Persistence.csproj" />
   </ItemGroup>
 
 </Project>

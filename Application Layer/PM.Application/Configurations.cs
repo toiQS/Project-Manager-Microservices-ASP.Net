@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using PM.Application.Implements;
 using PM.Application.Interfaces;
+using PM.Infrastructers;
 using PM.Persistence;
 
 namespace PM.Application
@@ -11,8 +12,8 @@ namespace PM.Application
         public static void IntializeApplication(this IServiceCollection services, IConfiguration configuration)
         {
             RegisterServices(services, configuration);
-            //services.InitializeInfrastructer(configuration);
-            services.InitializeInfrastructer(configuration);
+            services.InitializePersistence(configuration);
+            services.InitializeInfrastructure(configuration);
         }
         private static void RegisterServices(this IServiceCollection services, IConfiguration configuration)
         {
