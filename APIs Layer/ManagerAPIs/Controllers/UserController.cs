@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using PM.Application.Interfaces;
+using PM.Domain.Models.users;
 
 namespace ManagerAPIs.Controllers
 {
@@ -54,6 +55,62 @@ namespace ManagerAPIs.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
             }
         }
-
+        [HttpPut("update-user")]
+        public async Task<IActionResult> UpdateUser(string token,[FromBody] UpdateAppUser user)
+        {
+            try
+            {
+                //var token = _httpContextAccessor.HttpContext.Request.Headers["Authorization"];
+                var response = await _userLogic.UpdateUser(token, user);
+                if (response.Status == false)
+                {
+                    return BadRequest(response.Message);
+                }
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+        [HttpPut("update-avata")]
+        public async Task<IActionResult> UpdateAvata(string token, string avata)
+        {
+            try
+            {
+                //var token = _httpContextAccessor.HttpContext.Request.Headers["Authorization"];
+                var response = await _userLogic.UpdateAvata(token, avata);
+                if (response.Status == false)
+                {
+                    return BadRequest(response.Message);
+                }
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+        [HttpPatch("change-password")]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordUser user)
+        {
+            try
+            {
+                var response = await _userLogic.ChangePassword(user);
+                if (response.Status == false)
+                {
+                    return BadRequest(response.Message);
+                }
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+        
     }
 }
