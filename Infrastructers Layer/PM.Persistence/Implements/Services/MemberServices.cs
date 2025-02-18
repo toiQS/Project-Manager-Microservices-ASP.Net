@@ -8,7 +8,7 @@ using Shared.member;
 
 namespace PM.Persistence.Implements.Services
 {
-    internal class MemberServices : IMemberServices
+    public class MemberServices : IMemberServices
     {
         private readonly IUnitOfWork _unitOfWork;
         private string _ownRoleId;
@@ -16,6 +16,7 @@ namespace PM.Persistence.Implements.Services
         {
             _unitOfWork = unitOfWork;
         }
+        #region Retrieve members
         /// <summary>
         /// Retrieves all members.
         /// </summary>
@@ -47,7 +48,9 @@ namespace PM.Persistence.Implements.Services
                 return ServicesResult<IEnumerable<IndexMember>>.Failure(ex.Message);
             }
         }
+        #endregion
 
+        #region Retrieve member details
         /// <summary>
         /// Retrieves members associated with a specific project.
         /// </summary>
@@ -85,7 +88,10 @@ namespace PM.Persistence.Implements.Services
                 _unitOfWork.Dispose();
             }
         }
+        #endregion
 
+
+        #region retrieve member details
         /// <summary>
         /// Retrieves detailed information about a specific member.
         /// </summary>
@@ -141,7 +147,9 @@ namespace PM.Persistence.Implements.Services
                 _unitOfWork.Dispose();
             }
         }
+        #endregion
 
+        #region add a new member to a project  
         /// <summary>
         /// Adds a new member to a project.
         /// </summary>
@@ -208,13 +216,11 @@ namespace PM.Persistence.Implements.Services
             {
                 return ServicesResult<DetailMember>.Failure(ex.Message);
             }
-            finally
-            {
-                await _unitOfWork.SaveChangesAsync();
-                _unitOfWork.Dispose();
-            }
+           
         }
+        #endregion
 
+        #region update a member in a project
         /// <summary>
         /// Updates an existing project member.
         /// </summary>
@@ -273,12 +279,10 @@ namespace PM.Persistence.Implements.Services
             {
                 return ServicesResult<DetailMember>.Failure(ex.Message);
             }
-            finally
-            {
-                await _unitOfWork.SaveChangesAsync();
-                _unitOfWork.Dispose();
-            }
         }
+        #endregion
+
+        #region delete a member in a project
         /// <summary>
         /// Deletes a member from a project and removes any associated mission assignments.
         /// </summary>
@@ -353,12 +357,11 @@ namespace PM.Persistence.Implements.Services
             {
                 return ServicesResult<IEnumerable<IndexMember>>.Failure($"An error occurred: {ex.Message}");
             }
-            finally
-            {
-                await _unitOfWork.SaveChangesAsync();
-                _unitOfWork.Dispose();
-            }
+            
         }
+        #endregion
+
+        #region Helper methods
         /// <summary>
         /// Gets the role ID for the owner role.
         /// </summary>
@@ -383,6 +386,6 @@ namespace PM.Persistence.Implements.Services
                 _unitOfWork.Dispose();
             }
         }
-
+        #endregion
     }
 }
