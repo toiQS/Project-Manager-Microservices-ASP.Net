@@ -326,11 +326,6 @@ namespace PM.Persistence.Implements.Services
             {
                 return ServicesResult<DetailProject>.Failure(ex.Message);
             }
-            finally
-            {
-                await _unitOfWork.SaveChangesAsync();
-                _unitOfWork.Dispose();
-            }
         }
 
         /// <summary>
@@ -343,7 +338,7 @@ namespace PM.Persistence.Implements.Services
                 // add new project
                 var project = new Project()
                 {
-                    Id = $"",
+                    Id = $"{Guid.NewGuid()}",
                     Name = addProject.ProjectName,
                     StartDate = addProject.StartAt,
                     EndDate = addProject.EndAt,
@@ -361,7 +356,7 @@ namespace PM.Persistence.Implements.Services
                 // set up owner role 
                 var member = new ProjectMember()
                 {
-                    Id = "",
+                    Id = $"{Guid.NewGuid()}",
                     ProjectId = project.Id,
                     RoleId = _ownRoleId,
                     UserId = userId,
@@ -376,7 +371,7 @@ namespace PM.Persistence.Implements.Services
                 // create a activity log for project and owner role project
                 var activityProject = new ActivityLog()
                 {
-                    Id = "",
+                    Id = $"{Guid.NewGuid()}",
                     ActionDate = DateTime.Now,
                     Action = $"A new project was created by {user.Data.UserName}",
                     ProjectId = project.Id,
@@ -393,11 +388,6 @@ namespace PM.Persistence.Implements.Services
             catch (Exception ex)
             {
                 return ServicesResult<DetailProject>.Failure(ex.Message);
-            }
-            finally
-            {
-                await _unitOfWork.SaveChangesAsync();
-                _unitOfWork.Dispose();
             }
         }
 
@@ -437,11 +427,6 @@ namespace PM.Persistence.Implements.Services
             {
                 return ServicesResult<DetailProject>.Failure(ex.Message);
             }
-            finally
-            {
-                await _unitOfWork.SaveChangesAsync();
-                _unitOfWork.Dispose();
-            }
         }
 
         /// <summary>
@@ -469,7 +454,7 @@ namespace PM.Persistence.Implements.Services
                 // create a activity log for project and owner role project
                 var activityProject = new ActivityLog()
                 {
-                    Id = "",
+                    Id = $"{Guid.NewGuid()}",
                     ActionDate = DateTime.Now,
                     Action = $"A new project was created by {user.Data.UserName}",
                     ProjectId = project.Data.Id,
@@ -488,11 +473,6 @@ namespace PM.Persistence.Implements.Services
             catch (Exception ex)
             {
                 return ServicesResult<DetailProject>.Failure(ex.Message);
-            }
-            finally
-            {
-                await _unitOfWork.SaveChangesAsync();
-                _unitOfWork.Dispose();
             }
         }
 
@@ -525,6 +505,7 @@ namespace PM.Persistence.Implements.Services
             }
         }
         #endregion
+
         #region Toggle project status of a project
         /// <summary>
         /// Toggles the IsDeleted status of a project if the user has the required permissions.
@@ -566,7 +547,7 @@ namespace PM.Persistence.Implements.Services
 
                 var activityLog = new ActivityLog
                 {
-                    Id = Guid.NewGuid().ToString(),
+                    Id = $"{Guid.NewGuid()}",
                     ActionDate = DateTime.Now,
                     Action = $"The project '{project.Data.Name}' was {(project.Data.IsDeleted ? "deleted" : "restored")} by {user.Data.UserName}.",
                     ProjectId = project.Data.Id,
@@ -584,14 +565,11 @@ namespace PM.Persistence.Implements.Services
             {
                 return ServicesResult<DetailProject>.Failure($"An error occurred: {ex.Message}");
             }
-            finally
-            {
-                await _unitOfWork.SaveChangesAsync();
-                _unitOfWork.Dispose();
-            }
+           
         }
 
         #endregion
+
         #region Toggle project status of a project
         /// <summary>
         /// Toggles the IsCompleted status of a project if the user has the required permissions.
@@ -651,11 +629,7 @@ namespace PM.Persistence.Implements.Services
             {
                 return ServicesResult<DetailProject>.Failure($"An error occurred: {ex.Message}");
             }
-            finally
-            {
-                await _unitOfWork.SaveChangesAsync();
-                _unitOfWork.Dispose();
-            }
+            
         }
         #endregion
 
@@ -747,11 +721,6 @@ namespace PM.Persistence.Implements.Services
             catch (Exception ex)
             {
                 return ServicesResult<IEnumerable<IndexProject>>.Failure($"An error occurred: {ex.Message}");
-            }
-            finally
-            {
-                await _unitOfWork.SaveChangesAsync();
-                _unitOfWork.Dispose();
             }
         }
 
