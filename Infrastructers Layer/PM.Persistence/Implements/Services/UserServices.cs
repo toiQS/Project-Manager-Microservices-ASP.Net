@@ -12,9 +12,10 @@ namespace PM.Persistence.Implements.Services
         #region Constructor
         private readonly IUnitOfWork _unitOfWork;
         private readonly UserManager<User> _userManager;
-        public UserServices(IUnitOfWork unitOfWork)
+        public UserServices(IUnitOfWork unitOfWork, UserManager<User> userManager)
         {
             _unitOfWork = unitOfWork;
+            _userManager = userManager;
         }
         #endregion
         public async Task<ServicesResult<DetailAppUser>> GetDetailUser(string userId)
@@ -96,6 +97,7 @@ namespace PM.Persistence.Implements.Services
                 _unitOfWork.Dispose();
             }
         }
+
         //public Task<ServicesResult<bool>> DeleteUser(string userId);
         //public Task<ServicesResult<bool>> ChangePassword(ChangePasswordUser changePassword);
         //public Task<ServicesResult<bool>> UpdateAvata(string userId, string avata);

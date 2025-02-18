@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using PM.Application.Interfaces;
 
 namespace ManagerAPIs.Controllers
@@ -17,13 +16,17 @@ namespace ManagerAPIs.Controllers
             _httpContextAccessor = httpContextAccessor;
             _logger = logger;
         }
-        [HttpGet("user-detail")]
+        [HttpGet("user-detail-token")]
         public async Task<IActionResult> GetUserDetail(string token)
         {
             try
             {
                 //var token = _httpContextAccessor.HttpContext.Request.Headers["Authorization"];
-                var response = await _userLogic.DetailUser(token);
+                var response = _userLogic.GetDetailUserToken(token);
+                if(response.Status == false)
+                {
+                    return BadRequest(response.Message);
+                }
                 return Ok(response);
             }
             catch (Exception ex)
@@ -32,5 +35,25 @@ namespace ManagerAPIs.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
             }
         }
+        [HttpGet("another-user-detail-identity")]
+        public async Task<IActionResult> GetOtherUserDetail(string userId)
+        {
+            try
+            {
+                //var token = _httpContextAccessor.HttpContext.Request.Headers["Authorization"];
+                var response = await _userLogic.GetDetailUserIdentty(userId);
+                if (response.Status == false)
+                {
+                    return BadRequest(response.Message);
+                }
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+
     }
 }

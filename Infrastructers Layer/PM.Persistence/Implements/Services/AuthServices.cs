@@ -110,6 +110,7 @@ namespace PM.Persistence.Implements.Services
                 var result = await _userManager.CreateAsync(user, registerModel.Password);
                 if (!result.Succeeded)
                     return ServicesResult<DetailAppUser>.Failure(string.Join(", ", result.Errors.Select(e => e.Description)));
+                var responseRole = await _userManager.AddToRoleAsync(user, "Customer");
                 return ServicesResult<DetailAppUser>.Success(new DetailAppUser
                 {
                     UserId = user.Id,

@@ -1,4 +1,5 @@
 ﻿using PM.Application.Interfaces;
+using PM.Domain;
 using PM.Domain.Interfaces.Services;
 using PM.Domain.Models.users;
 using PM.Infrastructers.Interfaces;
@@ -14,17 +15,37 @@ namespace PM.Application.Implements
             _userServices = userServices;
             _jwtServices = jwtServices;
         }
-        public async Task<string> DetailUser(string token)
+        public ServicesResult<DetailAppUser> GetDetailUserToken(string token)
         {
-            var response =  _jwtServices.ParseToken(token);
+            var response = _jwtServices.ParseToken(token);
+            if (response.Status == false)
+            {
+                return ServicesResult<DetailAppUser>.Failure(response.Message);
+            }
+            return ServicesResult<DetailAppUser>.Success(response.Data);
+        }
+        public async Task<ServicesResult<DetailAppUser>> GetDetailUserIdentty(string userId)
+        {
+            var response = await _userServices.GetDetailUser(userId);
             if(response.Status == false)
             {
-                return response.Message;
+                return ServicesResult<DetailAppUser>.Failure(response.Message);
             }
-            return $"Id: {response.Data.UserId} - User: {response.Data.UserName} - {response.Data.FullName} - {response.Data.Email} - {response.Data.Phone} - {response.Data.Avata}";
+            return ServicesResult<DetailAppUser>.Success(response.Data);
         }
-        //public Task<string> UpdateUser(DetailAppUser user);
-        //public Task<string> ChangePassword(string token, string oldPassword, string newPassword);
-        //public Task<string> UpdateAvata(string token, string avata);
+        public async Task<ServicesResult<DetailAppUser>> UpdateUser(string token, UpdateAppUser user)
+        {
+            var resonseToken = _jwtServices.ParseToken(token);
+            if (resonseToken.Status == false)
+            {
+                return ServicesResult<DetailAppUser>.Failure(resonseToken.Message);
+            }
+            var responseUpdate = await _userServices.UpdateUser(resonseToken.Data.UserId, user);
+            if (responseUpdate.Status == false)
+            {
+                return ServicesResult<DetailAppUser>.Failure(responseUpdate.Message);
+            }
+            return ServicesResult<DetailAppUser>.Success(responseUpdate.Data);
+        }
     }
 }
