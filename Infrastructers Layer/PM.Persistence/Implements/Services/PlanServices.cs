@@ -247,11 +247,7 @@ namespace PM.Persistence.Implements.Services
             {
                 return ServicesResult<DetailPlan>.Failure($"An error occurred: {ex.Message}");
             }
-            finally
-            {
-                await _unitOfWork.SaveChangesAsync();
-                _unitOfWork.Dispose();
-            }
+           
         }
         #endregion
         #region Updates an existing plan if the member has the required permissions
@@ -322,16 +318,42 @@ namespace PM.Persistence.Implements.Services
             {
                 return ServicesResult<DetailPlan>.Failure($"An error occurred: {ex.Message}");
             }
-            finally
-            {
-                await _unitOfWork.SaveChangesAsync();
-                _unitOfWork.Dispose();
-            }
+            
         }
         #endregion
         public async Task<ServicesResult<IEnumerable<IndexPlan>>> DeleteAsync(string memberId, string planId)
         {
-            return await GetPlansInProject(planId);
+            if (string.IsNullOrEmpty(memberId) || string.IsNullOrEmpty(planId))
+                return ServicesResult<IEnumerable<IndexPlan>>.Failure("Invalid input parameters.");
+            try
+            {
+                var member = await _unitOfWork.ProjectMemberRepository.GetOneByKeyAndValue("Id", memberId);
+                if (member.Status == false)
+                {
+                    return ServicesResult<IEnumerable<IndexPlan>>.Failure(member.Message);
+                }
+                var memberInfo = await _unitOfWork.UserRepository.GetOneByKeyAndValue("Id", member.Data.UserId);
+                if (memberInfo.Status == false)
+                {
+                    return ServicesResult<IEnumerable<IndexPlan>>.Failure(memberInfo.Message);
+                }
+                var plan = await _unitOfWork.PlanRepository.GetOneByKeyAndValue("Id", planId);
+
+                if (plan.Status == false)
+                {
+                    return ServicesResult<IEnumerable<IndexPlan>>.Failure(plan.Message);
+                }
+                var missionTasks = await _unitOfWork.MissionRepository.GetManyByKeyAndValue("PlanId", planId);
+                if (missionTasks.Status == false)
+                {
+                    return ServicesResult<IEnumerable<IndexPlan>>.Failure(missionTasks.Message);
+                }
+                return await GetPlansInProject(plan.Data.ProjectId);
+            }
+            catch (Exception ex)
+            {
+                return ServicesResult<IEnumerable<IndexPlan>>.Failure($"An error occurred: {ex.Message}");
+            }
         }
     }
 }
