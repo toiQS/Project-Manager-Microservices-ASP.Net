@@ -38,7 +38,7 @@ namespace PM.Persistence.Implements.Services
                         UserAvata = user.Data.AvatarPath,
                         PositionWorkName = member.PositionWork,
                         UserName = user.Data.UserName,
-                        RoleUserInProjectId = member.Id
+                        MemberId = member.Id
                     });
                 }
                 return ServicesResult<IEnumerable<IndexMember>>.Success(response);
@@ -74,7 +74,7 @@ namespace PM.Persistence.Implements.Services
                         UserAvata = user.Data.AvatarPath,
                         PositionWorkName = member.PositionWork,
                         UserName = user.Data.UserName,
-                        RoleUserInProjectId = member.Id
+                        MemberId = member.Id
                     });
                 }
                 return ServicesResult<IEnumerable<IndexMember>>.Success(response);
