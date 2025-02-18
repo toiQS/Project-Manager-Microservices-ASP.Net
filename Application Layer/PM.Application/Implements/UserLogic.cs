@@ -3,6 +3,7 @@ using PM.Domain;
 using PM.Domain.Interfaces.Services;
 using PM.Domain.Models.users;
 using PM.Infrastructers.Interfaces;
+using System.Transactions;
 
 namespace PM.Application.Implements
 {
@@ -46,6 +47,33 @@ namespace PM.Application.Implements
                 return ServicesResult<DetailAppUser>.Failure(responseUpdate.Message);
             }
             return ServicesResult<DetailAppUser>.Success(responseUpdate.Data);
+        }
+        public async Task<ServicesResult<DetailAppUser>> UpdateAvata(string token, string avata)
+        {
+            var responseToken = _jwtServices.ParseToken(token);
+            if (responseToken.Status == false)
+            {
+                return ServicesResult<DetailAppUser>.Failure(responseToken.Message);
+            }
+            var responseUpdate = await _userServices.UpdateAvata(responseToken.Data.UserId, avata);
+            if (responseUpdate.Status == false)
+            {
+                return ServicesResult<DetailAppUser>.Failure(responseUpdate.Message);
+            }
+            return ServicesResult<DetailAppUser>.Success(responseUpdate.Data);
+        }
+        public async Task<ServicesResult<string>> ChangePassword(ChangePasswordUser changePassword)
+        {
+            using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+            {
+                var response = await _userServices.ChangePassword(changePassword);
+                if (response.Status == false)
+                {
+                    return ServicesResult<string>.Failure(response.Message);
+                }
+                scope.Complete();
+                return ServicesResult<string>.Success(response.Data);
+            }
         }
     }
 }
