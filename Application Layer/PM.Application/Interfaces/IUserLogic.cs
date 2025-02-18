@@ -8,7 +8,7 @@ namespace PM.Application.Interfaces
         ServicesResult<DetailAppUser> GetDetailUserToken(string token);
         Task<ServicesResult<DetailAppUser>> GetDetailUserIdentty(string userId);
         Task<ServicesResult<DetailAppUser>> UpdateUser(string token, UpdateAppUser user);
-        //public Task<string> ChangePassword(string token, string oldPassword, string newPassword);
-        //public Task<string> UpdateAvata(string token, string avata);
+        public Task<ServicesResult<string>> ChangePassword(ChangePasswordUser user);
+        public Task<ServicesResult<DetailAppUser>> UpdateAvata(string token, string avata);
     }
 }
