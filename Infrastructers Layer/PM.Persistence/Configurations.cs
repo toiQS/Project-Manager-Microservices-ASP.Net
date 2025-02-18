@@ -50,6 +50,7 @@ namespace PM.Persistence
             services.AddScoped<IProjectServices, ProjectServices>();
             services.AddScoped<IPlanServices, PlanServices>();
             services.AddScoped<IMemberServices, MemberServices>();
+            services.AddScoped<IUserServices, UserServices>();
         }
         private static void RegisterIdentity(this IServiceCollection services, IConfiguration configuration)
         {

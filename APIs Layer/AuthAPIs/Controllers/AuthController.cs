@@ -24,6 +24,10 @@ namespace AuthAPIs.Controllers
             try
             {
                 var response = await _authLogic.Login(request);
+                if (response == null)
+                {
+                    return BadRequest("Invalid email or password");
+                }
                 return Ok(response);
             }
             catch (Exception ex)

@@ -1,24 +1,32 @@
 ﻿using PM.Application.Interfaces;
 using PM.Domain.Interfaces.Services;
 using PM.Domain.Models.auths;
+using PM.Infrastructers.Interfaces;
 
 namespace PM.Application.Implements
 {
     public class AuthLogic : IAuthLogic
     {
         private readonly IAuthServices _authServices;
-        public AuthLogic(IAuthServices authServices)
+        private readonly IJwtServices _jwtServices;
+        public AuthLogic(IAuthServices authServices, IJwtServices jwtServices)
         {
             _authServices = authServices;
+            _jwtServices = jwtServices;
         }
         public async Task<string> Login(LoginModel loginModel)
         {
             var loginResult = await _authServices.LoginAsync(loginModel);
-            if(loginResult.Status == false)
+            if(loginResult.Status == false  || loginResult.Data == null)
             {
                 return loginResult.Message;
             }
-            return $"Login success. {loginResult.Data.ToString()}";
+            var token = _jwtServices.GenerateToken(loginResult.Data);
+            if(token.Status == false)
+            {
+                return token.Message + " token";
+            }
+            return $"Login success. \n token: \n{token.Data}";
         }
         //public async Task<string> LoginMethodSecond(LoginModel loginModel)
         //{
