@@ -14,6 +14,7 @@ namespace PM.Domain.Entities
         public string Description { get; set; } // Mô tả nhiệm vụ
         public DateTime StartDate { get; set; } // Ngày bắt đầu
         public DateTime EndDate { get; set; } // Ngày kết thúc
+        public DateTime CreateDate { get; set; } // Ngày tạo
         [ForeignKey(nameof(Status))]
         public int StatusId { get; set; } // ID tình trạng
         public bool IsCompleted { get; set; } // Đã hoàn thành chưa
