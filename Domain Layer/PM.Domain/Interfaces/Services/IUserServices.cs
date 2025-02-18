@@ -7,7 +7,7 @@ namespace PM.Domain.Interfaces.Services
         public Task<ServicesResult<DetailAppUser>> GetDetailUser(string userId);
         public Task<ServicesResult<DetailAppUser>> UpdateUser(string userId, UpdateAppUser user);
         //public Task<ServicesResult<bool>> DeleteUser(string userId);
-        //public Task<ServicesResult<bool>> ChangePassword(ChangePasswordUser changePassword);
-        //public Task<ServicesResult<bool>> UpdateAvata(string userId, string avata);
+        public Task<ServicesResult<string>> ChangePassword(ChangePasswordUser changePassword);
+        public Task<ServicesResult<DetailAppUser>> UpdateAvata(string userId, string avata);
     }
 }
