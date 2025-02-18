@@ -1,17 +1,19 @@
 ﻿using PM.Domain;
 using PM.Domain.Entities;
 using PM.Domain.Interfaces;
+using PM.Domain.Interfaces.Services;
 using PM.Domain.Models.members;
 using PM.Domain.Models.missions;
 
 namespace PM.Persistence.Implements.Services
 {
-    public class MissionServices
+    public class MissionServices : IMissionServices
     {
         private readonly IUnitOfWork _unitOfWork;
         private string _ownerId;
         private string _leaderId;
         private string _mamagerId;
+        private string _memberId; //role in this project
         public MissionServices(IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
@@ -77,7 +79,6 @@ namespace PM.Persistence.Implements.Services
             }
         }
         #endregion
-
 
         #region Retrieve all missions associated with the specified plan ID and converts them to IndexMission objects with status information
         /// <summary>
@@ -146,7 +147,6 @@ namespace PM.Persistence.Implements.Services
             }
         }
         #endregion
-
 
         #region Retrieve the detailed information for the mission with the specified ID, including status and assignments
         /// <summary>
@@ -346,6 +346,26 @@ namespace PM.Persistence.Implements.Services
                     return ServicesResult<DetailMission>.Failure(addResponse.Message);
                 }
 
+                // Create a log for this action
+                var infoMember = await _unitOfWork.UserRepository.GetOneByKeyAndValue("Id", member.Data.UserId);
+                if(infoMember.Status == false) 
+                    return ServicesResult<DetailMission>.Failure(infoMember.Message);
+                var project = await _unitOfWork.ProjectRepository.GetOneByKeyAndValue("Id", plan.Data.ProjectId);
+                if(project.Status == false)
+                    return ServicesResult<DetailMission>.Failure(project.Message);
+                var log = new ActivityLog()
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    Action= $"A misssion was added to plan {plan.Data.Name} in project {project.Data.Name} by {infoMember.Data.UserName}",
+                    UserId = member.Data.UserId,
+                    ProjectId = project.Data.Id,
+                    ActionDate = DateTime.Now,
+                };
+
+                var logResponse = await _unitOfWork.ActivityLogRepository.AddAsync(log);
+                if (!logResponse.Status)
+                    return ServicesResult<DetailMission>.Failure(logResponse.Message);
+
                 // Retrieve the detailed information of the newly created mission
                 var response = await GetDetailMission(newMission.Id);
                 if (!response.Status)
@@ -458,6 +478,27 @@ namespace PM.Persistence.Implements.Services
                     return ServicesResult<DetailMission>.Failure(updateResponse.Message);
                 }
 
+
+                // Create a log for this action
+                var infoMember = await _unitOfWork.UserRepository.GetOneByKeyAndValue("Id", member.Data.UserId);
+                if (infoMember.Status == false)
+                    return ServicesResult<DetailMission>.Failure(infoMember.Message);
+                var project = await _unitOfWork.ProjectRepository.GetOneByKeyAndValue("Id", plan.Data.ProjectId);
+                if (project.Status == false)
+                    return ServicesResult<DetailMission>.Failure(project.Message);
+                var log = new ActivityLog()
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    Action = $"A misssion was updated in lan {plan.Data.Name} in project {project.Data.Name} by {infoMember.Data.UserName}",
+                    UserId = member.Data.UserId,
+                    ProjectId = project.Data.Id,
+                    ActionDate = DateTime.Now,
+                };
+
+                var logResponse = await _unitOfWork.ActivityLogRepository.AddAsync(log);
+                if (!logResponse.Status)
+                    return ServicesResult<DetailMission>.Failure(logResponse.Message);
+
                 // Retrieve the updated mission details
                 var response = await GetDetailMission(missionId);
                 if (!response.Status)
@@ -476,7 +517,7 @@ namespace PM.Persistence.Implements.Services
         }
         #endregion
 
-        #region
+        #region Toggles the completion status of a mission.
         /// <summary>
         /// Toggles the completion status of a mission.
         /// </summary>
@@ -548,6 +589,27 @@ namespace PM.Persistence.Implements.Services
                 {
                     return ServicesResult<DetailMission>.Failure(updateResponse.Message);
                 }
+
+
+                // Create a log for this action
+                var infoMember = await _unitOfWork.UserRepository.GetOneByKeyAndValue("Id", member.Data.UserId);
+                if (infoMember.Status == false)
+                    return ServicesResult<DetailMission>.Failure(infoMember.Message);
+                var project = await _unitOfWork.ProjectRepository.GetOneByKeyAndValue("Id", plan.Data.ProjectId);
+                if (project.Status == false)
+                    return ServicesResult<DetailMission>.Failure(project.Message);
+                var log = new ActivityLog()
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    Action = $"A misssion was updated isDone in plan {plan.Data.Name} in project {project.Data.Name} by {infoMember.Data.UserName}",
+                    UserId = member.Data.UserId,
+                    ProjectId = project.Data.Id,
+                    ActionDate = DateTime.Now,
+                };
+
+                var logResponse = await _unitOfWork.ActivityLogRepository.AddAsync(log);
+                if (!logResponse.Status)
+                    return ServicesResult<DetailMission>.Failure(logResponse.Message);
 
                 // Retrieve the updated mission details
                 var response = await GetDetailMission(missionId);
@@ -646,6 +708,26 @@ namespace PM.Persistence.Implements.Services
                     }
                 }
 
+
+                // Create a log for this action
+                var infoMember = await _unitOfWork.UserRepository.GetOneByKeyAndValue("Id", member.Data.UserId);
+                if (infoMember.Status == false)
+                    return ServicesResult<IEnumerable<IndexMission>>.Failure(infoMember.Message);
+                var project = await _unitOfWork.ProjectRepository.GetOneByKeyAndValue("Id", plan.Data.ProjectId);
+                if (project.Status == false)
+                    return ServicesResult<IEnumerable<IndexMission>>.Failure(project.Message);
+                var log = new ActivityLog()
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    Action = $"A misssion was deleted to plan {plan.Data.Name} in project {project.Data.Name} by {infoMember.Data.UserName}",
+                    UserId = member.Data.UserId,
+                    ProjectId = project.Data.Id,
+                    ActionDate = DateTime.Now,
+                };
+
+                var logResponse = await _unitOfWork.ActivityLogRepository.AddAsync(log);
+                if (!logResponse.Status)
+                    return ServicesResult<IEnumerable<IndexMission>>.Failure(logResponse.Message);
                 // Delete the mission
                 var deleteMissionResponse = await _unitOfWork.MissionRepository.DeleteAsync(mission.Data.Id);
                 if (!deleteMissionResponse.Status)
@@ -659,7 +741,6 @@ namespace PM.Persistence.Implements.Services
                 {
                     return ServicesResult<IEnumerable<IndexMission>>.Failure(updatedMissionsResponse.Message);
                 }
-
                 // Return the updated mission list
                 return ServicesResult<IEnumerable<IndexMission>>.Success(updatedMissionsResponse.Data);
             }
@@ -670,6 +751,180 @@ namespace PM.Persistence.Implements.Services
             }
         }
 
+        #endregion
+
+        #region Adds members to a mission and log the action
+        /// <summary>
+        /// Adds members to a mission and logs the action.
+        /// </summary>
+        /// <param name="memberCurrentId">The ID of the current member performing the action.</param>
+        /// <param name="missionId">The ID of the mission to which members will be added.</param>
+        /// <param name="memberIds">A list of member IDs to be added to the mission.</param>
+        /// <returns>A service result containing the updated mission details or an error message.</returns>
+        public async Task<ServicesResult<DetailMission>> AddMembers(string memberCurrentId, string missionId, List<string> memberIds)
+        {
+            if (string.IsNullOrEmpty(memberCurrentId) || string.IsNullOrEmpty(missionId) || memberIds == null || memberIds.Count == 0)
+                return ServicesResult<DetailMission>.Failure("Invalid input parameters");
+
+            try
+            {
+                // Ensure roles are loaded
+                var memberRole = await GetMemberRole();
+                if (!memberRole.Status)
+                    return ServicesResult<DetailMission>.Failure(memberRole.Message);
+
+                // Fetch the mission details
+                var mission = await _unitOfWork.MissionRepository.GetOneByKeyAndValue("Id", missionId);
+                if (!mission.Status)
+                    return ServicesResult<DetailMission>.Failure(mission.Message);
+
+                // Fetch the current member's details
+                var member = await _unitOfWork.ProjectMemberRepository.GetOneByKeyAndValue("Id", memberCurrentId);
+                if (!member.Status)
+                    return ServicesResult<DetailMission>.Failure(member.Message);
+
+                // Fetch the plan details
+                var plan = await _unitOfWork.PlanRepository.GetOneByKeyAndValue("Id", mission.Data.PlanId);
+                if (!plan.Status)
+                    return ServicesResult<DetailMission>.Failure(plan.Message);
+
+                // Check if the current member has permission to add members
+                if (member.Data.ProjectId != plan.Data.ProjectId || member.Data.RoleId == _memberId)
+                    return ServicesResult<DetailMission>.Failure("This member does not exist in this project or does not have sufficient permissions.");
+
+                // Fetch user and project details once for logging
+                var infoMember = await _unitOfWork.UserRepository.GetOneByKeyAndValue("Id", member.Data.UserId);
+                if (!infoMember.Status)
+                    return ServicesResult<DetailMission>.Failure(infoMember.Message);
+
+                var project = await _unitOfWork.ProjectRepository.GetOneByKeyAndValue("Id", plan.Data.ProjectId);
+                if (!project.Status)
+                    return ServicesResult<DetailMission>.Failure(project.Message);
+
+                // Add members and log actions
+                foreach (var memberId in memberIds.Distinct()) // Avoid duplicates
+                {
+                    var memberMission = new MissionAssignment
+                    {
+                        Id = Guid.NewGuid().ToString(),
+                        MissionId = missionId,
+                        ProjectMemberId = memberId,
+                    };
+
+                    var memberMissionResponse = await _unitOfWork.MissionAssignmentRepository.AddAsync(memberMission);
+                    if (!memberMissionResponse.Status)
+                        return ServicesResult<DetailMission>.Failure($"Failed to add member {memberId}: {memberMissionResponse.Message}");
+
+                    // Create and save a log for adding the member
+                    var log = new ActivityLog
+                    {
+                        Id = Guid.NewGuid().ToString(),
+                        Action = $"A new member was added by {infoMember.Data.UserName} to project {project.Data.Name}",
+                        UserId = member.Data.UserId,
+                        ProjectId = project.Data.Id,
+                        ActionDate = DateTime.Now,
+                    };
+
+                    var logResponse = await _unitOfWork.ActivityLogRepository.AddAsync(log);
+                    if (!logResponse.Status)
+                        return ServicesResult<DetailMission>.Failure(logResponse.Message);
+                }
+
+                // Return the updated mission details
+                return await GetDetailMission(missionId);
+            }
+            catch (Exception ex)
+            {
+                return ServicesResult<DetailMission>.Failure($"An error occurred: {ex.Message}");
+            }
+        }
+
+        #endregion
+
+        #region Deletes a member from a mission and logs the action.
+        /// <summary>
+        /// Deletes a member from a mission and logs the action.
+        /// </summary>
+        /// <param name="memberCurrentId">The ID of the current member performing the action.</param>
+        /// <param name="missionId">The ID of the mission.</param>
+        /// <param name="memberId">The ID of the member to be deleted from the mission.</param>
+        /// <returns>A service result containing the updated mission details or an error message.</returns>
+        public async Task<ServicesResult<DetailMission>> DeleteMember(string memberCurrentId, string missionId, string memberId)
+        {
+            if (string.IsNullOrEmpty(memberCurrentId) || string.IsNullOrEmpty(missionId) || string.IsNullOrEmpty(memberId))
+                return ServicesResult<DetailMission>.Failure("Invalid input parameters.");
+
+            try
+            {
+                // Ensure roles are loaded
+                var memberRole = await GetMemberRole();
+                if (!memberRole.Status)
+                    return ServicesResult<DetailMission>.Failure(memberRole.Message);
+
+                // Fetch mission details
+                var mission = await _unitOfWork.MissionRepository.GetOneByKeyAndValue("Id", missionId);
+                if (!mission.Status)
+                    return ServicesResult<DetailMission>.Failure($"Failed to retrieve mission: {mission.Message}");
+
+                // Fetch current member's details
+                var currentMember = await _unitOfWork.ProjectMemberRepository.GetOneByKeyAndValue("Id", memberCurrentId);
+                if (!currentMember.Status)
+                    return ServicesResult<DetailMission>.Failure($"Failed to retrieve member: {currentMember.Message}");
+
+                // Fetch plan details
+                var plan = await _unitOfWork.PlanRepository.GetOneByKeyAndValue("Id", mission.Data.PlanId);
+                if (!plan.Status)
+                    return ServicesResult<DetailMission>.Failure($"Failed to retrieve plan: {plan.Message}");
+
+                // Check if current member has sufficient permissions
+                if (currentMember.Data.ProjectId != plan.Data.ProjectId || currentMember.Data.RoleId == _memberId)
+                    return ServicesResult<DetailMission>.Failure("You do not have permission to delete members from this mission.");
+
+                // Retrieve all mission assignments for the specified mission
+                var missionAssignments = await _unitOfWork.MissionAssignmentRepository.GetManyByKeyAndValue("MissionId", missionId);
+                if (!missionAssignments.Status)
+                    return ServicesResult<DetailMission>.Failure($"Failed to retrieve mission assignments: {missionAssignments.Message}");
+
+                // Check if the specified member is assigned to the mission
+                var assignmentToDelete = missionAssignments.Data.FirstOrDefault(x => x.ProjectMemberId == memberId);
+                if (assignmentToDelete == null)
+                    return ServicesResult<DetailMission>.Failure("The specified member is not assigned to this mission.");
+
+                // Delete the mission assignment
+                var deleteResponse = await _unitOfWork.MissionAssignmentRepository.DeleteAsync(assignmentToDelete.Id);
+                if (!deleteResponse.Status)
+                    return ServicesResult<DetailMission>.Failure($"Failed to delete member from mission: {deleteResponse.Message}");
+
+                // Log the action
+                var userInfo = await _unitOfWork.UserRepository.GetOneByKeyAndValue("Id", currentMember.Data.UserId);
+                if (!userInfo.Status)
+                    return ServicesResult<DetailMission>.Failure($"Failed to retrieve user information: {userInfo.Message}");
+
+                var project = await _unitOfWork.ProjectRepository.GetOneByKeyAndValue("Id", plan.Data.ProjectId);
+                if (!project.Status)
+                    return ServicesResult<DetailMission>.Failure($"Failed to retrieve project details: {project.Message}");
+
+                var log = new ActivityLog
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    Action = $"Member {memberId} was removed from mission '{mission.Data.Name}' in project '{project.Data.Name}' by {userInfo.Data.UserName}.",
+                    UserId = currentMember.Data.UserId,
+                    ProjectId = project.Data.Id,
+                    ActionDate = DateTime.Now,
+                };
+
+                var logResponse = await _unitOfWork.ActivityLogRepository.AddAsync(log);
+                if (!logResponse.Status)
+                    return ServicesResult<DetailMission>.Failure($"Failed to create activity log: {logResponse.Message}");
+
+                // Return the updated mission details
+                return await GetDetailMission(missionId);
+            }
+            catch (Exception ex)
+            {
+                return ServicesResult<DetailMission>.Failure($"An unexpected error occurred: {ex.Message}");
+            }
+        }
         #endregion
 
         #region Private method helper
@@ -697,6 +952,9 @@ namespace PM.Persistence.Implements.Services
                         break;
                     case "Manager":
                         _mamagerId = role.Data.Id;
+                        break;
+                    case "Member":
+                        _memberId = role.Data.Id;
                         break;
                     default:
                         return ServicesResult<bool>.Failure("Invalid role name");
@@ -740,6 +998,15 @@ namespace PM.Persistence.Implements.Services
         private async Task<ServicesResult<bool>> GetManagerRole()
         {
             return await GetRoleByName("Manager");
+        }
+
+        /// <summary>
+        /// Gets the role ID for the "Member" role.
+        /// </summary>
+        /// <returns>Service result indicating success or failure.</returns>
+        private async Task<ServicesResult<bool>> GetMemberRole()
+        {
+            return await GetRoleByName("Member");
         }
 
 
