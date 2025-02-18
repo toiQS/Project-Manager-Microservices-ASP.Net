@@ -1,6 +1,6 @@
 ﻿namespace PM.Domain.Models.users
 {
-    class ChangePasswordUser
+    public class ChangePasswordUser
     {
         public string Email { get; set; } = string.Empty;
         public string OldPassword { get; set; } = string.Empty; 
