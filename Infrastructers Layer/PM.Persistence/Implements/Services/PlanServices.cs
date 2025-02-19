@@ -9,18 +9,20 @@ using System.Data.Entity.Core.Metadata.Edm;
 
 namespace PM.Persistence.Implements.Services
 {
-    internal class PlanServices : IPlanServices
+    public class PlanServices : IPlanServices
     {
+
         private readonly IUnitOfWork _unitOfWork;
-        private string _own;
-        private string _leader;
-        private string _manager;
-        //eveyone can create, update, and delete when your role is owner, leader, manager
+        private readonly IMissionServices _missionServices;
+        private string _ownerId;
+        private string _leaderId;
+        private string _managerId;
+        private string _memberId;
         public PlanServices(IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
-           
         }
+        //eveyone can create, update, and delete when your role is owner, leader, manager
 
         #region Retrieves all plans in the system
         /// <summary>
@@ -54,6 +56,7 @@ namespace PM.Persistence.Implements.Services
             }
         }
         #endregion
+
         #region Retrieves all plans associated with a specific project
         /// <summary>
         /// Retrieves all plans associated with a specific project.
@@ -90,6 +93,7 @@ namespace PM.Persistence.Implements.Services
             }
         }
         #endregion
+
         #region Retrieves detailed information about a specific plan
 
         /// <summary>
@@ -189,6 +193,15 @@ namespace PM.Persistence.Implements.Services
 
             try
             {
+                var ownerRole = await GetOwnRole();
+                if (ownerRole.Status == false)
+                    return ServicesResult<DetailPlan>.Failure(ownerRole.Message);
+                var leaderRole = await GetLeaderRole();
+                if (leaderRole.Status == false)
+                    return ServicesResult<DetailPlan>.Failure(leaderRole.Message);
+                var managerRole = await GetManagerRole();
+                if (managerRole.Status == false)
+                    return ServicesResult<DetailPlan>.Failure(managerRole.Message);
                 // Verify member and their permissions
                 var member = await _unitOfWork.ProjectMemberRepository.GetOneByKeyAndValue("Id", memberId);
                 if (!member.Status) return ServicesResult<DetailPlan>.Failure(member.Message);
@@ -202,7 +215,7 @@ namespace PM.Persistence.Implements.Services
                 var members = await _unitOfWork.ProjectMemberRepository.GetManyByKeyAndValue("ProjectId", projectId);
                 if (!members.Status) return ServicesResult<DetailPlan>.Failure(members.Message);
 
-                var hasPermission = members.Data.Any(x => x.Id == memberId && (x.RoleId == _leader || x.RoleId == _manager || x.RoleId == _own));
+                var hasPermission = members.Data.Any(x => x.Id == memberId && (x.RoleId == _leaderId || x.RoleId == _memberId || x.RoleId == _ownerId));
                 if (!hasPermission) return ServicesResult<DetailPlan>.Failure("You do not have permission to create a plan in this project.");
 
                 // Check for duplicate plan names
@@ -222,7 +235,7 @@ namespace PM.Persistence.Implements.Services
                     EndDate = new DateTime(addPlan.EndAt.Year, addPlan.EndAt.Month, addPlan.EndAt.Day),
                     IsCompleted = false,
                     ProjectId = projectId,
-                    
+
                 };
                 plan.StatusId = DateTime.Now == plan.StartDate ? 3 : (DateTime.Now < plan.StartDate ? 2 : 1); // Ongoing, Upcoming, or Overdue
                 var responseAdd = await _unitOfWork.PlanRepository.AddAsync(plan);
@@ -247,9 +260,14 @@ namespace PM.Persistence.Implements.Services
             {
                 return ServicesResult<DetailPlan>.Failure($"An error occurred: {ex.Message}");
             }
-           
+            finally
+            {
+                await _unitOfWork.SaveChangesAsync();
+                _unitOfWork.Dispose();
+            }
         }
         #endregion
+
         #region Updates an existing plan if the member has the required permissions
 
         /// <summary>
@@ -266,6 +284,15 @@ namespace PM.Persistence.Implements.Services
 
             try
             {
+                var ownerRole = await GetOwnRole();
+                if (ownerRole.Status == false)
+                    return ServicesResult<DetailPlan>.Failure(ownerRole.Message);
+                var leaderRole = await GetLeaderRole();
+                if (leaderRole.Status == false)
+                    return ServicesResult<DetailPlan>.Failure(leaderRole.Message);
+                var managerRole = await GetManagerRole();
+                if (managerRole.Status == false)
+                    return ServicesResult<DetailPlan>.Failure(managerRole.Message);
                 // Verify member and their permissions
                 var member = await _unitOfWork.ProjectMemberRepository.GetOneByKeyAndValue("Id", memberId);
                 if (!member.Status) return ServicesResult<DetailPlan>.Failure(member.Message);
@@ -279,7 +306,7 @@ namespace PM.Persistence.Implements.Services
                 var members = await _unitOfWork.ProjectMemberRepository.GetManyByKeyAndValue("ProjectId", plan.Data.ProjectId);
                 if (!members.Status) return ServicesResult<DetailPlan>.Failure(members.Message);
 
-                var hasPermission = members.Data.Any(x => x.Id == memberId && (x.RoleId == _leader || x.RoleId == _manager || x.RoleId == _own));
+                var hasPermission = members.Data.Any(x => x.Id == memberId && (x.RoleId == _leaderId || x.RoleId == _managerId || x.RoleId == _ownerId));
                 if (!hasPermission) return ServicesResult<DetailPlan>.Failure("You do not have permission to update this plan.");
 
                 // Check for duplicate plan names
@@ -318,42 +345,200 @@ namespace PM.Persistence.Implements.Services
             {
                 return ServicesResult<DetailPlan>.Failure($"An error occurred: {ex.Message}");
             }
-            
+            finally
+            {
+                await _unitOfWork.SaveChangesAsync();
+                _unitOfWork.Dispose();
+            }
         }
         #endregion
+
+        #region Deletes a plan and its associated missions if the user has sufficient permissions.
+        /// <summary>
+        /// Deletes a plan and its associated missions if the user has sufficient permissions.
+        /// </summary>
+        /// <param name="memberId">The ID of the member requesting the deletion.</param>
+        /// <param name="planId">The ID of the plan to delete.</param>
+        /// <returns>A service result containing the updated list of plans or an error message.</returns>
         public async Task<ServicesResult<IEnumerable<IndexPlan>>> DeleteAsync(string memberId, string planId)
         {
             if (string.IsNullOrEmpty(memberId) || string.IsNullOrEmpty(planId))
                 return ServicesResult<IEnumerable<IndexPlan>>.Failure("Invalid input parameters.");
+
             try
             {
-                var member = await _unitOfWork.ProjectMemberRepository.GetOneByKeyAndValue("Id", memberId);
-                if (member.Status == false)
-                {
-                    return ServicesResult<IEnumerable<IndexPlan>>.Failure(member.Message);
-                }
-                var memberInfo = await _unitOfWork.UserRepository.GetOneByKeyAndValue("Id", member.Data.UserId);
-                if (memberInfo.Status == false)
-                {
-                    return ServicesResult<IEnumerable<IndexPlan>>.Failure(memberInfo.Message);
-                }
+                var memberRole = await GetMemberRole();
+                if (memberRole.Status == false)
+                    return ServicesResult<IEnumerable<IndexPlan>>.Failure(memberRole.Message);
+                // Fetch the plan
                 var plan = await _unitOfWork.PlanRepository.GetOneByKeyAndValue("Id", planId);
+                if (!plan.Status)
+                    return ServicesResult<IEnumerable<IndexPlan>>.Failure($"Failed to retrieve plan: {plan.Message}");
 
-                if (plan.Status == false)
+                // Fetch all members in the project
+                var members = await _unitOfWork.ProjectMemberRepository.GetManyByKeyAndValue("ProjectId", plan.Data.ProjectId);
+                if (!members.Status)
+                    return ServicesResult<IEnumerable<IndexPlan>>.Failure($"Failed to retrieve project members: {members.Message}");
+
+                // Fetch the current member
+                var member = await _unitOfWork.ProjectMemberRepository.GetOneByKeyAndValue("Id", memberId);
+                if (!member.Status)
+                    return ServicesResult<IEnumerable<IndexPlan>>.Failure($"Failed to retrieve member: {member.Message}");
+
+                // Check if the member has permission to delete the plan
+                var hasPermission = members.Data.Any(x => x.Id == memberId && x.ProjectId == plan.Data.ProjectId && x.RoleId != _memberId);
+                if (!hasPermission)
+                    return ServicesResult<IEnumerable<IndexPlan>>.Failure("You do not have permission to delete this plan.");
+
+                // Fetch all missions associated with the plan
+                var planMissions = await _unitOfWork.MissionRepository.GetManyByKeyAndValue("PlanId", planId);
+                if (!planMissions.Status)
+                    return ServicesResult<IEnumerable<IndexPlan>>.Failure($"Failed to retrieve missions: {planMissions.Message}");
+
+                // Delete all missions in the plan
+                foreach (var mission in planMissions.Data)
                 {
-                    return ServicesResult<IEnumerable<IndexPlan>>.Failure(plan.Message);
+                    var deleteMissionResponse = await _missionServices.DeleteMission(memberId, mission.Id);
+                    if (!deleteMissionResponse.Status)
+                        return ServicesResult<IEnumerable<IndexPlan>>.Failure($"Failed to delete mission '{mission.Id}': {deleteMissionResponse.Message}");
                 }
-                var missionTasks = await _unitOfWork.MissionRepository.GetManyByKeyAndValue("PlanId", planId);
-                if (missionTasks.Status == false)
-                {
-                    return ServicesResult<IEnumerable<IndexPlan>>.Failure(missionTasks.Message);
-                }
-                return await GetPlansInProject(plan.Data.ProjectId);
+
+                // Delete the plan and log the action
+                return await DeletePlanSupport(memberId, planId, plan, member);
             }
             catch (Exception ex)
             {
-                return ServicesResult<IEnumerable<IndexPlan>>.Failure($"An error occurred: {ex.Message}");
+                return ServicesResult<IEnumerable<IndexPlan>>.Failure($"An unexpected error occurred: {ex.Message}");
             }
         }
+
+        /// <summary>
+        /// Deletes the specified plan and logs the action.
+        /// </summary>
+        /// <param name="memberId">The ID of the member performing the deletion.</param>
+        /// <param name="planId">The ID of the plan to delete.</param>
+        /// <param name="plan">The plan to be deleted.</param>
+        /// <param name="member">The member performing the action.</param>
+        /// <returns>A service result containing the updated list of plans or an error message.</returns>
+        public async Task<ServicesResult<IEnumerable<IndexPlan>>> DeletePlanSupport(string memberId, string planId, ServicesResult<Plan> plan, ServicesResult<ProjectMember> member)
+        {
+            // Delete the plan
+            var deletePlanResponse = await _unitOfWork.PlanRepository.DeleteAsync(planId);
+            if (!deletePlanResponse.Status)
+                return ServicesResult<IEnumerable<IndexPlan>>.Failure($"Failed to delete plan: {deletePlanResponse.Message}");
+
+            // Log the deletion action
+            var infoMember = await _unitOfWork.UserRepository.GetOneByKeyAndValue("Id", member.Data.UserId);
+            if (!infoMember.Status)
+                return ServicesResult<IEnumerable<IndexPlan>>.Failure($"Failed to retrieve user information: {infoMember.Message}");
+
+            var project = await _unitOfWork.ProjectRepository.GetOneByKeyAndValue("Id", plan.Data.ProjectId);
+            if (!project.Status)
+                return ServicesResult<IEnumerable<IndexPlan>>.Failure("Failed to retrieve project details.");
+
+            var log = new ActivityLog
+            {
+                Id = Guid.NewGuid().ToString(),
+                ProjectId = plan.Data.ProjectId,
+                UserId = member.Data.Id,
+                ActionDate = DateTime.Now,
+                Action = $"Plan '{plan.Data.Name}' was deleted by {infoMember.Data.UserName} in project '{project.Data.Name}'.",
+            };
+
+            var logResponse = await _unitOfWork.ActivityLogRepository.AddAsync(log);
+            if (!logResponse.Status)
+                return ServicesResult<IEnumerable<IndexPlan>>.Failure($"Failed to create activity log: {logResponse.Message}");
+
+            // Return the updated list of plans
+            return await GetPlansInProject(project.Data.Id);
+        }
+
+        #endregion
+
+        #region Private method helper
+        /// <summary>
+        /// Gets the role ID by role name.
+        /// </summary>
+        /// <param name="roleName">The name of the role to fetch.</param>
+        /// <returns>Service result indicating success or failure.</returns>
+        private async Task<ServicesResult<bool>> GetRoleByName(string roleName)
+        {
+            try
+            {
+                var role = await _unitOfWork.RoleInProjectRepository.GetOneByKeyAndValue("Name", roleName);
+                if (!role.Status)
+                    return ServicesResult<bool>.Failure(role.Message);
+
+                // Assign the role ID to the appropriate variable
+                switch (roleName)
+                {
+                    case "Owner":
+                        _ownerId = role.Data.Id;
+                        break;
+                    case "Leader":
+                        _leaderId = role.Data.Id;
+                        break;
+                    case "Manager":
+                        _managerId = role.Data.Id;
+                        break;
+                    case "Member":
+                        _memberId = role.Data.Id;
+                        break;
+                    default:
+                        return ServicesResult<bool>.Failure("Invalid role name");
+                }
+
+                return ServicesResult<bool>.Success(true);
+            }
+            catch (Exception ex)
+            {
+                return ServicesResult<bool>.Failure(ex.Message);
+            }
+            finally
+            {
+                // Remove this if you don’t want to dispose the unit of work here.
+                _unitOfWork.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Gets the role ID for the "Owner" role.
+        /// </summary>
+        /// <returns>Service result indicating success or failure.</returns>
+        private async Task<ServicesResult<bool>> GetOwnRole()
+        {
+            return await GetRoleByName("Owner");
+        }
+
+        /// <summary>
+        /// Gets the role ID for the "Leader" role.
+        /// </summary>
+        /// <returns>Service result indicating success or failure.</returns>
+        private async Task<ServicesResult<bool>> GetLeaderRole()
+        {
+            return await GetRoleByName("Leader");
+        }
+
+        /// <summary>
+        /// Gets the role ID for the "Manager" role.
+        /// </summary>
+        /// <returns>Service result indicating success or failure.</returns>
+        private async Task<ServicesResult<bool>> GetManagerRole()
+        {
+            return await GetRoleByName("Manager");
+        }
+
+        /// <summary>
+        /// Gets the role ID for the "Member" role.
+        /// </summary>
+        /// <returns>Service result indicating success or failure.</returns>
+        private async Task<ServicesResult<bool>> GetMemberRole()
+        {
+            return await GetRoleByName("Member");
+        }
+
+
+        #endregion
     }
 }
+
