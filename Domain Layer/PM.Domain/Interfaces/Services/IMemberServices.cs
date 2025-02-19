@@ -8,8 +8,8 @@ namespace PM.Domain.Interfaces.Services
         public Task<ServicesResult<IEnumerable<IndexMember>>> GetMembers();
         public Task<ServicesResult<IEnumerable<IndexMember>>> GetMemberInProject(string projectId);
         public Task<ServicesResult<DetailMember>> GetDetailMember(string memberId);
-        public Task<ServicesResult<DetailMember>> AddMember(string userId, string projectId, AddMember addMember);
-        public Task<ServicesResult<DetailMember>> UpdateMember(string userId, string memberId, UpdateMember updateMember);
-        public Task<ServicesResult<IEnumerable<IndexMember>>> DeleteMember(string userId, string memberId);
+        public Task<ServicesResult<DetailMember>> AddMember(string memberCurrentId, string projectId, AddMember addMember);
+        public Task<ServicesResult<DetailMember>> UpdateMember(string memberCurrentId, string memberId, UpdateMember updateMember);
+        public Task<ServicesResult<IEnumerable<IndexMember>>> DeleteMember(string memberCurrentId, string memberId);
     }
 }
