@@ -4,6 +4,7 @@ using PM.Domain.Interfaces;
 using PM.Domain.Interfaces.Services;
 using PM.Domain.Models.members;
 using PM.Domain.Models.plans;
+using PM.Domain.Models.positions;
 using PM.Domain.Models.projects;
 
 namespace PM.Persistence.Implements.Services
@@ -178,9 +179,9 @@ namespace PM.Persistence.Implements.Services
         /// <param name="userId">The ID of the user.</param>
         /// <param name="projectId">The ID of the project.</param>
         /// <returns>A service result containing the project details.</returns>
-        public async Task<ServicesResult<DetailProject>> GetDetailProject(string userId, string projectId)
+        public async Task<ServicesResult<DetailProject>> GetDetailProject(string projectId)
         {
-            if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(projectId))
+            if ( string.IsNullOrEmpty(projectId))
                 return ServicesResult<DetailProject>.Failure("User ID or Project ID cannot be null or empty.");
 
             try
@@ -189,11 +190,6 @@ namespace PM.Persistence.Implements.Services
                 var ownRoleResult = await GetOwnRole();
                 if (!ownRoleResult.Status)
                     return ServicesResult<DetailProject>.Failure(ownRoleResult.Message);
-
-                // Check if the user exists
-                var isUserExists = await _unitOfWork.UserRepository.ExistAsync("Id", userId);
-                if (!isUserExists)
-                    return ServicesResult<DetailProject>.Failure("User not found.");
 
                 // Retrieve project information
                 var projectResult = await _unitOfWork.ProjectRepository.GetOneByKeyAndValue("Id", projectId);
@@ -331,7 +327,7 @@ namespace PM.Persistence.Implements.Services
         /// <summary>
         /// Supports adding a new project.
         /// </summary>
-        private async Task<ServicesResult<DetailProject>> AddMethodSupport(string userId, AddProject addProject)
+        private async Task<ServicesResult<DetailProject>> AddMethodSupport(string memberId, AddProject addProject)
         {
             try
             {
@@ -352,20 +348,22 @@ namespace PM.Persistence.Implements.Services
                 var responseProject = await _unitOfWork.ProjectRepository.AddAsync(project);
                 if (!responseProject.Status) return ServicesResult<DetailProject>.Failure(responseProject.Message);
 
-
+                var memberInfo = await _unitOfWork.ProjectMemberRepository.GetOneByKeyAndValue("Id", memberId);
+                if (memberInfo.Status == false)
+                    return ServicesResult<DetailProject>.Failure(memberInfo.Message);
                 // set up owner role 
                 var member = new ProjectMember()
                 {
                     Id = $"{Guid.NewGuid()}",
                     ProjectId = project.Id,
                     RoleId = _ownRoleId,
-                    UserId = userId,
+                    UserId = memberInfo.Data.UserId,
                     PositionWork = string.Empty
                 };
                 var projectMemberResponse = await _unitOfWork.ProjectMemberRepository.AddAsync(member);
                 if (!projectMemberResponse.Status) return ServicesResult<DetailProject>.Failure(projectMemberResponse.Message);
 
-                var user = await _unitOfWork.UserRepository.GetOneByKeyAndValue("Id", userId);
+                var user = await _unitOfWork.UserRepository.GetOneByKeyAndValue("Id", memberInfo.Data.UserId);
                 if (!user.Status) return ServicesResult<DetailProject>.Failure(user.Message);
 
                 // create a activity log for project and owner role project
@@ -381,7 +379,7 @@ namespace PM.Persistence.Implements.Services
 
                 // xác thực thành công
 
-                var response = await GetDetailProject(userId, project.Id);
+                var response = await GetDetailProject( project.Id);
                 if (response.Status == false) return ServicesResult<DetailProject>.Failure(response.Message);
                 return ServicesResult<DetailProject>.Success(response.Data);
             }
@@ -402,9 +400,9 @@ namespace PM.Persistence.Implements.Services
         /// <param name="projectId">Project ID</param>
         /// <param name="updateProject">Updated project details</param>
         /// <returns>Service result containing updated project details</returns>
-        public async Task<ServicesResult<DetailProject>> UpdateInfo(string userId, string projectId, UpdateProject updateProject)
+        public async Task<ServicesResult<DetailProject>> UpdateInfo(string MemberCurrentId, string projectId, UpdateProject updateProject)
         {
-            if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(projectId) || updateProject == null)
+            if (string.IsNullOrEmpty(MemberCurrentId) || string.IsNullOrEmpty(projectId) || updateProject == null)
                 return ServicesResult<DetailProject>.Failure("Invalid input");
 
             try
@@ -413,15 +411,16 @@ namespace PM.Persistence.Implements.Services
                 if (!ownRoleResult.Status)
                     return ServicesResult<DetailProject>.Failure(ownRoleResult.Message);
 
-                var projectUser = await _unitOfWork.ProjectMemberRepository.GetManyByKeyAndValue("UserId", userId);
-                if (!projectUser.Status || !projectUser.Data.Any())
-                    return ServicesResult<DetailProject>.Failure(projectUser.Message ?? "No find any projects for update");
+                var member = await _unitOfWork.ProjectMemberRepository.GetOneByKeyAndValue("Id", MemberCurrentId);
+                if(!member.Status)
+                    return ServicesResult<DetailProject>.Failure(member.Message);
 
-                bool isUserAuthorized = projectUser.Data.Any(x => x.RoleId == _ownRoleId && x.ProjectId == projectId);
-                if (!isUserAuthorized)
-                    return ServicesResult<DetailProject>.Failure("User does not have permission to update this project");
-
-                return await UpdateMethodSupport(userId, projectId, updateProject);
+                if (member.Data.RoleId != _ownRoleId)
+                    return ServicesResult<DetailProject>.Failure("");
+                var userInfo = await _unitOfWork.UserRepository.GetOneByKeyAndValue("Id", member.Data.UserId);
+                if(userInfo.Status == false)
+                    return ServicesResult<DetailProject>.Failure(userInfo.Message);
+               return await UpdateMethodSupport(userInfo.Data.Id, projectId, updateProject);
             }
             catch (Exception ex)
             {
@@ -456,8 +455,9 @@ namespace PM.Persistence.Implements.Services
                 {
                     Id = $"{Guid.NewGuid()}",
                     ActionDate = DateTime.Now,
-                    Action = $"A new project was created by {user.Data.UserName}",
+                    Action = $"{user.Data.UserName} updated project {project.Data.Name} ",
                     ProjectId = project.Data.Id,
+                    UserId = userId
                 };
                 var acvitity = await _unitOfWork.ActivityLogRepository.AddAsync(activityProject);
                 if (!acvitity.Status) return ServicesResult<DetailProject>.Failure(acvitity.Message);
@@ -466,7 +466,7 @@ namespace PM.Persistence.Implements.Services
 
 
                 // tạo kết quả trả về
-                var response = await GetDetailProject(userId, projectId);
+                var response = await GetDetailProject( projectId);
                 if (response.Status == false) return ServicesResult<DetailProject>.Failure(response.Message);
                 return ServicesResult<DetailProject>.Success(response.Data);
             }
@@ -508,219 +508,248 @@ namespace PM.Persistence.Implements.Services
 
         #region Toggle project status of a project
         /// <summary>
-        /// Toggles the IsDeleted status of a project if the user has the required permissions.
+        /// Toggles the deletion status of a project (IsDeleted) and logs the action.
         /// </summary>
-        /// <param name="userId">The ID of the user requesting the update.</param>
+        /// <param name="memberCurrentId">The ID of the member making the request.</param>
         /// <param name="projectId">The ID of the project to be updated.</param>
-        /// <returns>The updated project details or an error message if the operation fails.</returns>
-        public async Task<ServicesResult<DetailProject>> UpdateIsDelete(string userId, string projectId)
+        /// <returns>A service result containing the updated project details or an error message.</returns>
+        public async Task<ServicesResult<DetailProject>> UpdateIsDelete(string memberCurrentId, string projectId)
         {
-            if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(projectId))
-                return ServicesResult<DetailProject>.Failure("Invalid input parameters.");
+            if (string.IsNullOrEmpty(memberCurrentId))
+                return ServicesResult<DetailProject>.Failure("Member ID cannot be null or empty.");
+
+            if (string.IsNullOrEmpty(projectId))
+                return ServicesResult<DetailProject>.Failure("Project ID cannot be null or empty.");
 
             try
             {
                 // Validate user's ownership role
                 var ownRoleResult = await GetOwnRole();
                 if (!ownRoleResult.Status)
-                    return ServicesResult<DetailProject>.Failure(ownRoleResult.Message);
+                    return ServicesResult<DetailProject>.Failure($"Failed to validate role: {ownRoleResult.Message}");
 
-                var projectUser = await _unitOfWork.ProjectMemberRepository.GetManyByKeyAndValue("UserId", userId);
-                if (!projectUser.Status || !projectUser.Data.Any())
-                    return ServicesResult<DetailProject>.Failure("No projects found for the user.");
+                // Fetch the member data
+                var memberResult = await _unitOfWork.ProjectMemberRepository.GetOneByKeyAndValue("Id", memberCurrentId);
+                if (!memberResult.Status)
+                    return ServicesResult<DetailProject>.Failure($"Failed to retrieve member: {memberResult.Message}");
 
-                bool isUserAuthorized = projectUser.Data.Any(x => x.RoleId == _ownRoleId && x.ProjectId == projectId);
-                if (!isUserAuthorized)
+                var member = memberResult.Data;
+
+                // Check if the member has the required ownership role and is associated with the project
+                if (member.RoleId != _ownRoleId || member.ProjectId != projectId)
                     return ServicesResult<DetailProject>.Failure("User does not have permission to update this project.");
 
-                // Toggle IsDeleted status
-                var project = await _unitOfWork.ProjectRepository.GetOneByKeyAndValue("Id", projectId);
-                if (!project.Status) return ServicesResult<DetailProject>.Failure(project.Message);
-                project.Data.IsDeleted = !project.Data.IsDeleted;
+                // Fetch the project data
+                var projectResult = await _unitOfWork.ProjectRepository.GetOneByKeyAndValue("Id", projectId);
+                if (!projectResult.Status)
+                    return ServicesResult<DetailProject>.Failure($"Failed to retrieve project: {projectResult.Message}");
 
-                var updateResult = await _unitOfWork.ProjectRepository.UpdateAsync(project.Data);
-                if (!updateResult.Status) return ServicesResult<DetailProject>.Failure(updateResult.Message);
+                var project = projectResult.Data;
+
+                // Toggle the IsDeleted status
+                project.IsDeleted = !project.IsDeleted;
+
+                // Update the project status in the database
+                var updateResult = await _unitOfWork.ProjectRepository.UpdateAsync(project);
+                if (!updateResult.Status)
+                    return ServicesResult<DetailProject>.Failure($"Failed to update project: {updateResult.Message}");
 
                 // Log the action
-                var user = await _unitOfWork.UserRepository.GetOneByKeyAndValue("Id", userId);
-                if (!user.Status) return ServicesResult<DetailProject>.Failure(user.Message);
+                var userResult = await _unitOfWork.UserRepository.GetOneByKeyAndValue("Id", member.UserId);
+                if (!userResult.Status)
+                    return ServicesResult<DetailProject>.Failure($"Failed to retrieve user information: {userResult.Message}");
 
-                var activityLog = new ActivityLog
+                var user = userResult.Data;
+
+                var log = new ActivityLog
                 {
-                    Id = $"{Guid.NewGuid()}",
+                    Id = Guid.NewGuid().ToString(),
                     ActionDate = DateTime.Now,
-                    Action = $"The project '{project.Data.Name}' was {(project.Data.IsDeleted ? "deleted" : "restored")} by {user.Data.UserName}.",
-                    ProjectId = project.Data.Id,
-                    UserId = userId
+                    Action = $"The project '{project.Name}' was {(project.IsDeleted ? "deleted" : "restored")} by {user.UserName}.",
+                    ProjectId = project.Id,
+                    UserId = member.UserId,
                 };
 
-                var logResult = await _unitOfWork.ActivityLogRepository.AddAsync(activityLog);
-                if (!logResult.Status) return ServicesResult<DetailProject>.Failure(logResult.Message);
+                var logResult = await _unitOfWork.ActivityLogRepository.AddAsync(log);
+                if (!logResult.Status)
+                    return ServicesResult<DetailProject>.Failure($"Failed to create activity log: {logResult.Message}");
 
-                // Return updated project details
-                var response = await GetDetailProject(userId, projectId);
-                return response.Status ? ServicesResult<DetailProject>.Success(response.Data) : ServicesResult<DetailProject>.Failure(response.Message);
+                // Return the updated project details
+                var detailProjectResult = await GetDetailProject(projectId);
+                if (!detailProjectResult.Status)
+                    return ServicesResult<DetailProject>.Failure($"Failed to retrieve updated project details: {detailProjectResult.Message}");
+
+                return ServicesResult<DetailProject>.Success(detailProjectResult.Data);
             }
             catch (Exception ex)
             {
-                return ServicesResult<DetailProject>.Failure($"An error occurred: {ex.Message}");
+                return ServicesResult<DetailProject>.Failure($"An unexpected error occurred: {ex.Message}");
             }
-           
         }
-
         #endregion
 
         #region Toggle project status of a project
         /// <summary>
-        /// Toggles the IsCompleted status of a project if the user has the required permissions.
+        /// Toggles the completion status (IsCompleted) of a project and logs the action.
         /// </summary>
-        /// <param name="userId">The ID of the user requesting the update.</param>
+        /// <param name="memberCurrentId">The ID of the member making the request.</param>
         /// <param name="projectId">The ID of the project to be updated.</param>
-        /// <returns>The updated project details or an error message if the operation fails.</returns>
-        public async Task<ServicesResult<DetailProject>> UpdateIsCompleted(string userId, string projectId)
+        /// <returns>A service result containing the updated project details or an error message.</returns>
+        public async Task<ServicesResult<DetailProject>> UpdateIsCompleted(string memberCurrentId, string projectId)
         {
-            if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(projectId))
-                return ServicesResult<DetailProject>.Failure("Invalid input parameters.");
+            if (string.IsNullOrEmpty(memberCurrentId))
+                return ServicesResult<DetailProject>.Failure("Member ID cannot be null or empty.");
+
+            if (string.IsNullOrEmpty(projectId))
+                return ServicesResult<DetailProject>.Failure("Project ID cannot be null or empty.");
 
             try
             {
                 // Validate user's ownership role
                 var ownRoleResult = await GetOwnRole();
                 if (!ownRoleResult.Status)
-                    return ServicesResult<DetailProject>.Failure(ownRoleResult.Message);
+                    return ServicesResult<DetailProject>.Failure($"Failed to validate role: {ownRoleResult.Message}");
 
-                var projectUser = await _unitOfWork.ProjectMemberRepository.GetManyByKeyAndValue("UserId", userId);
-                if (!projectUser.Status || !projectUser.Data.Any())
-                    return ServicesResult<DetailProject>.Failure("No projects found for the user.");
+                // Fetch the member data
+                var memberResult = await _unitOfWork.ProjectMemberRepository.GetOneByKeyAndValue("Id", memberCurrentId);
+                if (!memberResult.Status)
+                    return ServicesResult<DetailProject>.Failure($"Failed to retrieve member: {memberResult.Message}");
 
-                bool isUserAuthorized = projectUser.Data.Any(x => x.RoleId == _ownRoleId && x.ProjectId == projectId);
-                if (!isUserAuthorized)
+                var member = memberResult.Data;
+
+                // Check if the member has the required ownership role and is associated with the project
+                if (member.RoleId != _ownRoleId || member.ProjectId != projectId)
                     return ServicesResult<DetailProject>.Failure("User does not have permission to update this project.");
 
-                // Toggle IsCompleted status
-                var project = await _unitOfWork.ProjectRepository.GetOneByKeyAndValue("Id", projectId);
-                if (!project.Status) return ServicesResult<DetailProject>.Failure(project.Message);
-                project.Data.IsCompleted = !project.Data.IsCompleted;
+                // Fetch the project data
+                var projectResult = await _unitOfWork.ProjectRepository.GetOneByKeyAndValue("Id", projectId);
+                if (!projectResult.Status)
+                    return ServicesResult<DetailProject>.Failure($"Failed to retrieve project: {projectResult.Message}");
 
-                var updateResult = await _unitOfWork.ProjectRepository.UpdateAsync(project.Data);
-                if (!updateResult.Status) return ServicesResult<DetailProject>.Failure(updateResult.Message);
+                var project = projectResult.Data;
+
+                // Toggle the IsCompleted status
+                project.IsCompleted = !project.IsCompleted;
+
+                // Update the project status in the database
+                var updateResult = await _unitOfWork.ProjectRepository.UpdateAsync(project);
+                if (!updateResult.Status)
+                    return ServicesResult<DetailProject>.Failure($"Failed to update project: {updateResult.Message}");
 
                 // Log the action
-                var user = await _unitOfWork.UserRepository.GetOneByKeyAndValue("Id", userId);
-                if (!user.Status) return ServicesResult<DetailProject>.Failure(user.Message);
+                var userResult = await _unitOfWork.UserRepository.GetOneByKeyAndValue("Id", member.UserId);
+                if (!userResult.Status)
+                    return ServicesResult<DetailProject>.Failure($"Failed to retrieve user information: {userResult.Message}");
 
-                var activityLog = new ActivityLog
+                var user = userResult.Data;
+
+                var log = new ActivityLog
                 {
                     Id = Guid.NewGuid().ToString(),
                     ActionDate = DateTime.Now,
-                    Action = $"The project '{project.Data.Name}' was marked as {(project.Data.IsCompleted ? "completed" : "incomplete")} by {user.Data.UserName}.",
-                    ProjectId = project.Data.Id,
-                    UserId = userId
+                    Action = $"The project '{project.Name}' was marked as {(project.IsCompleted ? "completed" : "incomplete")} by {user.UserName}.",
+                    ProjectId = project.Id,
+                    UserId = member.UserId,
                 };
 
-                var logResult = await _unitOfWork.ActivityLogRepository.AddAsync(activityLog);
-                if (!logResult.Status) return ServicesResult<DetailProject>.Failure(logResult.Message);
+                var logResult = await _unitOfWork.ActivityLogRepository.AddAsync(log);
+                if (!logResult.Status)
+                    return ServicesResult<DetailProject>.Failure($"Failed to create activity log: {logResult.Message}");
 
-                // Return updated project details
-                var response = await GetDetailProject(userId, projectId);
-                return response.Status ? ServicesResult<DetailProject>.Success(response.Data) : ServicesResult<DetailProject>.Failure(response.Message);
+                // Return the updated project details
+                var detailProjectResult = await GetDetailProject(projectId);
+                if (!detailProjectResult.Status)
+                    return ServicesResult<DetailProject>.Failure($"Failed to retrieve updated project details: {detailProjectResult.Message}");
+
+                return ServicesResult<DetailProject>.Success(detailProjectResult.Data);
             }
             catch (Exception ex)
             {
-                return ServicesResult<DetailProject>.Failure($"An error occurred: {ex.Message}");
+                return ServicesResult<DetailProject>.Failure($"An unexpected error occurred: {ex.Message}");
             }
-            
         }
         #endregion
 
-        #region Delete a project along with its accompanying plans, members, and activity logs
+        #region Deletes a project and its associated plans, members, and logs if the user has ownership permissions.
         /// <summary>
-        /// Deletes a project along with its associated plans, members, and activity logs if the user has sufficient permissions.
+        /// Deletes a project and its associated plans, members, and logs if the user has ownership permissions.
         /// </summary>
-        /// <param name="userId">The ID of the user attempting to delete the project.</param>
+        /// <param name="memberId">The ID of the member initiating the deletion.</param>
         /// <param name="projectId">The ID of the project to be deleted.</param>
-        /// <returns>A result containing the updated list of projects owned by the user or an error message if the deletion fails.</returns>
-        public async Task<ServicesResult<IEnumerable<IndexProject>>> Delete(string userId, string projectId)
+        /// <returns>A service result containing the list of projects or an error message.</returns>
+        public async Task<ServicesResult<IEnumerable<IndexProject>>> Delete(string memberId, string projectId)
         {
-            if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(projectId))
-                return ServicesResult<IEnumerable<IndexProject>>.Failure("Invalid input parameters.");
+            if (string.IsNullOrEmpty(memberId))
+                return ServicesResult<IEnumerable<IndexProject>>.Failure("Member ID cannot be null or empty.");
+
+            if (string.IsNullOrEmpty(projectId))
+                return ServicesResult<IEnumerable<IndexProject>>.Failure("Project ID cannot be null or empty.");
 
             try
             {
-                // Step 1: Verify user's role
+                // Validate user ownership role
                 var ownRoleResult = await GetOwnRole();
                 if (!ownRoleResult.Status)
-                    return ServicesResult<IEnumerable<IndexProject>>.Failure(ownRoleResult.Message);
+                    return ServicesResult<IEnumerable<IndexProject>>.Failure($"Failed to validate role: {ownRoleResult.Message}");
 
-                // Step 2: Get project members and verify authorization
-                var members = await _unitOfWork.ProjectMemberRepository.GetManyByKeyAndValue("ProjectId", projectId);
-                if (!members.Status)
-                    return ServicesResult<IEnumerable<IndexProject>>.Failure(members.Message);
+                // Fetch member data
+                var memberResult = await _unitOfWork.ProjectMemberRepository.GetOneByKeyAndValue("Id", memberId);
+                if (!memberResult.Status)
+                    return ServicesResult<IEnumerable<IndexProject>>.Failure($"Failed to retrieve member: {memberResult.Message}");
 
-                var isUserAuthorized = members.Data.FirstOrDefault(x => x.RoleId == _ownRoleId && x.UserId == userId && x.ProjectId == projectId);
-                if (isUserAuthorized == null)
+                var member = memberResult.Data;
+
+                // Fetch project data
+                var projectResult = await _unitOfWork.ProjectRepository.GetOneByKeyAndValue("Id", projectId);
+                if (!projectResult.Status)
+                    return ServicesResult<IEnumerable<IndexProject>>.Failure($"Failed to retrieve project: {projectResult.Message}");
+
+                // Check if the member has ownership and is associated with the project
+                if (member.RoleId != _ownRoleId || member.ProjectId != projectId)
                     return ServicesResult<IEnumerable<IndexProject>>.Failure("User does not have permission to delete this project.");
 
-                // Step 3: Retrieve the project
-                var project = await _unitOfWork.ProjectRepository.GetOneByKeyAndValue("Id", projectId);
-                if (!project.Status)
-                    return ServicesResult<IEnumerable<IndexProject>>.Failure(project.Message);
+                // Delete all associated plans
+                var plansResult = await _unitOfWork.PlanRepository.GetManyByKeyAndValue("ProjectId", projectId);
+                if (!plansResult.Status)
+                    return ServicesResult<IEnumerable<IndexProject>>.Failure($"Failed to retrieve plans: {plansResult.Message}");
 
-                // Step 4: Delete all associated plans
-                var planProjects = await _unitOfWork.PlanRepository.GetManyByKeyAndValue("ProjectId", projectId);
-                if (!planProjects.Status)
-                    return ServicesResult<IEnumerable<IndexProject>>.Failure(planProjects.Message);
-
-                foreach (var plan in planProjects.Data)
+                foreach (var plan in plansResult.Data)
                 {
-                    var responsePlan = await _planServices.DeleteAsync(isUserAuthorized.Id, plan.Id);
-                    if (!responsePlan.Status)
-                        return ServicesResult<IEnumerable<IndexProject>>.Failure(responsePlan.Message);
+                    var deletePlanResponse = await _planServices.DeleteAsync(memberId, plan.Id);
+                    if (!deletePlanResponse.Status)
+                        return ServicesResult<IEnumerable<IndexProject>>.Failure($"Failed to delete plan '{plan.Name}': {deletePlanResponse.Message}");
                 }
 
-                // Step 5: Delete all associated members
-                foreach (var member in members.Data)
+                // Delete all project members
+                var membersResult = await _unitOfWork.ProjectMemberRepository.GetManyByKeyAndValue("ProjectId", projectId);
+                if (!membersResult.Status)
+                    return ServicesResult<IEnumerable<IndexProject>>.Failure($"Failed to retrieve project members: {membersResult.Message}");
+
+                foreach (var memberToDelete in membersResult.Data)
                 {
-                    var responseMember = await _memberServices.DeleteMember(userId, member.Id);
-                    if (!responseMember.Status)
-                        return ServicesResult<IEnumerable<IndexProject>>.Failure(responseMember.Message);
+                    var deleteMemberResponse = await _memberServices.DeleteMember(memberId, memberToDelete.Id);
+                    if (!deleteMemberResponse.Status)
+                        return ServicesResult<IEnumerable<IndexProject>>.Failure($"Failed to delete project member: {deleteMemberResponse.Message}");
                 }
 
-                // Step 6: Delete all activity logs for the project
-                var logs = await _unitOfWork.ActivityLogRepository.GetManyByKeyAndValue("ProjectId", projectId);
-                if (!logs.Status)
-                    return ServicesResult<IEnumerable<IndexProject>>.Failure(logs.Message);
+                // Delete all activity logs for the project
+                var logsResult = await _unitOfWork.ActivityLogRepository.GetManyByKeyAndValue("ProjectId", projectId);
+                if (!logsResult.Status)
+                    return ServicesResult<IEnumerable<IndexProject>>.Failure($"Failed to retrieve logs: {logsResult.Message}");
 
-                foreach (var logEntry in logs.Data)
+                foreach (var log in logsResult.Data)
                 {
-                    var responseLog = await _unitOfWork.ActivityLogRepository.DeleteAsync(logEntry.Id);
-                    if (!responseLog.Status)
-                        return ServicesResult<IEnumerable<IndexProject>>.Failure(responseLog.Message);
+                    var deleteLogResponse = await _unitOfWork.ActivityLogRepository.DeleteAsync(log.Id);
+                    if (!deleteLogResponse.Status)
+                        return ServicesResult<IEnumerable<IndexProject>>.Failure($"Failed to delete log: {deleteLogResponse.Message}");
                 }
 
-                // Step 7: Add a deletion activity log
-                var deletionLog = new ActivityLog
-                {
-                    Id = "",
-                    ActionDate = DateTime.Now,
-                    Action = $"The project {project.Data.Name} was deleted by {isUserAuthorized.UserId}",
-                    ProjectId = projectId
-                };
-                var logResponse = await _unitOfWork.ActivityLogRepository.AddAsync(deletionLog);
-                if (!logResponse.Status)
-                    return ServicesResult<IEnumerable<IndexProject>>.Failure(logResponse.Message);
-
-                // Step 8: Delete the project
-                var projectDeletionResponse = await _unitOfWork.ProjectRepository.DeleteAsync(projectId);
-                if (!projectDeletionResponse.Status)
-                    return ServicesResult<IEnumerable<IndexProject>>.Failure(projectDeletionResponse.Message);
-
-                // Step 9: Return the updated project list
-                return await GetProjectListUserHasOwner(userId);
+                // Return the updated project list
+                return await GetProjectListUserHasOwner(projectId);
             }
             catch (Exception ex)
             {
-                return ServicesResult<IEnumerable<IndexProject>>.Failure($"An error occurred: {ex.Message}");
+                return ServicesResult<IEnumerable<IndexProject>>.Failure($"An unexpected error occurred: {ex.Message}");
             }
         }
 
