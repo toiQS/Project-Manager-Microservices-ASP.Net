@@ -1,16 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace PM.Domain.Entities
 {
     public class RefreshToken
     {
         [Key]
-        public int Id { get; set; }
+        public string Id { get; set; }
         public string Token { get; set; } = string.Empty;
         public string UserId { get; set; } = string.Empty;
         public DateTime Expires { get; set; }
