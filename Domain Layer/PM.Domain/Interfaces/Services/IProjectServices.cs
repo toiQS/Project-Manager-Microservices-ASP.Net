@@ -5,7 +5,7 @@ namespace PM.Domain.Interfaces.Services
     public interface IProjectServices
     {
         Task<ServicesResult<IEnumerable<IndexProject>>> GetProductListUserHasJoined(string userId);
-        Task<ServicesResult<IEnumerable<IndexProject>>> GetProjects();
+        //Task<ServicesResult<IEnumerable<IndexProject>>> GetProjects();
         Task<ServicesResult<IEnumerable<IndexProject>>> GetProjectListUserHasOwner(string userId);
         public Task<ServicesResult<DetailProject>> GetDetailProject(string projectId);
         Task<ServicesResult<DetailProject>> Add(string userId, AddProject addProject);
