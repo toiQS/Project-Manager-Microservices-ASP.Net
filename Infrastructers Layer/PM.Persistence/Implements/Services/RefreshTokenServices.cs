@@ -9,6 +9,12 @@ namespace PM.Persistence.Implements.Services
     {
         private readonly IUnitOfWork _unitOfWork;
 
+        public RefreshTokenServices(IUnitOfWork unitOfWork)
+        {
+            _unitOfWork = unitOfWork;
+        }
+
+
         #region Saves a refresh token for a user and logs the login activity.
         /// <summary>
         /// Saves a refresh token for a user and logs the login activity.
