@@ -23,6 +23,7 @@ namespace PM.Persistence.Implements
         public IRepository<Status, int> StatusRepository => new Repository<Status, int>(_context);
         public IRepository<User, string> UserRepository => new Repository<User, string>(_context);
         public IRepository<Plan,string> PlanRepository => new Repository<Plan, string>(_context);
+        public IRepository<RefreshToken, string> RefreshTokenRepository => new Repository<RefreshToken, string>(_context);
 
         public async Task<int> SaveChangesAsync()
         {
