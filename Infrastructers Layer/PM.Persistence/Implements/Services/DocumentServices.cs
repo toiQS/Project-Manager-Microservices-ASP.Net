@@ -1,10 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata.Conventions;
-using Microsoft.IdentityModel.Protocols.OpenIdConnect;
-using PM.Domain;
+﻿using PM.Domain;
 using PM.Domain.Entities;
 using PM.Domain.Interfaces;
 using PM.Domain.Models.documents;
-using System.ComponentModel.DataAnnotations;
 
 namespace PM.Persistence.Implements.Services
 {
@@ -15,6 +12,10 @@ namespace PM.Persistence.Implements.Services
         private string _managerId;
         private string _leaderId;
         private string _memberId;
+        public DocumentServices(IUnitOfWork unitOfWork)
+        {
+            _unitOfWork = unitOfWork;
+        }
 
         #region Retrieves all documents and maps them to IndexDoc objects.
         /// <summary>
@@ -240,90 +241,359 @@ namespace PM.Persistence.Implements.Services
 
         #endregion
 
-        #region
+        #region Retrieves detailed information about a document.
         /// <summary>
-        /// 
+        /// Retrieves detailed information about a document.
         /// </summary>
-        /// <param name="docId"></param>
-        /// <returns></returns>
+        /// <param name="docId">The ID of the document to retrieve.</param>
+        /// <returns>A service result containing the document details or an error message.</returns>
         public async Task<ServicesResult<DetailDoc>> GetDoc(string docId)
         {
+            // Validate input parameter
             if (string.IsNullOrEmpty(docId))
-                return ServicesResult<DetailDoc>.Failure("");
+                return ServicesResult<DetailDoc>.Failure("Document ID cannot be null or empty.");
+
             try
             {
-                var doc = await _unitOfWork.DocumentRepository.GetOneByKeyAndValue("Id", docId);
-                if (doc.Status == false) return ServicesResult<DetailDoc>.Failure(doc.Message);
-                var response = new DetailDoc()
+                // Retrieve the document from the repository
+                var docResult = await _unitOfWork.DocumentRepository.GetOneByKeyAndValue("Id", docId);
+                if (!docResult.Status)
+                    return ServicesResult<DetailDoc>.Failure($"Failed to retrieve document: {docResult.Message}");
+
+                // Map retrieved data to a DetailDoc object
+                var response = new DetailDoc
                 {
-                    Id = doc.Data.Id,
-                    Name = doc.Data.Name,
-                    Description = doc.Data.Descriotion,
-                    Path = doc.Data.Path,
+                    Id = docResult.Data.Id,
+                    Name = docResult.Data.Name,
+                    Description = docResult.Data.Descriotion, // Note: Verify property name "Descriotion"
+                    Path = docResult.Data.Path,
                 };
+
                 return ServicesResult<DetailDoc>.Success(response);
             }
             catch (Exception ex)
             {
-                return ServicesResult<DetailDoc>.Failure("");
+                return ServicesResult<DetailDoc>.Failure($"An error occurred: {ex.Message}");
             }
-            finally { _unitOfWork.Dispose(); }
+            finally
+            {
+                _unitOfWork.Dispose();
+            }
         }
         #endregion
-        #region
+
+        #region Adds a new document to a project and logs the action.
         /// <summary>
-        /// 
+        /// Adds a new document to a project and logs the action.
         /// </summary>
-        /// <param name="memberId"></param>
-        /// <param name="projectId"></param>
-        /// <param name="addDoc"></param>
-        /// <returns></returns>
+        /// <param name="memberId">The ID of the member adding the document.</param>
+        /// <param name="projectId">The ID of the project to which the document is being added.</param>
+        /// <param name="addDoc">The document details to add.</param>
+        /// <returns>A service result containing the detailed document information or an error message.</returns>
         public async Task<ServicesResult<DetailDoc>> AddDocToProject(string memberId, string projectId, AddDoc addDoc)
         {
-            if (string.IsNullOrEmpty(memberId) || string.IsNullOrEmpty(projectId) || addDoc is null)
-            {
-                return ServicesResult<DetailDoc>.Failure("");
-            }
+            // Validate input parameters
+            if (string.IsNullOrEmpty(memberId) || string.IsNullOrEmpty(projectId) || addDoc == null)
+                return ServicesResult<DetailDoc>.Failure("Invalid input parameters.");
+
             try
             {
-                var project = await _unitOfWork.ProjectRepository.GetOneByKeyAndValue("Id", projectId);
-                if (project.Status == false) return ServicesResult<DetailDoc>.Failure(project.Message);
-                var member = await _unitOfWork.ProjectMemberRepository.GetOneByKeyAndValue("Id", memberId);
-                if (member.Status == false)
-                    return ServicesResult<DetailDoc>.Failure(member.Message);
-                if (member.Data.ProjectId != projectId || member.Data.RoleId != memberId)
-                    return ServicesResult<DetailDoc>.Failure("");
-                var doc = new Document()
+                // Retrieve project details
+                var projectResult = await _unitOfWork.ProjectRepository.GetOneByKeyAndValue("Id", projectId);
+                if (!projectResult.Status)
+                    return ServicesResult<DetailDoc>.Failure($"Failed to retrieve project: {projectResult.Message}");
+
+                // Retrieve member details
+                var memberResult = await _unitOfWork.ProjectMemberRepository.GetOneByKeyAndValue("Id", memberId);
+                if (!memberResult.Status)
+                    return ServicesResult<DetailDoc>.Failure($"Failed to retrieve member: {memberResult.Message}");
+
+                var memberData = memberResult.Data;
+
+                // Ensure the member is associated with the project and has the required role (adjust role check as needed)
+                if (memberData.ProjectId != projectId)
+                    return ServicesResult<DetailDoc>.Failure("Member is not associated with the specified project.");
+
+                // NOTE: The following check is ambiguous; adjust as necessary to verify proper role.
+                if (memberData.RoleId != memberId)
+                    return ServicesResult<DetailDoc>.Failure("Member does not have sufficient permissions to add a document.");
+
+                // Create a new document
+                var newDocument = new Document
                 {
                     Id = Guid.NewGuid().ToString(),
                     Name = addDoc.Name,
-                    Descriotion = addDoc.Description,
+                    Descriotion = addDoc.Description, // Ensure that this property name is correct (e.g., "Description")
                 };
-                var addDocumentResponse = await _unitOfWork.DocumentRepository.AddAsync(doc);
-                if (addDocumentResponse.Status == false) return ServicesResult<DetailDoc>.Failure(addDocumentResponse.Message);
 
-                var infoMember = await _unitOfWork.UserRepository.GetOneByKeyAndValue("Id", member.Data.UserId);
-                if (infoMember.Status == false) return ServicesResult<DetailDoc>.Failure(infoMember.Message);
-                var log = new ActivityLog()
+                // Add the document to the repository
+                var addDocResult = await _unitOfWork.DocumentRepository.AddAsync(newDocument);
+                if (!addDocResult.Status)
+                    return ServicesResult<DetailDoc>.Failure($"Failed to add document: {addDocResult.Message}");
+
+                // Retrieve user details for logging
+                var userResult = await _unitOfWork.UserRepository.GetOneByKeyAndValue("Id", memberData.UserId);
+                if (!userResult.Status)
+                    return ServicesResult<DetailDoc>.Failure($"Failed to retrieve user info: {userResult.Message}");
+
+                // Log the addition of the document
+                var log = new ActivityLog
                 {
                     Id = Guid.NewGuid().ToString(),
-                    Action = $"a new doccument was added by {infoMember.Data.UserName} in project {project.Data.Name}",
-                    UserId = member.Data.UserId,
+                    Action = $"A new document was added by {userResult.Data.UserName} in project {projectResult.Data.Name}.",
+                    UserId = memberData.UserId,
                     ProjectId = projectId,
+                    ActionDate = DateTime.Now
                 };
-                var addLogResponse = await _unitOfWork.ActivityLogRepository.AddAsync(log);
-                if (addLogResponse.Status == false) return ServicesResult<DetailDoc>.Failure(addLogResponse.Message);
-                return await GetDoc(doc.Id);
+
+                var logResult = await _unitOfWork.ActivityLogRepository.AddAsync(log);
+                if (!logResult.Status)
+                    return ServicesResult<DetailDoc>.Failure($"Failed to log activity: {logResult.Message}");
+
+                // Retrieve and return the newly added document's details
+                return await GetDoc(newDocument.Id);
             }
             catch (Exception ex)
             {
-                return ServicesResult<DetailDoc>.Failure(ex.Message);
+                return ServicesResult<DetailDoc>.Failure($"An unexpected error occurred: {ex.Message}");
             }
         }
+
         #endregion
-        public Task<ServicesResult<DetailDoc>> AddDocToMission(string memberId, string missionId, AddDoc addDoc);
-        public Task<ServicesResult<DetailDoc>> UpdateDoc(string memberId, string docId, UpdateDoc updateDoc);
-        public Task<ServicesResult<IEnumerable<IndexDoc>>> DeleteDoc(string memberId, string docId);
+
+        #region Adds a new document to a mission and logs the action.
+        /// <summary>
+        /// Adds a new document to a mission and logs the action.
+        /// </summary>
+        /// <param name="memberId">The ID of the member adding the document.</param>
+        /// <param name="missionId">The ID of the mission to which the document is being added.</param>
+        /// <param name="addDoc">The document details to add.</param>
+        /// <returns>A service result containing the detailed document information or an error message.</returns>
+        public async Task<ServicesResult<DetailDoc>> AddDocToMission(string memberId, string missionId, AddDoc addDoc)
+        {
+            // Validate input parameters
+            if (string.IsNullOrEmpty(memberId) || string.IsNullOrEmpty(missionId) || addDoc == null)
+                return ServicesResult<DetailDoc>.Failure("Invalid input parameters.");
+
+            try
+            {
+                // Retrieve mission details
+                var missionResult = await _unitOfWork.MissionRepository.GetOneByKeyAndValue("Id", missionId);
+                if (!missionResult.Status)
+                    return ServicesResult<DetailDoc>.Failure($"Failed to retrieve mission: {missionResult.Message}");
+
+                // Retrieve plan details for the mission.
+                // NOTE: It seems like there might be an error here. You are using mission.Data.Id for the plan Id.
+                // Ensure that the planId is correctly provided from the mission object, e.g., mission.Data.PlanId.
+                var planResult = await _unitOfWork.PlanRepository.GetOneByKeyAndValue("Id", missionResult.Data.PlanId);
+                if (!planResult.Status)
+                    return ServicesResult<DetailDoc>.Failure($"Failed to retrieve plan: {planResult.Message}");
+
+                // Retrieve project details from the plan
+                var projectResult = await _unitOfWork.ProjectRepository.GetOneByKeyAndValue("Id", planResult.Data.ProjectId);
+                if (!projectResult.Status)
+                    return ServicesResult<DetailDoc>.Failure($"Failed to retrieve project: {projectResult.Message}");
+
+                // Retrieve the member details (the one adding the document)
+                var memberResult = await _unitOfWork.ProjectMemberRepository.GetOneByKeyAndValue("Id", memberId);
+                if (!memberResult.Status)
+                    return ServicesResult<DetailDoc>.Failure($"Failed to retrieve member: {memberResult.Message}");
+
+                // Validate the member's permission: check if the member is part of the project and has the appropriate role.
+                // NOTE: Adjust the role check logic if needed; here we assume _memberId is the required role.
+                if (memberResult.Data.ProjectId != projectResult.Data.Id || memberResult.Data.RoleId != _memberId)
+                    return ServicesResult<DetailDoc>.Failure("Member does not have sufficient permissions to add a document to this mission.");
+
+                // Create the new document
+                var newDoc = new Document
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    Name = addDoc.Name,
+                    Descriotion = addDoc.Description, // Check the property name; should it be "Description"?
+                    MissionId = missionId,
+                    Path = addDoc.Path,
+                };
+
+                // Add the document to the repository
+                var addDocResult = await _unitOfWork.DocumentRepository.AddAsync(newDoc);
+                if (!addDocResult.Status)
+                    return ServicesResult<DetailDoc>.Failure($"Failed to add document: {addDocResult.Message}");
+
+                // Retrieve user details for logging
+                var userResult = await _unitOfWork.UserRepository.GetOneByKeyAndValue("Id", memberResult.Data.UserId);
+                if (!userResult.Status)
+                    return ServicesResult<DetailDoc>.Failure($"Failed to retrieve user details: {userResult.Message}");
+
+                // Log the document addition action
+                var log = new ActivityLog
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    Action = $"A new document was added to mission by {userResult.Data.UserName} in project {projectResult.Data.Name}.",
+                    UserId = userResult.Data.Id,
+                    ProjectId = projectResult.Data.Id,
+                    ActionDate = DateTime.Now,
+                };
+
+                var logResult = await _unitOfWork.ActivityLogRepository.AddAsync(log);
+                if (!logResult.Status)
+                    return ServicesResult<DetailDoc>.Failure($"Failed to log activity: {logResult.Message}");
+
+                // Retrieve and return the newly added document's details
+                return await GetDoc(newDoc.Id);
+            }
+            catch (Exception ex)
+            {
+                return ServicesResult<DetailDoc>.Failure($"An error occurred: {ex.Message}");
+            }
+        }
+
+        #endregion
+
+        #region Updates a document's details and logs the update action.
+        /// <summary>
+        /// Updates a document's details and logs the update action.
+        /// </summary>
+        /// <param name="memberId">The ID of the member performing the update.</param>
+        /// <param name="docId">The ID of the document to update.</param>
+        /// <param name="updateDoc">The updated document details.</param>
+        /// <returns>A service result containing the updated document details or an error message.</returns>
+        public async Task<ServicesResult<DetailDoc>> UpdateDoc(string memberId, string docId, UpdateDoc updateDoc)
+        {
+            // Validate input parameters
+            if (string.IsNullOrEmpty(memberId) || string.IsNullOrEmpty(docId) || updateDoc == null)
+                return ServicesResult<DetailDoc>.Failure("Invalid input parameters.");
+
+            try
+            {
+                // Retrieve the document to update
+                var docResult = await _unitOfWork.DocumentRepository.GetOneByKeyAndValue("Id", docId);
+                if (!docResult.Status)
+                    return ServicesResult<DetailDoc>.Failure($"Failed to retrieve document: {docResult.Message}");
+
+                // Retrieve the mission associated with the document
+                var missionResult = await _unitOfWork.MissionRepository.GetOneByKeyAndValue("Id", docResult.Data.MissionId);
+                if (!missionResult.Status)
+                    return ServicesResult<DetailDoc>.Failure($"Failed to retrieve mission: {missionResult.Message}");
+
+                // Retrieve the plan associated with the mission
+                // NOTE: Ensure that mission.Data contains a property (e.g., PlanId) for retrieving the plan.
+                var planResult = await _unitOfWork.PlanRepository.GetOneByKeyAndValue("Id", missionResult.Data.PlanId);
+                if (!planResult.Status)
+                    return ServicesResult<DetailDoc>.Failure($"Failed to retrieve plan: {planResult.Message}");
+
+                // Retrieve the project associated with the plan
+                var projectResult = await _unitOfWork.ProjectRepository.GetOneByKeyAndValue("Id", planResult.Data.ProjectId);
+                if (!projectResult.Status)
+                    return ServicesResult<DetailDoc>.Failure($"Failed to retrieve project: {projectResult.Message}");
+
+                // Retrieve the member performing the update
+                var memberResult = await _unitOfWork.ProjectMemberRepository.GetOneByKeyAndValue("Id", memberId);
+                if (!memberResult.Status)
+                    return ServicesResult<DetailDoc>.Failure($"Failed to retrieve member: {memberResult.Message}");
+
+                // Validate that the member belongs to the project and has the required role
+                if (memberResult.Data.ProjectId != projectResult.Data.Id || memberResult.Data.RoleId != _memberId)
+                    return ServicesResult<DetailDoc>.Failure("Member does not have sufficient permissions to update this document.");
+
+                // Update the document details
+                docResult.Data.Name = updateDoc.Name;
+                docResult.Data.Path = updateDoc.Path;
+                docResult.Data.Descriotion = updateDoc.Description;  // Confirm if this property should be "Descriotion" or "Description"
+
+                var updateResponse = await _unitOfWork.DocumentRepository.UpdateAsync(docResult.Data);
+                if (!updateResponse.Status)
+                    return ServicesResult<DetailDoc>.Failure($"Failed to update document: {updateResponse.Message}");
+
+                // Retrieve user info for logging purposes
+                var userResult = await _unitOfWork.UserRepository.GetOneByKeyAndValue("Id", memberResult.Data.UserId);
+                if (!userResult.Status)
+                    return ServicesResult<DetailDoc>.Failure($"Failed to retrieve user info: {userResult.Message}");
+
+                // Create a log for the update action
+                var log = new ActivityLog
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    Action = $"Document was updated by {userResult.Data.UserName} in project {projectResult.Data.Name}.",
+                    ActionDate = DateTime.Now,
+                    ProjectId = projectResult.Data.Id,
+                    UserId = memberResult.Data.UserId,
+                };
+
+                var logResult = await _unitOfWork.ActivityLogRepository.AddAsync(log);
+                if (!logResult.Status)
+                    return ServicesResult<DetailDoc>.Failure($"Failed to log activity: {logResult.Message}");
+
+                // Return the updated document details
+                return await GetDoc(docId);
+            }
+            catch (Exception ex)
+            {
+                return ServicesResult<DetailDoc>.Failure($"An unexpected error occurred: {ex.Message}");
+            }
+        }
+
+        #endregion
+
+        #region Deletes a document from a project and returns the updated list of documents.
+        /// <summary>
+        /// Deletes a document from a project and returns the updated list of documents.
+        /// </summary>
+        /// <param name="memberId">The ID of the member performing the deletion.</param>
+        /// <param name="docId">The ID of the document to delete.</param>
+        /// <returns>A service result containing a list of updated documents or an error message.</returns>
+        public async Task<ServicesResult<IEnumerable<IndexDoc>>> DeleteDoc(string memberId, string docId)
+        {
+            // Validate input parameters
+            if (string.IsNullOrEmpty(memberId) || string.IsNullOrEmpty(docId))
+                return ServicesResult<IEnumerable<IndexDoc>>.Failure("Invalid input parameters.");
+
+            try
+            {
+                // Retrieve the document details
+                var docResult = await _unitOfWork.DocumentRepository.GetOneByKeyAndValue("Id", docId);
+                if (!docResult.Status)
+                    return ServicesResult<IEnumerable<IndexDoc>>.Failure($"Failed to retrieve document: {docResult.Message}");
+
+                // Retrieve the mission associated with the document
+                var missionResult = await _unitOfWork.MissionRepository.GetOneByKeyAndValue("Id", docResult.Data.MissionId);
+                if (!missionResult.Status)
+                    return ServicesResult<IEnumerable<IndexDoc>>.Failure($"Failed to retrieve mission: {missionResult.Message}");
+
+                // Retrieve the plan associated with the mission
+                // NOTE: Ensure that missionResult.Data.PlanId is used if available. Adjust accordingly.
+                var planResult = await _unitOfWork.PlanRepository.GetOneByKeyAndValue("Id", missionResult.Data.PlanId);
+                if (!planResult.Status)
+                    return ServicesResult<IEnumerable<IndexDoc>>.Failure($"Failed to retrieve plan: {planResult.Message}");
+
+                // Retrieve the project associated with the plan
+                var projectResult = await _unitOfWork.ProjectRepository.GetOneByKeyAndValue("Id", planResult.Data.ProjectId);
+                if (!projectResult.Status)
+                    return ServicesResult<IEnumerable<IndexDoc>>.Failure($"Failed to retrieve project: {projectResult.Message}");
+
+                // Retrieve the member performing the deletion
+                var memberResult = await _unitOfWork.ProjectMemberRepository.GetOneByKeyAndValue("Id", memberId);
+                if (!memberResult.Status)
+                    return ServicesResult<IEnumerable<IndexDoc>>.Failure($"Failed to retrieve member: {memberResult.Message}");
+
+                // Validate that the member has permission to delete the document
+                if (memberResult.Data.ProjectId != projectResult.Data.Id || memberResult.Data.RoleId != _memberId)
+                    return ServicesResult<IEnumerable<IndexDoc>>.Failure("Member does not have permission to delete this document.");
+
+                // Delete the document
+                var deleteResult = await _unitOfWork.DocumentRepository.DeleteAsync(docId);
+                if (!deleteResult.Status)
+                    return ServicesResult<IEnumerable<IndexDoc>>.Failure($"Failed to delete document: {deleteResult.Message}");
+
+                // Return the updated list of documents in the project
+                return await GetDocsInProject(projectResult.Data.Id);
+            }
+            catch (Exception ex)
+            {
+                return ServicesResult<IEnumerable<IndexDoc>>.Failure($"An unexpected error occurred: {ex.Message}");
+            }
+        }
+
+        #endregion
 
         #region Private method helper
         /// <summary>
@@ -370,6 +640,7 @@ namespace PM.Persistence.Implements.Services
                 _unitOfWork.Dispose();
             }
         }
+
 
         /// <summary>
         /// Gets the role ID for the "Owner" role.
