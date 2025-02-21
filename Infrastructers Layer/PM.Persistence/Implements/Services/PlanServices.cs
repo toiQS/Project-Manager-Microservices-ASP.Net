@@ -5,7 +5,7 @@ using PM.Domain.Interfaces.Services;
 using PM.Domain.Models.missions;
 using PM.Domain.Models.plans;
 using PM.Domain.Models.progressReports;
-using System.Data.Entity.Core.Metadata.Edm;
+using System.Reflection;
 
 namespace PM.Persistence.Implements.Services
 {
@@ -14,13 +14,16 @@ namespace PM.Persistence.Implements.Services
 
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMissionServices _missionServices;
+        private readonly IReportServices _reportServices;
         private string _ownerId;
         private string _leaderId;
         private string _managerId;
         private string _memberId;
-        public PlanServices(IUnitOfWork unitOfWork)
+        public PlanServices(IUnitOfWork unitOfWork, IReportServices reportServices, IMissionServices missionServices)
         {
             _unitOfWork = unitOfWork;
+            _missionServices = missionServices;
+            _reportServices = reportServices;
         }
         //eveyone can create, update, and delete when your role is owner, leader, manager
 
@@ -403,6 +406,14 @@ namespace PM.Persistence.Implements.Services
                         return ServicesResult<IEnumerable<IndexPlan>>.Failure($"Failed to delete mission '{mission.Id}': {deleteMissionResponse.Message}");
                 }
 
+                var reports = await _unitOfWork.ProgressReportRepository.GetManyByKeyAndValue("PlanId", planId);
+                if (!reports.Status) return ServicesResult<IEnumerable<IndexPlan>>.Failure($"Failed to retrieve reports: {reports.Message}");
+                foreach (var item in reports.Data)
+                {
+                    var deleteReportMission = await _reportServices.DeleteReport(memberId, item.Id);
+                    if(!deleteReportMission.Status)
+                        return ServicesResult<IEnumerable<IndexPlan>>.Failure($"Failed to delete mission '{item.Id}': {deleteReportMission.Message}");
+                }
                 // Delete the plan and log the action
                 return await DeletePlanSupport(memberId, planId, plan, member);
             }
