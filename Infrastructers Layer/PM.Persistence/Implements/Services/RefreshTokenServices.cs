@@ -1,10 +1,11 @@
 ﻿using PM.Domain;
 using PM.Domain.Entities;
 using PM.Domain.Interfaces;
+using PM.Domain.Interfaces.Services;
 
 namespace PM.Persistence.Implements.Services
 {
-    public class RefreshTokenServices
+    public class RefreshTokenServices : IRefreshTokenServices
     {
         private readonly IUnitOfWork _unitOfWork;
 
