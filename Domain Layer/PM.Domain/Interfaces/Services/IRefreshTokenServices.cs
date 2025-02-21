@@ -11,7 +11,7 @@ namespace PM.Domain.Interfaces.Services
         // thông tin token
         public Task<ServicesResult<string>> SaveToken(string userId, string token);
         public Task<ServicesResult<string>> CheckStatusToken(string userId);
-        public Task<ServicesResult<string>> RefreshToken(string userId);
+        public Task<ServicesResult<string>> RefreshToken(string userId, string newToken);
         public Task<ServicesResult<string>> CancelToken(string userId);
     }
 }
