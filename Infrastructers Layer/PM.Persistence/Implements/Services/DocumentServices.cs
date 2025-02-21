@@ -1,11 +1,12 @@
 ﻿using PM.Domain;
 using PM.Domain.Entities;
 using PM.Domain.Interfaces;
+using PM.Domain.Interfaces.Services;
 using PM.Domain.Models.documents;
 
 namespace PM.Persistence.Implements.Services
 {
-    public class DocumentServices
+    public class DocumentServices : IDocumentServices
     {
         private readonly IUnitOfWork _unitOfWork;
         private string _ownerId;
