@@ -15,6 +15,7 @@ namespace PM.Domain.Interfaces
         IRepository<Status,int> StatusRepository { get; }
         IRepository<User,string> UserRepository { get; }
         IRepository<Plan,string> PlanRepository { get; }
+        IRepository<RefreshToken,string> RefreshTokenRepository { get; }
         Task<int> SaveChangesAsync();
     }
 }
