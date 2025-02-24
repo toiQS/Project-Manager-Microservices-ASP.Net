@@ -1,81 +1,140 @@
-﻿using PM.Application.Interfaces;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+using PM.Application.Interfaces;
 using PM.Domain.Interfaces.Services;
 using PM.Domain.Models.auths;
 using PM.Infrastructers.Interfaces;
 
 namespace PM.Application.Implements
 {
-    public class AuthLogic : IAuthLogic
+    public class AuthLogic : ControllerBase, IAuthLogic
     {
         private readonly IAuthServices _authServices;
         private readonly IJwtServices _jwtServices;
         private readonly IRefreshTokenServices _refreshTokenServices;
-        
-        public AuthLogic(IAuthServices authServices, IJwtServices jwtServices, IRefreshTokenServices refreshTokenServices)
+        private readonly ILogger<AuthLogic> _logger;
+
+        public AuthLogic(IAuthServices authServices, IJwtServices jwtServices, IRefreshTokenServices refreshTokenServices, ILogger<AuthLogic> logger)
         {
             _authServices = authServices;
             _jwtServices = jwtServices;
             _refreshTokenServices = refreshTokenServices;
+            _logger = logger;
         }
-        public async Task<string> Login(LoginModel loginModel)
+
+        #region Logs in a user, generates a JWT token and refresh token, and returns them.
+        /// <summary>
+        /// Logs in a user, generates a JWT token and refresh token, and returns them.
+        /// </summary>
+        /// <param name="loginModel">The login credentials.</param>
+        /// <returns>An IActionResult with the token on success or an error message.</returns>
+        public async Task<IActionResult> Login(LoginModel loginModel)
         {
-            var loginResult = await _authServices.LoginAsync(loginModel);
-            if(loginResult.Status == false  || loginResult.Data == null)
+            try
             {
-                return loginResult.Message;
+                // Authenticate the user using the auth service
+                var loginResult = await _authServices.LoginAsync(loginModel);
+                if (!loginResult.Status || loginResult.Data == null)
+                {
+                    return BadRequest(loginResult.Message);
+                }
+
+                // Generate JWT token for the authenticated user
+                var tokenResult = _jwtServices.GenerateToken(loginResult.Data);
+                if (!tokenResult.Status)
+                {
+                    return BadRequest(tokenResult.Message);
+                }
+
+                // Save the refresh token for future use
+                var refreshTokenResult = await _refreshTokenServices.SaveToken(loginResult.Data.UserId, tokenResult.Data);
+                if (!refreshTokenResult.Status)
+                {
+                    return BadRequest(refreshTokenResult.Message);
+                }
+
+                return Ok(new
+                {
+                    message = "Login success.",
+                    token = tokenResult.Data
+                });
             }
-            var token = _jwtServices.GenerateToken(loginResult.Data);
-            if(token.Status == false)
+            catch (Exception ex)
             {
-                return token.Message + " token";
+                _logger.LogError(ex, "Error occurred during login.");
+                return StatusCode(500, "Internal server error");
             }
-            var refreshToken = await _refreshTokenServices.SaveToken(loginResult.Data.UserId, token.Data);
-
-            if(refreshToken.Status == false) return refreshToken.Message;
-
-            return $"Login success. \n token: \n{token.Data}";
         }
-        //public async Task<string> LoginMethodSecond(LoginModel loginModel)
-        //{
-        //    var loginResult = await _authServices.LoginMethodSecondAsync(loginModel);
-        //    if (loginResult.Status == false)
-        //    {
-        //        return loginResult.Message;
-        //    }
-        //    return $"Login success. {loginResult.Data.ToString()}";
-        //}
-        public async Task<string> Register(RegisterModel registerModel)
+        #endregion
+
+        #region Registers a new user.
+        /// <summary>
+        /// Registers a new user.
+        /// </summary>
+        /// <param name="registerModel">The registration details.</param>
+        /// <returns>An IActionResult indicating the success or failure of the registration.</returns>
+        public async Task<IActionResult> Register(RegisterModel registerModel)
         {
             var registerResult = await _authServices.RegisterAsync(registerModel);
-            if (registerResult.Status == false)
+            if (!registerResult.Status)
             {
-                return registerResult.Message;
+                return BadRequest(registerResult.Message);
             }
-            return $"Register success. {registerResult.Data.ToString()}";
+            return Ok(new
+            {
+                message = "Register success.",
+                data = registerResult.Data.ToString()
+            });
         }
-        public async Task<string> LogOut(string token)
+        #endregion
+
+        #region  Logs out the user by canceling the refresh token.
+        /// <summary>
+        /// Logs out the user by canceling the refresh token.
+        /// </summary>
+        /// <param name="token">The JWT token of the user.</param>
+        /// <returns>An IActionResult indicating the success or failure of the logout process.</returns>
+        public async Task<IActionResult> LogOut(string token)
         {
-            var user = _jwtServices.ParseToken(token);
-            if (user.Status == false) return user.Message;
+            var userInfo = _jwtServices.ParseToken(token);
+            if (!userInfo.Status)
+            {
+                return BadRequest(userInfo.Message);
+            }
 
-            var cancelToken = await _refreshTokenServices.CancelToken(user.Data.UserId);
-            if (cancelToken.Status == false) { return cancelToken.Message; }
+            // Cancel the refresh token
+            var cancelTokenResult = await _refreshTokenServices.CancelToken(userInfo.Data.UserId);
+            if (!cancelTokenResult.Status)
+            {
+                return BadRequest(cancelTokenResult.Message);
+            }
 
+            // Optionally, perform any additional logout operations via the auth service
             var logOutResult = await _authServices.LogOutAsync();
-            if (logOutResult.Status == false)
+            if (!logOutResult.Status)
             {
-                return logOutResult.Message;
+                return BadRequest(logOutResult.Message);
             }
-            return "Log out success";
+
+            return Ok("Log out success");
         }
-        public Task<string> ForgotPassword(ForgotPasswordModel model)
+        #endregion
+
+        #region  Initiates the forgot password process.
+        /// <summary>
+        /// Initiates the forgot password process.
+        /// </summary>
+        /// <param name="model">The model containing the user's email or identifying information.</param>
+        /// <returns>An IActionResult indicating the success or failure of the process.</returns>
+        public async Task<IActionResult> ForgotPassword(ForgotPasswordModel model)
         {
-            var forgotPasswordResult = _authServices.ForgotPassword(model);
-            if (forgotPasswordResult.Result.Status == false)
+            var forgotPasswordResult = await _authServices.ForgotPassword(model);
+            if (!forgotPasswordResult.Status)
             {
-                return Task.FromResult(forgotPasswordResult.Result.Message);
+                return BadRequest(forgotPasswordResult.Message);
             }
-            return Task.FromResult("Forgot password success");
+            return Ok("Forgot password success");
         }
+        #endregion
     }
 }
