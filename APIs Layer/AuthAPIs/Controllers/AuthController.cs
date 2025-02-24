@@ -9,74 +9,54 @@ namespace AuthAPIs.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthLogic _authLogic;
-        private readonly ILogger<AuthController> _logger;
 
-        public AuthController(IAuthLogic authLogic, ILogger<AuthController> logger)
+        public AuthController(IAuthLogic authLogic)
         {
             _authLogic = authLogic;
-            _logger = logger;
         }
+
+        /// <summary>
+        /// Authenticates a user and returns a JWT token along with a refresh token.
+        /// </summary>
+        /// <param name="loginModel">The login credentials.</param>
+        /// <returns>An IActionResult with login result.</returns>
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginModel request)
+        public async Task<IActionResult> Login([FromBody] LoginModel loginModel)
         {
-            try
-            {
-                var response = await _authLogic.Login(request);
-                if (response == null)
-                {
-                    return BadRequest("Invalid email or password");
-                }
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error in Login");
-                return StatusCode(StatusCodes.Status500InternalServerError, "Error in Login");
-            }
+            return await _authLogic.Login(loginModel);
         }
-        
+
+        /// <summary>
+        /// Registers a new user.
+        /// </summary>
+        /// <param name="registerModel">The registration details.</param>
+        /// <returns>An IActionResult with registration result.</returns>
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterModel request)
+        public async Task<IActionResult> Register([FromBody] RegisterModel registerModel)
         {
-            try
-            {
-                var response = await _authLogic.Register(request);
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error in Register");
-                return StatusCode(StatusCodes.Status500InternalServerError, "Error in Register");
-            }
+            return await _authLogic.Register(registerModel);
         }
-        [HttpPost("log-out")]
-        public async Task<IActionResult> LogOut(string token)
+
+        /// <summary>
+        /// Logs out the user, invalidating the provided token.
+        /// </summary>
+        /// <param name="token">The JWT token to log out.</param>
+        /// <returns>An IActionResult with logout result.</returns>
+        [HttpPost("logout")]
+        public async Task<IActionResult> LogOut([FromQuery] string token)
         {
-            try
-            {
-                var response = await _authLogic.LogOut(token);
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Failed to log out: {ex}");
-                return StatusCode(StatusCodes.Status500InternalServerError);
-            }
+            return await _authLogic.LogOut(token);
         }
-        [HttpPost("forgot-password")]
-        public async Task<IActionResult> ForgotPassword(ForgotPasswordModel model)
+
+        /// <summary>
+        /// Initiates the forgot password process for a user.
+        /// </summary>
+        /// <param name="model">The model containing the user's email or other identifying info.</param>
+        /// <returns>An IActionResult with forgot password result.</returns>
+        [HttpPost("forgotpassword")]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordModel model)
         {
-            try
-            {
-                var response = await _authLogic.ForgotPassword(model);
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Failed to log out: {ex}");
-                return StatusCode(StatusCodes.Status500InternalServerError);
-            }
+            return await _authLogic.ForgotPassword(model);
         }
     }
 }
- 
