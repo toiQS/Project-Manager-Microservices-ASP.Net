@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using PM.Application.Interfaces;
 using PM.Application.Models.projects;
 using PM.Domain.Interfaces.Services;
 using PM.Domain.Models.projects;
@@ -7,7 +8,7 @@ using PM.Infrastructers.Interfaces;
 
 namespace PM.Application.Implements
 {
-    public class ProjectLogic : ControllerBase
+    public class ProjectLogic : ControllerBase, IProjectLogic
     {
         private readonly IProjectServices _projectServices;
         private readonly ILogger<ProjectLogic> _logger;
