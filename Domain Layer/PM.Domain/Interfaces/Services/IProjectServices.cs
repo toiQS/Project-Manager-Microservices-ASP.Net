@@ -2,7 +2,8 @@
 
 namespace PM.Domain.Interfaces.Services
 {
-    public interface IProjectServices
+    public interface 
+        IProjectServices
     {
         Task<ServicesResult<IEnumerable<IndexProject>>> GetProductListUserHasJoined(string userId);
         //Task<ServicesResult<IEnumerable<IndexProject>>> GetProjects();
