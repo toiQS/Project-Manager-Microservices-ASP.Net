@@ -40,6 +40,7 @@ namespace PM.Persistence
             services.AddScoped<IRepository<RoleInProject, string>, Repository<RoleInProject, string>>();
             services.AddScoped<IRepository<Status, int>, Repository<Status, int>>();
             services.AddScoped<IRepository<Plan, string>, Repository<Plan, string>>();
+            services.AddScoped<IRepository<RefreshToken, string>, Repository<RefreshToken, string>>();
 
             services.AddScoped<UserManager<User>>();
 
@@ -47,10 +48,15 @@ namespace PM.Persistence
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             //services
             services.AddScoped<IAuthServices, AuthServices>();
-            services.AddScoped<IProjectServices, ProjectServices>();
-            services.AddScoped<IPlanServices, PlanServices>();
+            services.AddScoped<IDocumentServices, DocumentServices>();
             services.AddScoped<IMemberServices, MemberServices>();
+            services.AddScoped<IPlanServices, PlanServices>();
+            services.AddScoped<IProjectServices, ProjectServices>();
+            services.AddScoped<IRefreshTokenServices, RefreshTokenServices>();
+            services.AddScoped<IReportServices, ReportServices>();
             services.AddScoped<IUserServices, UserServices>();
+            services.AddScoped<IMissionServices, MissionServices>();
+
         }
         private static void RegisterIdentity(this IServiceCollection services, IConfiguration configuration)
         {
