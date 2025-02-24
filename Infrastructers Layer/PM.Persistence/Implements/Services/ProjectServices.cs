@@ -1,10 +1,10 @@
-﻿using PM.Domain;
+﻿using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
+using PM.Domain;
 using PM.Domain.Entities;
 using PM.Domain.Interfaces;
 using PM.Domain.Interfaces.Services;
 using PM.Domain.Models.members;
 using PM.Domain.Models.plans;
-using PM.Domain.Models.positions;
 using PM.Domain.Models.projects;
 
 namespace PM.Persistence.Implements.Services
@@ -336,15 +336,16 @@ namespace PM.Persistence.Implements.Services
                 {
                     Id = $"{Guid.NewGuid()}",
                     Name = addProject.ProjectName,
-                    StartDate = addProject.StartAt,
-                    EndDate = addProject.EndAt,
+                    StartDate = new DateTime(addProject.StartAt.Year, addProject.StartAt.Month, addProject.StartAt.Day),
+                    EndDate = new DateTime(addProject.EndAt.Year, addProject.EndAt.Month, addProject.EndAt.Day),
                     CreatedDate = DateTime.Now,
                     IsCompleted = false,
                     IsDeleted = false,
-                    StatusId = DateTime.Now == addProject.StartAt
-                    ? 3 // Ongoing
-                    : (DateTime.Now < addProject.StartAt ? 2 : 1) // Upcoming or Overdue
+                    
                 };
+                project.StatusId = DateTime.Now == project.StartDate
+                    ? 3 // Ongoing
+                    : (DateTime.Now < project.EndDate ? 2 : 1); // Upcoming or Overdue
                 var responseProject = await _unitOfWork.ProjectRepository.AddAsync(project);
                 if (!responseProject.Status) return ServicesResult<DetailProject>.Failure(responseProject.Message);
 
@@ -439,11 +440,11 @@ namespace PM.Persistence.Implements.Services
                 if (project.Status == false) return ServicesResult<DetailProject>.Failure(project.Message);
                 project.Data.Name = updateProject.ProjectName ?? project.Data.Name;
                 project.Data.Description = updateProject.ProjectDescription ?? project.Data.Description;
-                project.Data.StartDate = updateProject.StartDate ?? project.Data.StartDate;
-                project.Data.EndDate = updateProject.EndDate ?? project.Data.EndDate;
-                project.Data.StatusId = DateTime.Now == updateProject.StartDate
+                project.Data.StartDate = new DateTime(updateProject.StartDate.Year, updateProject.StartDate.Month, updateProject.StartDate.Day);
+                project.Data.EndDate = new DateTime(updateProject.EndDate.Year, updateProject.EndDate.Month, updateProject.EndDate.Day);
+                project.Data.StatusId = DateTime.Now == new DateTime(updateProject.StartDate.Year, updateProject.StartDate.Month, updateProject.StartDate.Day)
                     ? 3 // Ongoing
-                    : (DateTime.Now < updateProject.StartDate ? 2 : 1);// Upcoming or Overdue
+                    : (DateTime.Now < new DateTime(updateProject.StartDate.Year, updateProject.StartDate.Month, updateProject.StartDate.Day) ? 2 : 1);// Upcoming or Overdue
 
                 var update = await _unitOfWork.ProjectRepository.UpdateAsync(project.Data);
                 if (!update.Status) return ServicesResult<DetailProject>.Failure($"{update.Message}");
