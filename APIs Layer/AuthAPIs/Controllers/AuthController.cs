@@ -9,13 +9,11 @@ namespace AuthAPIs.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthLogic _authLogic;
-        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ILogger<AuthController> _logger;
 
-        public AuthController(IAuthLogic authLogic, IHttpContextAccessor httpContextAccessor, ILogger<AuthController> logger)
+        public AuthController(IAuthLogic authLogic, ILogger<AuthController> logger)
         {
             _authLogic = authLogic;
-            _httpContextAccessor = httpContextAccessor;
             _logger = logger;
         }
         [HttpPost("login")]
@@ -49,6 +47,34 @@ namespace AuthAPIs.Controllers
             {
                 _logger.LogError(ex, "Error in Register");
                 return StatusCode(StatusCodes.Status500InternalServerError, "Error in Register");
+            }
+        }
+        [HttpPost("log-out")]
+        public async Task<IActionResult> LogOut(string token)
+        {
+            try
+            {
+                var response = await _authLogic.LogOut(token);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Failed to log out: {ex}");
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
+        }
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword(ForgotPasswordModel model)
+        {
+            try
+            {
+                var response = await _authLogic.ForgotPassword(model);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Failed to log out: {ex}");
+                return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
     }
