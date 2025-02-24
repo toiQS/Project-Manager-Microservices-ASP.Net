@@ -9,10 +9,13 @@ namespace PM.Application.Implements
     {
         private readonly IAuthServices _authServices;
         private readonly IJwtServices _jwtServices;
-        public AuthLogic(IAuthServices authServices, IJwtServices jwtServices)
+        private readonly IRefreshTokenServices _refreshTokenServices;
+        
+        public AuthLogic(IAuthServices authServices, IJwtServices jwtServices, IRefreshTokenServices refreshTokenServices)
         {
             _authServices = authServices;
             _jwtServices = jwtServices;
+            _refreshTokenServices = refreshTokenServices;
         }
         public async Task<string> Login(LoginModel loginModel)
         {
@@ -26,6 +29,10 @@ namespace PM.Application.Implements
             {
                 return token.Message + " token";
             }
+            var refreshToken = await _refreshTokenServices.SaveToken(loginResult.Data.UserId, token.Data);
+
+            if(refreshToken.Status == false) return refreshToken.Message;
+
             return $"Login success. \n token: \n{token.Data}";
         }
         //public async Task<string> LoginMethodSecond(LoginModel loginModel)
@@ -46,14 +53,20 @@ namespace PM.Application.Implements
             }
             return $"Register success. {registerResult.Data.ToString()}";
         }
-        public Task<string> LogOut()
+        public async Task<string> LogOut(string token)
         {
-            var logOutResult = _authServices.LogOutAsync();
-            if (logOutResult.Result.Status == false)
+            var user = _jwtServices.ParseToken(token);
+            if (user.Status == false) return user.Message;
+
+            var cancelToken = await _refreshTokenServices.CancelToken(user.Data.UserId);
+            if (cancelToken.Status == false) { return cancelToken.Message; }
+
+            var logOutResult = await _authServices.LogOutAsync();
+            if (logOutResult.Status == false)
             {
-                return Task.FromResult(logOutResult.Result.Message);
+                return logOutResult.Message;
             }
-            return Task.FromResult("Log out success");
+            return "Log out success";
         }
         public Task<string> ForgotPassword(ForgotPasswordModel model)
         {
