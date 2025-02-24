@@ -1,14 +1,15 @@
-﻿using PM.Domain;
+﻿using Microsoft.AspNetCore.Mvc;
 using PM.Domain.Models.auths;
 
 namespace PM.Application.Interfaces
 {
     public interface IAuthLogic
     {
-        public Task<string> Login(LoginModel loginModel);
-        //public Task<string> LoginMethodSecond(LoginModel loginModel);
-        public Task<string> Register(RegisterModel registerModel);
-        public Task<string> LogOut(string token);
-        public Task<string> ForgotPassword(ForgotPasswordModel model);
+        public Task<IActionResult> Login(LoginModel loginModel);
+        
+        public Task<IActionResult> Register(RegisterModel registerModel);
+        public Task<IActionResult> LogOut(string token);
+        public Task<IActionResult> ForgotPassword(ForgotPasswordModel model);
+        
     }
 }
