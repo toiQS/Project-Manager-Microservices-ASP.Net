@@ -62,17 +62,17 @@ namespace PM.Application.Implements
             }
             return ServicesResult<DetailAppUser>.Success(responseUpdate.Data);
         }
-        public async Task<ServicesResult<string>> ChangePassword(ChangePasswordUser changePassword)
+        public async Task<IActionResult> ChangePassword(ChangePasswordUser changePassword)
         {
             using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
             {
                 var response = await _userServices.ChangePassword(changePassword);
                 if (response.Status == false)
                 {
-                    return ServicesResult<string>.Failure(response.Message);
+                    return IActionResult.Failure(response.Message);
                 }
                 scope.Complete();
-                return ServicesResult<string>.Success(response.Data);
+                return IActionResult.Success(response.Data);
             }
         }
     }
