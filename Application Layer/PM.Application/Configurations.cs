@@ -19,6 +19,8 @@ namespace PM.Application
         {
             services.AddScoped<IAuthLogic, AuthLogic>();
             services.AddScoped<IUserLogic, UserLogic>();
+            services.AddScoped<IProjectLogic, ProjectLogic>();
+            services.AddScoped<IMemberLogic, MemberLogic>();
             
         }
     }
