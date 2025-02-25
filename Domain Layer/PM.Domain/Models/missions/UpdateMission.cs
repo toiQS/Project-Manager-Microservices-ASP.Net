@@ -9,6 +9,6 @@ namespace PM.Domain.Models.missions
         public DateOnly StartAt { get; set; }
         public DateOnly EndAt { get; set; }
         //public bool IsDone { get; set; }    
-        public List<IndexMember> Members { get; set; }  = new List<IndexMember>();
+        //public List<IndexMember> Members { get; set; }  = new List<IndexMember>();
     }
 }
