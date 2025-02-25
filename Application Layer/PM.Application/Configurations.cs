@@ -18,6 +18,11 @@ namespace PM.Application
         private static void RegisterServices(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddScoped<IAuthLogic, AuthLogic>();
+            services.AddScoped<IDocumentLogic, DocumentLogic>();
+            services.AddScoped<IMemberLogic, MemberLogic>();
+            services.AddScoped<IMissionLogic, MissionLogic>();
+            services.AddScoped<IPlanLogic, PlanLogic>();
+            services.AddScoped<IReportLogic, ReportLogic>();
             services.AddScoped<IUserLogic, UserLogic>();
             services.AddScoped<IProjectLogic, ProjectLogic>();
             services.AddScoped<IMemberLogic, MemberLogic>();
