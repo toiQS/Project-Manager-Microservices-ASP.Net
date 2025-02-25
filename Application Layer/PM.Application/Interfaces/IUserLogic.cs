@@ -1,14 +1,15 @@
-﻿using PM.Domain;
+﻿using Microsoft.AspNetCore.Mvc;
+using PM.Application.Models.users;
 using PM.Domain.Models.users;
 
 namespace PM.Application.Interfaces
 {
     public interface IUserLogic
     {
-        ServicesResult<DetailAppUser> GetDetailUserToken(string token);
-        Task<ServicesResult<DetailAppUser>> GetDetailUserIdentty(string userId);
-        Task<ServicesResult<DetailAppUser>> UpdateUser(string token, UpdateAppUser user);
-        public Task<IActionResult> ChangePassword(ChangePasswordUser user);
-        public Task<ServicesResult<DetailAppUser>> UpdateAvata(string token, string avata);
+        public IActionResult GetDetailUserToken(string token);
+        public Task<IActionResult> GetDetailUserIdentity(string userId);
+        public Task<IActionResult> UpdateUser(UpdateUserModel model);
+        public Task<IActionResult> ChangePassword(ChangePasswordModel model);
+        public Task<IActionResult> UpdateAvatar(UpdateAvataModel model);
     }
 }
