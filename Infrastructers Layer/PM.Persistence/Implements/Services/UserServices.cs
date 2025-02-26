@@ -96,7 +96,7 @@ namespace PM.Persistence.Implements.Services
                 userResponse.Data.PhoneNumber = user.Phone is null ? userResponse.Data.PhoneNumber : user.Phone;
                 userResponse.Data.AvatarPath = user.PathImage is null ? userResponse.Data.AvatarPath : user.PathImage;
                 userResponse.Data.UserName = user.UserName is null ? userResponse.Data.UserName : user.UserName;
-
+                
                 var updateResponse = await _unitOfWork.UserRepository.UpdateAsync(userResponse.Data);
                 if (!updateResponse.Status)
                 {
