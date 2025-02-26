@@ -5,6 +5,8 @@ using PM.Domain.Interfaces.Services;
 using PM.Domain.Models.missions;
 using PM.Domain.Models.plans;
 using PM.Domain.Models.progressReports;
+using PM.Domain.Models.projects;
+using System.Formats.Asn1;
 using System.Reflection;
 
 namespace PM.Persistence.Implements.Services
@@ -358,11 +360,11 @@ namespace PM.Persistence.Implements.Services
 
         #region Deletes a plan and its associated missions if the user has sufficient permissions.
         /// <summary>
-        /// Deletes a plan and its associated missions if the user has sufficient permissions.
+        /// Deletes a plan along with its associated missions, documents, and reports if the member has the necessary permissions.
         /// </summary>
-        /// <param name="memberId">The ID of the member requesting the deletion.</param>
-        /// <param name="planId">The ID of the plan to delete.</param>
-        /// <returns>A service result containing the updated list of plans or an error message.</returns>
+        /// <param name="memberId">ID of the member attempting to delete the plan.</param>
+        /// <param name="planId">ID of the plan to be deleted.</param>
+        /// <returns>Returns a list of updated plans if deletion is successful, otherwise returns a failure result.</returns>
         public async Task<ServicesResult<IEnumerable<IndexPlan>>> DeleteAsync(string memberId, string planId)
         {
             if (string.IsNullOrEmpty(memberId) || string.IsNullOrEmpty(planId))
@@ -370,15 +372,17 @@ namespace PM.Persistence.Implements.Services
 
             try
             {
+                // Check member role
                 var memberRole = await GetMemberRole();
-                if (memberRole.Status == false)
+                if (!memberRole.Status)
                     return ServicesResult<IEnumerable<IndexPlan>>.Failure(memberRole.Message);
+
                 // Fetch the plan
                 var plan = await _unitOfWork.PlanRepository.GetOneByKeyAndValue("Id", planId);
                 if (!plan.Status)
                     return ServicesResult<IEnumerable<IndexPlan>>.Failure($"Failed to retrieve plan: {plan.Message}");
 
-                // Fetch all members in the project
+                // Fetch project members
                 var members = await _unitOfWork.ProjectMemberRepository.GetManyByKeyAndValue("ProjectId", plan.Data.ProjectId);
                 if (!members.Status)
                     return ServicesResult<IEnumerable<IndexPlan>>.Failure($"Failed to retrieve project members: {members.Message}");
@@ -388,32 +392,49 @@ namespace PM.Persistence.Implements.Services
                 if (!member.Status)
                     return ServicesResult<IEnumerable<IndexPlan>>.Failure($"Failed to retrieve member: {member.Message}");
 
-                // Check if the member has permission to delete the plan
-                var hasPermission = members.Data.Any(x => x.Id == memberId && x.ProjectId == plan.Data.ProjectId && x.RoleId != _memberId);
+                // Validate member permissions
+                bool hasPermission = members.Data.Any(x => x.Id == memberId && x.ProjectId == plan.Data.ProjectId && x.RoleId != _memberId);
                 if (!hasPermission)
                     return ServicesResult<IEnumerable<IndexPlan>>.Failure("You do not have permission to delete this plan.");
 
-                // Fetch all missions associated with the plan
-                var planMissions = await _unitOfWork.MissionRepository.GetManyByKeyAndValue("PlanId", planId);
-                if (!planMissions.Status)
-                    return ServicesResult<IEnumerable<IndexPlan>>.Failure($"Failed to retrieve missions: {planMissions.Message}");
+                // Delete related documents
+                var missions = await _unitOfWork.MissionRepository.GetManyByKeyAndValue("PlanId", planId);
+                if (!missions.Status)
+                    return ServicesResult<IEnumerable<IndexPlan>>.Failure(missions.Message);
 
-                // Delete all missions in the plan
-                foreach (var mission in planMissions.Data)
+                foreach (var mission in missions.Data)
+                {
+                    var docs = await _unitOfWork.DocumentRepository.GetManyByKeyAndValue("MissionId", mission.Id);
+                    if (!docs.Status) return ServicesResult<IEnumerable<IndexPlan>>.Failure(docs.Message);
+
+                    foreach (var doc in docs.Data)
+                    {
+                        var deleteDocumentResponse = await _unitOfWork.DocumentRepository.DeleteAsync(doc.Id);
+                        if (!deleteDocumentResponse.Status)
+                            return ServicesResult<IEnumerable<IndexPlan>>.Failure($"Failed to delete document: {deleteDocumentResponse.Message}");
+                    }
+                }
+
+                // Delete associated missions
+                foreach (var mission in missions.Data)
                 {
                     var deleteMissionResponse = await _missionServices.DeleteMission(memberId, mission.Id);
                     if (!deleteMissionResponse.Status)
                         return ServicesResult<IEnumerable<IndexPlan>>.Failure($"Failed to delete mission '{mission.Id}': {deleteMissionResponse.Message}");
                 }
 
+                // Delete associated reports
                 var reports = await _unitOfWork.ProgressReportRepository.GetManyByKeyAndValue("PlanId", planId);
-                if (!reports.Status) return ServicesResult<IEnumerable<IndexPlan>>.Failure($"Failed to retrieve reports: {reports.Message}");
-                foreach (var item in reports.Data)
+                if (!reports.Status)
+                    return ServicesResult<IEnumerable<IndexPlan>>.Failure($"Failed to retrieve reports: {reports.Message}");
+
+                foreach (var report in reports.Data)
                 {
-                    var deleteReportMission = await _reportServices.DeleteReport(memberId, item.Id);
-                    if(!deleteReportMission.Status)
-                        return ServicesResult<IEnumerable<IndexPlan>>.Failure($"Failed to delete mission '{item.Id}': {deleteReportMission.Message}");
+                    var deleteReportResponse = await _reportServices.DeleteReport(memberId, report.Id);
+                    if (!deleteReportResponse.Status)
+                        return ServicesResult<IEnumerable<IndexPlan>>.Failure($"Failed to delete report '{report.Id}': {deleteReportResponse.Message}");
                 }
+
                 // Delete the plan and log the action
                 return await DeletePlanSupport(memberId, planId, plan, member);
             }
@@ -422,6 +443,7 @@ namespace PM.Persistence.Implements.Services
                 return ServicesResult<IEnumerable<IndexPlan>>.Failure($"An unexpected error occurred: {ex.Message}");
             }
         }
+
 
         /// <summary>
         /// Deletes the specified plan and logs the action.
@@ -433,35 +455,194 @@ namespace PM.Persistence.Implements.Services
         /// <returns>A service result containing the updated list of plans or an error message.</returns>
         public async Task<ServicesResult<IEnumerable<IndexPlan>>> DeletePlanSupport(string memberId, string planId, ServicesResult<Plan> plan, ServicesResult<ProjectMember> member)
         {
-            // Delete the plan
-            var deletePlanResponse = await _unitOfWork.PlanRepository.DeleteAsync(planId);
-            if (!deletePlanResponse.Status)
-                return ServicesResult<IEnumerable<IndexPlan>>.Failure($"Failed to delete plan: {deletePlanResponse.Message}");
-
-            // Log the deletion action
-            var infoMember = await _unitOfWork.UserRepository.GetOneByKeyAndValue("Id", member.Data.UserId);
-            if (!infoMember.Status)
-                return ServicesResult<IEnumerable<IndexPlan>>.Failure($"Failed to retrieve user information: {infoMember.Message}");
-
-            var project = await _unitOfWork.ProjectRepository.GetOneByKeyAndValue("Id", plan.Data.ProjectId);
-            if (!project.Status)
-                return ServicesResult<IEnumerable<IndexPlan>>.Failure("Failed to retrieve project details.");
-
-            var log = new ActivityLog
+            try
             {
-                Id = Guid.NewGuid().ToString(),
-                ProjectId = plan.Data.ProjectId,
-                UserId = member.Data.Id,
-                ActionDate = DateTime.Now,
-                Action = $"Plan '{plan.Data.Name}' was deleted by {infoMember.Data.UserName} in project '{project.Data.Name}'.",
-            };
+                // Delete the plan
+                var deletePlanResponse = await _unitOfWork.PlanRepository.DeleteAsync(planId);
+                if (!deletePlanResponse.Status)
+                    return ServicesResult<IEnumerable<IndexPlan>>.Failure($"Failed to delete plan: {deletePlanResponse.Message}");
 
-            var logResponse = await _unitOfWork.ActivityLogRepository.AddAsync(log);
-            if (!logResponse.Status)
-                return ServicesResult<IEnumerable<IndexPlan>>.Failure($"Failed to create activity log: {logResponse.Message}");
+                // Log the deletion action
+                var infoMember = await _unitOfWork.UserRepository.GetOneByKeyAndValue("Id", member.Data.UserId);
+                if (!infoMember.Status)
+                    return ServicesResult<IEnumerable<IndexPlan>>.Failure($"Failed to retrieve user information: {infoMember.Message}");
 
-            // Return the updated list of plans
-            return await GetPlansInProject(project.Data.Id);
+                var project = await _unitOfWork.ProjectRepository.GetOneByKeyAndValue("Id", plan.Data.ProjectId);
+                if (!project.Status)
+                    return ServicesResult<IEnumerable<IndexPlan>>.Failure("Failed to retrieve project details.");
+
+                var log = new ActivityLog
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    ProjectId = plan.Data.ProjectId,
+                    UserId = member.Data.Id,
+                    ActionDate = DateTime.Now,
+                    Action = $"Plan '{plan.Data.Name}' was deleted by {infoMember.Data.UserName} in project '{project.Data.Name}'.",
+                };
+
+                var logResponse = await _unitOfWork.ActivityLogRepository.AddAsync(log);
+                if (!logResponse.Status)
+                    return ServicesResult<IEnumerable<IndexPlan>>.Failure($"Failed to create activity log: {logResponse.Message}");
+
+                // Return the updated list of plans
+                return await GetPlansInProject(project.Data.Id);
+            }
+            catch (Exception ex)
+            {
+                return ServicesResult<IEnumerable<IndexPlan>>.Failure($"An unexpected error occurred: {ex.Message}");
+            }
+        }
+
+        #endregion
+
+        #region
+        /// <summary>
+        /// Xóa một kế hoạch cùng với tất cả nhiệm vụ, tài liệu và báo cáo liên quan.
+        /// </summary>
+        /// <param name="memberId">ID thành viên thực hiện xóa</param>
+        /// <param name="planId">ID kế hoạch cần xóa</param>
+        /// <returns>Kết quả xóa kế hoạch</returns>
+        public async Task<ServicesResult<bool>> DeleteFunc(string memberId, string planId)
+        {
+            if (string.IsNullOrEmpty(memberId) || string.IsNullOrEmpty(planId))
+                return ServicesResult<bool>.Failure("Invalid input parameters.");
+
+            try
+            {
+                // Kiểm tra vai trò của thành viên
+                var memberRole = await GetMemberRole();
+                if (!memberRole.Status)
+                    return ServicesResult<bool>.Failure(memberRole.Message);
+
+                // Lấy thông tin kế hoạch
+                var plan = await _unitOfWork.PlanRepository.GetOneByKeyAndValue("Id", planId);
+                if (!plan.Status)
+                    return ServicesResult<bool>.Failure($"Failed to retrieve plan: {plan.Message}");
+
+                // Lấy danh sách thành viên trong dự án
+                var membersResult = await _unitOfWork.ProjectMemberRepository.GetManyByKeyAndValue("ProjectId", plan.Data.ProjectId);
+                if (!membersResult.Status)
+                    return ServicesResult<bool>.Failure($"Failed to retrieve project members: {membersResult.Message}");
+
+                var members = membersResult.Data.ToList();
+
+                // Lấy thông tin thành viên hiện tại từ danh sách
+                var member = members.FirstOrDefault(x => x.Id == memberId);
+                if (member == null)
+                    return ServicesResult<bool>.Failure("Failed to retrieve member.");
+
+                // Kiểm tra quyền hạn xóa kế hoạch
+                if (!HasDeletePermission(member, members, plan.Data.ProjectId))
+                    return ServicesResult<bool>.Failure("You do not have permission to delete this plan.");
+
+                // Lấy danh sách nhiệm vụ của kế hoạch
+                var missionsResult = await _unitOfWork.MissionRepository.GetManyByKeyAndValue("PlanId", planId);
+                if (!missionsResult.Status)
+                    return ServicesResult<bool>.Failure(missionsResult.Message);
+
+                // Xóa tất cả tài liệu liên quan đến các nhiệm vụ
+                var deleteDocsTasks = missionsResult.Data.Select(async mission =>
+                {
+                    var docs = await _unitOfWork.DocumentRepository.GetManyByKeyAndValue("MissionId", mission.Id);
+                    if (!docs.Status) return false;
+
+                    var docDeleteTasks = docs.Data.Select(doc => _unitOfWork.DocumentRepository.DeleteAsync(doc.Id));
+                    var results = await Task.WhenAll(docDeleteTasks);
+
+                    return results.All(r => r.Status);
+                });
+
+                if (!(await Task.WhenAll(deleteDocsTasks)).All(x => x))
+                    return ServicesResult<bool>.Failure("Failed to delete documents.");
+
+                // Xóa tất cả nhiệm vụ trong kế hoạch
+                var deleteMissionsTasks = missionsResult.Data.Select(mission => _missionServices.DeleteMission(memberId, mission.Id));
+                var missionDeleteResults = await Task.WhenAll(deleteMissionsTasks);
+                if (!missionDeleteResults.All(r => r.Status))
+                    return ServicesResult<bool>.Failure("Failed to delete missions.");
+
+                // Lấy và xóa tất cả báo cáo tiến độ liên quan đến kế hoạch
+                var reportsResult = await _unitOfWork.ProgressReportRepository.GetManyByKeyAndValue("PlanId", planId);
+                if (!reportsResult.Status)
+                    return ServicesResult<bool>.Failure($"Failed to retrieve reports: {reportsResult.Message}");
+
+                var deleteReportsTasks = reportsResult.Data.Select(report => _reportServices.DeleteReport(memberId, report.Id));
+                var reportDeleteResults = await Task.WhenAll(deleteReportsTasks);
+                if (!reportDeleteResults.All(r => r.Status))
+                    return ServicesResult<bool>.Failure("Failed to delete reports.");
+
+                // Xóa kế hoạch và ghi log hành động
+                return await DeletePlanSupportFunc(memberId, planId, plan, member);
+            }
+            catch (Exception ex)
+            {
+                return ServicesResult<bool>.Failure($"An unexpected error occurred: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Hỗ trợ xóa kế hoạch và ghi log hoạt động.
+        /// </summary>
+        /// <param name="memberId">ID thành viên thực hiện xóa</param>
+        /// <param name="planId">ID kế hoạch cần xóa</param>
+        /// <param name="plan">Dữ liệu kế hoạch</param>
+        /// <param name="member">Dữ liệu thành viên</param>
+        /// <returns>Kết quả xóa kế hoạch</returns>
+        public async Task<ServicesResult<bool>> DeletePlanSupportFunc(string memberId, string planId, ServicesResult<Plan> plan, ProjectMember member)
+        {
+            try
+            {
+                // Thực hiện xóa kế hoạch
+                var deletePlanResponse = await _unitOfWork.PlanRepository.DeleteAsync(planId);
+                if (!deletePlanResponse.Status)
+                    return ServicesResult<bool>.Failure($"Failed to delete plan: {deletePlanResponse.Message}");
+
+                // Lấy thông tin người thực hiện hành động
+                var infoMember = await _unitOfWork.UserRepository.GetOneByKeyAndValue("Id", member.UserId);
+                if (!infoMember.Status)
+                    return ServicesResult<bool>.Failure($"Failed to retrieve user information: {infoMember.Message}");
+
+                // Lấy thông tin dự án chứa kế hoạch
+                var project = await _unitOfWork.ProjectRepository.GetOneByKeyAndValue("Id", plan.Data.ProjectId);
+                if (!project.Status)
+                    return ServicesResult<bool>.Failure("Failed to retrieve project details.");
+
+                // Ghi log hoạt động xóa kế hoạch
+                var log = new ActivityLog
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    ProjectId = plan.Data.ProjectId,
+                    UserId = member.Id,
+                    ActionDate = DateTime.Now,
+                    Action = $"Plan '{plan.Data.Name}' was deleted by {infoMember.Data.UserName} in project '{project.Data.Name}'.",
+                };
+
+                var logResponse = await _unitOfWork.ActivityLogRepository.AddAsync(log);
+                if (!logResponse.Status)
+                    return ServicesResult<bool>.Failure($"Failed to create activity log: {logResponse.Message}");
+
+                return ServicesResult<bool>.Success(true);
+            }
+            catch (Exception ex)
+            {
+                return ServicesResult<bool>.Failure($"An unexpected error occurred: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Kiểm tra xem thành viên có quyền xóa kế hoạch không.
+        /// </summary>
+        /// <param name="member">Thông tin thành viên</param>
+        /// <param name="members">Danh sách thành viên trong dự án</param>
+        /// <param name="projectId">ID của dự án</param>
+        /// <returns>True nếu có quyền, False nếu không</returns>
+        private bool HasDeletePermission(ProjectMember member, List<ProjectMember> members, string projectId)
+        {
+            // Kiểm tra thành viên có phải thuộc dự án không
+            if (member.ProjectId != projectId) return false;
+
+            // Kiểm tra vai trò của thành viên, có thể mở rộng logic này
+            return member.RoleId != _memberId;
         }
 
         #endregion
