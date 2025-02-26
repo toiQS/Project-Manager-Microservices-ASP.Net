@@ -635,11 +635,7 @@ namespace PM.Persistence.Implements.Services
             {
                 return ServicesResult<bool>.Failure(ex.Message);
             }
-            finally
-            {
-                // Remove this if you don’t want to dispose the unit of work here.
-                _unitOfWork.Dispose();
-            }
+            
         }
 
 
