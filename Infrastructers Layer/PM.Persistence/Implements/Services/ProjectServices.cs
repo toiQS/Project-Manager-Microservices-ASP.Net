@@ -1,5 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
-using PM.Domain;
+﻿using PM.Domain;
 using PM.Domain.Entities;
 using PM.Domain.Interfaces;
 using PM.Domain.Interfaces.Services;
@@ -438,8 +437,8 @@ namespace PM.Persistence.Implements.Services
             {
                 var project = await _unitOfWork.ProjectRepository.GetOneByKeyAndValue("Id", projectId);
                 if (project.Status == false) return ServicesResult<DetailProject>.Failure(project.Message);
-                project.Data.Name = updateProject.ProjectName ?? project.Data.Name;
-                project.Data.Description = updateProject.ProjectDescription ?? project.Data.Description;
+                project.Data.Name = updateProject.ProjectName is null ? project.Data.Name : updateProject.ProjectName;
+                project.Data.Description = updateProject.ProjectDescription is null ? project.Data.Description : updateProject.ProjectDescription;
                 project.Data.StartDate = new DateTime(updateProject.StartDate.Year, updateProject.StartDate.Month, updateProject.StartDate.Day);
                 project.Data.EndDate = new DateTime(updateProject.EndDate.Year, updateProject.EndDate.Month, updateProject.EndDate.Day);
                 project.Data.StatusId = DateTime.Now == new DateTime(updateProject.StartDate.Year, updateProject.StartDate.Month, updateProject.StartDate.Day)
