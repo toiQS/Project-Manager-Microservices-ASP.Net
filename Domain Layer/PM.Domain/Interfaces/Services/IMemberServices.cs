@@ -11,5 +11,6 @@ namespace PM.Domain.Interfaces.Services
         public Task<ServicesResult<DetailMember>> AddMember(string memberCurrentId, string projectId, AddMember addMember);
         public Task<ServicesResult<DetailMember>> UpdateMember(string memberCurrentId, string memberId, UpdateMember updateMember);
         public Task<ServicesResult<IEnumerable<IndexMember>>> DeleteMember(string memberCurrentId, string memberId);
+        public Task<ServicesResult<bool>> DeleteMemberFunc(string memberCurrentId, string memberId);
     }
 }
