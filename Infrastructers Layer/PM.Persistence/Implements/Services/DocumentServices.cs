@@ -596,6 +596,66 @@ namespace PM.Persistence.Implements.Services
 
         #endregion
 
+        #region Deletes a document if the member has the necessary permissions.
+        /// <summary>
+        /// Deletes a document if the member has the necessary permissions.
+        /// </summary>
+        /// <param name="memberId">ID of the member attempting to delete the document.</param>
+        /// <param name="docId">ID of the document to be deleted.</param>
+        /// <returns>Returns a success result if deletion is successful, otherwise returns a failure result.</returns>
+        public async Task<ServicesResult<bool>> DeleteDocFunc(string memberId, string docId)
+        {
+            // Validate input parameters
+            if (string.IsNullOrEmpty(memberId) || string.IsNullOrEmpty(docId))
+                return ServicesResult<bool>.Failure("Invalid input parameters.");
+
+            try
+            {
+                // Retrieve the document details
+                var docResult = await _unitOfWork.DocumentRepository.GetOneByKeyAndValue("Id", docId);
+                if (!docResult.Status)
+                    return ServicesResult<bool>.Failure($"Failed to retrieve document: {docResult.Message}");
+
+                // Retrieve the associated mission
+                var missionResult = await _unitOfWork.MissionRepository.GetOneByKeyAndValue("Id", docResult.Data.MissionId);
+                if (!missionResult.Status)
+                    return ServicesResult<bool>.Failure($"Failed to retrieve mission: {missionResult.Message}");
+
+                // Retrieve the associated plan
+                var planResult = await _unitOfWork.PlanRepository.GetOneByKeyAndValue("Id", missionResult.Data.PlanId);
+                if (!planResult.Status)
+                    return ServicesResult<bool>.Failure($"Failed to retrieve plan: {planResult.Message}");
+
+                // Retrieve the associated project
+                var projectResult = await _unitOfWork.ProjectRepository.GetOneByKeyAndValue("Id", planResult.Data.ProjectId);
+                if (!projectResult.Status)
+                    return ServicesResult<bool>.Failure($"Failed to retrieve project: {projectResult.Message}");
+
+                // Retrieve the member performing the deletion
+                var memberResult = await _unitOfWork.ProjectMemberRepository.GetOneByKeyAndValue("Id", memberId);
+                if (!memberResult.Status)
+                    return ServicesResult<bool>.Failure($"Failed to retrieve member: {memberResult.Message}");
+
+                // Validate member permissions (Ensure member belongs to the project and has required role)
+                if (memberResult.Data.ProjectId != projectResult.Data.Id || memberResult.Data.RoleId != _memberId)
+                    return ServicesResult<bool>.Failure("Member does not have permission to delete this document.");
+
+                // Perform document deletion
+                var deleteResult = await _unitOfWork.DocumentRepository.DeleteAsync(docId);
+                if (!deleteResult.Status)
+                    return ServicesResult<bool>.Failure($"Failed to delete document: {deleteResult.Message}");
+
+                // Return success result
+                return ServicesResult<bool>.Success(true);
+            }
+            catch (Exception ex)
+            {
+                // Handle unexpected errors gracefully
+                return ServicesResult<bool>.Failure($"An unexpected error occurred: {ex.Message}");
+            }
+        }
+
+        #endregion
         #region Private method helper
         /// <summary>
         /// Gets the role ID by role name.
