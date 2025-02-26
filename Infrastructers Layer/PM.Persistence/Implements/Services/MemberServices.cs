@@ -439,10 +439,6 @@ namespace PM.Persistence.Implements.Services
             {
                 return ServicesResult<bool>.Failure(ex.Message);
             }
-            finally
-            {
-                _unitOfWork.Dispose();
-            }
         }
         #endregion
     }
