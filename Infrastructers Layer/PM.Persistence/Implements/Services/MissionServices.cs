@@ -348,15 +348,15 @@ namespace PM.Persistence.Implements.Services
 
                 // Create a log for this action
                 var infoMember = await _unitOfWork.UserRepository.GetOneByKeyAndValue("Id", member.Data.UserId);
-                if(infoMember.Status == false) 
+                if (infoMember.Status == false)
                     return ServicesResult<DetailMission>.Failure(infoMember.Message);
                 var project = await _unitOfWork.ProjectRepository.GetOneByKeyAndValue("Id", plan.Data.ProjectId);
-                if(project.Status == false)
+                if (project.Status == false)
                     return ServicesResult<DetailMission>.Failure(project.Message);
                 var log = new ActivityLog()
                 {
                     Id = Guid.NewGuid().ToString(),
-                    Action= $"A misssion was added to plan {plan.Data.Name} in project {project.Data.Name} by {infoMember.Data.UserName}",
+                    Action = $"A misssion was added to plan {plan.Data.Name} in project {project.Data.Name} by {infoMember.Data.UserName}",
                     UserId = member.Data.UserId,
                     ProjectId = project.Data.Id,
                     ActionDate = DateTime.Now,
@@ -461,8 +461,8 @@ namespace PM.Persistence.Implements.Services
                 }
 
                 // Update the mission details
-                mission.Data.Name = newMission.TaskName ?? mission.Data.Name;
-                mission.Data.Description = newMission.TaskDescription ?? mission.Data.Description;
+                mission.Data.Name = newMission.TaskName is null ? mission.Data.Name : newMission.TaskName;
+                mission.Data.Description = newMission.TaskDescription is null ? mission.Data.Description : newMission.TaskDescription;
                 mission.Data.StartDate = new DateTime(newMission.StartAt.Year, newMission.StartAt.Month, newMission.StartAt.Day, 0, 0, 0);
                 mission.Data.EndDate = new DateTime(newMission.EndAt.Year, newMission.EndAt.Month, newMission.EndAt.Day, 23, 59, 59);
 
