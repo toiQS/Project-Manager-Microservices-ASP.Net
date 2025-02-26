@@ -497,9 +497,9 @@ namespace PM.Persistence.Implements.Services
                     return ServicesResult<DetailDoc>.Failure("Member does not have sufficient permissions to update this document.");
 
                 // Update the document details
-                docResult.Data.Name = updateDoc.Name;
-                docResult.Data.Path = updateDoc.Path;
-                docResult.Data.Descriotion = updateDoc.Description;  // Confirm if this property should be "Descriotion" or "Description"
+                docResult.Data.Name = updateDoc.Name is null ? docResult.Data.Name : updateDoc.Name;
+                docResult.Data.Path = updateDoc.Path is null ? docResult.Data.Path : updateDoc.Path;
+                docResult.Data.Descriotion = updateDoc.Description is null ? docResult.Data.Descriotion : updateDoc.Description;  // Confirm if this property should be "Descriotion" or "Description"
 
                 var updateResponse = await _unitOfWork.DocumentRepository.UpdateAsync(docResult.Data);
                 if (!updateResponse.Status)
