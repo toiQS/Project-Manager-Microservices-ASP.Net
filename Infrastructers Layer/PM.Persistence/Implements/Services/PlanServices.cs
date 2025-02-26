@@ -320,12 +320,12 @@ namespace PM.Persistence.Implements.Services
                     return ServicesResult<DetailPlan>.Failure("This plan name already exists in the project.");
 
                 // Update the plan
-                plan.Data.Name = updatePlan.PlanName ?? plan.Data.Name;
-                plan.Data.Description = updatePlan.Description ?? plan.Data.Description;
+                plan.Data.Name = updatePlan.PlanName is null ? plan.Data.Name : updatePlan.PlanName;
+                plan.Data.Description = updatePlan.Description is null ? plan.Data.Description : updatePlan.Description;
                 plan.Data.StartDate = new DateTime(updatePlan.StartAt.Year, updatePlan.StartAt.Month, updatePlan.StartAt.Day);
                 plan.Data.EndDate = new DateTime(updatePlan.EndAt.Year, updatePlan.EndAt.Month, updatePlan.EndAt.Day);
                 plan.Data.StatusId = DateTime.Now == plan.Data.StartDate ? 3 : (DateTime.Now < plan.Data.StartDate ? 2 : 1); // Ongoing, Upcoming, or Overdue
-
+                
                 var responseUpdate = await _unitOfWork.PlanRepository.UpdateAsync(plan.Data);
                 if (!responseUpdate.Status) return ServicesResult<DetailPlan>.Failure(responseUpdate.Message);
 
