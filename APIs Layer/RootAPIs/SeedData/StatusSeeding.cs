@@ -9,11 +9,12 @@ namespace RootAPIs.SeedData
         {
             var context = serviceProvider.GetRequiredService<ApplicationDbContext>();
             if (context.Status.Any()) return;
-            var arr = new[] { "not selected", "waiting", "in progress", "completed early", "finished on time", "behind schedule", "finished late" };
+            var arr = new[] { "Not Selected", "Waiting", "In Progress", "Completed Early", "Finished On Time", "Behind Schedule", "Finished Late" };
             foreach (var item in arr)
             {
                 context.AddRange(new Status
                 {
+                    
                     Name = item,
                 });
             }
