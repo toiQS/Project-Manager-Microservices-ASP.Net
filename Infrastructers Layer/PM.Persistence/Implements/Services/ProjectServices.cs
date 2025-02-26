@@ -41,8 +41,8 @@ namespace PM.Persistence.Implements.Services
             {
                 // Verify the current user's role
                 var ownRoleResult = await GetOwnRole();
-                if (!ownRoleResult.Status)
-                    return ServicesResult<IEnumerable<IndexProject>>.Failure(ownRoleResult.Message);
+                //if (!ownRoleResult.Status)
+                //    return ServicesResult<IEnumerable<IndexProject>>.Failure(ownRoleResult.Message);
 
                 // Check if the user exists in the database
                 bool userExists = await _unitOfWork.UserRepository.ExistsAsync(userId);
@@ -50,17 +50,19 @@ namespace PM.Persistence.Implements.Services
                     return ServicesResult<IEnumerable<IndexProject>>.Failure("User not found in database.");
 
                 // Retrieve the list of projects the user has joined
-                var projectsResult = await _unitOfWork.ProjectRepository.GetManyByKeyAndValue("UserId", userId);
+                var projectsResult = await _unitOfWork.ProjectMemberRepository.GetManyByKeyAndValue("UserId", userId);
                 if (!projectsResult.Status)
                     return ServicesResult<IEnumerable<IndexProject>>.Failure(projectsResult.Message);
 
                 if (projectsResult.Data == null)
                     return ServicesResult<IEnumerable<IndexProject>>.Success(response);
 
-                foreach (var project in projectsResult.Data)
+                foreach (var indexProject in projectsResult.Data)
                 {
+                    var project = await _unitOfWork.ProjectRepository.GetOneByKeyAndValue("Id", indexProject.ProjectId);
+                    if (project.Status == false) return ServicesResult<IEnumerable<IndexProject>>.Failure(project.Message);
                     // Retrieve project members
-                    var membersResult = await _unitOfWork.ProjectMemberRepository.GetManyByKeyAndValue("ProjectId", project.Id);
+                    var membersResult = await _unitOfWork.ProjectMemberRepository.GetManyByKeyAndValue("ProjectId", project.Data.Id);
                     if (!membersResult.Status)
                         return ServicesResult<IEnumerable<IndexProject>>.Failure("Failed to retrieve project members.");
 
@@ -75,15 +77,15 @@ namespace PM.Persistence.Implements.Services
                         return ServicesResult<IEnumerable<IndexProject>>.Failure(userResult.Message);
 
                     // Map project details to response object
-                    var indexProject = new IndexProject
+                    var index = new IndexProject
                     {
-                        ProjectId = project.Id,
-                        ProjectName = project.Name,
+                        ProjectId = project.Data.Id,
+                        ProjectName = project.Data.Name,
                         OwnerAvata = userResult.Data.AvatarPath,
                         OwnerName = userResult.Data.UserName,
                     };
 
-                    response.Add(indexProject);
+                    response.Add(index);
                 }
 
                 return ServicesResult<IEnumerable<IndexProject>>.Success(response);
@@ -92,11 +94,11 @@ namespace PM.Persistence.Implements.Services
             {
                 return ServicesResult<IEnumerable<IndexProject>>.Failure("An unexpected error occurred.");
             }
-            finally
-            {
-                await _unitOfWork.SaveChangesAsync();
-                _unitOfWork.Dispose();
-            }
+            //finally
+            //{
+            //    await _unitOfWork.SaveChangesAsync();
+            //    _unitOfWork.Dispose();
+            //}
         }
 
         #endregion
@@ -180,7 +182,7 @@ namespace PM.Persistence.Implements.Services
         /// <returns>A service result containing the project details.</returns>
         public async Task<ServicesResult<DetailProject>> GetDetailProject(string projectId)
         {
-            if ( string.IsNullOrEmpty(projectId))
+            if (string.IsNullOrEmpty(projectId))
                 return ServicesResult<DetailProject>.Failure("User ID or Project ID cannot be null or empty.");
 
             try
@@ -326,7 +328,7 @@ namespace PM.Persistence.Implements.Services
         /// <summary>
         /// Supports adding a new project.
         /// </summary>
-        private async Task<ServicesResult<DetailProject>> AddMethodSupport(string memberId, AddProject addProject)
+        private async Task<ServicesResult<DetailProject>> AddMethodSupport(string  userId , AddProject addProject)
         {
             try
             {
@@ -340,15 +342,21 @@ namespace PM.Persistence.Implements.Services
                     CreatedDate = DateTime.Now,
                     IsCompleted = false,
                     IsDeleted = false,
-                    
+                    ActivityLogs = new List<ActivityLog>(),
+                    Description = addProject.ProjectDescription,
+                    Documents = new List<Document>(),
+                    Members = new List<ProjectMember>(),
+                    Plans = new List<Plan>(),
                 };
+
                 project.StatusId = DateTime.Now == project.StartDate
                     ? 3 // Ongoing
                     : (DateTime.Now < project.EndDate ? 2 : 1); // Upcoming or Overdue
+
                 var responseProject = await _unitOfWork.ProjectRepository.AddAsync(project);
                 if (!responseProject.Status) return ServicesResult<DetailProject>.Failure(responseProject.Message);
 
-                var memberInfo = await _unitOfWork.ProjectMemberRepository.GetOneByKeyAndValue("Id", memberId);
+                var memberInfo = await _unitOfWork.UserRepository.GetOneByKeyAndValue("Id", userId);
                 if (memberInfo.Status == false)
                     return ServicesResult<DetailProject>.Failure(memberInfo.Message);
                 // set up owner role 
@@ -357,29 +365,28 @@ namespace PM.Persistence.Implements.Services
                     Id = $"{Guid.NewGuid()}",
                     ProjectId = project.Id,
                     RoleId = _ownRoleId,
-                    UserId = memberInfo.Data.UserId,
+                    UserId = userId,
                     PositionWork = string.Empty
                 };
+
                 var projectMemberResponse = await _unitOfWork.ProjectMemberRepository.AddAsync(member);
                 if (!projectMemberResponse.Status) return ServicesResult<DetailProject>.Failure(projectMemberResponse.Message);
-
-                var user = await _unitOfWork.UserRepository.GetOneByKeyAndValue("Id", memberInfo.Data.UserId);
-                if (!user.Status) return ServicesResult<DetailProject>.Failure(user.Message);
 
                 // create a activity log for project and owner role project
                 var activityProject = new ActivityLog()
                 {
                     Id = $"{Guid.NewGuid()}",
                     ActionDate = DateTime.Now,
-                    Action = $"A new project was created by {user.Data.UserName}",
+                    Action = $"A new project was created by {memberInfo.Data.UserName}",
                     ProjectId = project.Id,
+                    UserId = userId
                 };
                 var acvitity = await _unitOfWork.ActivityLogRepository.AddAsync(activityProject);
                 if (!acvitity.Status) return ServicesResult<DetailProject>.Failure(acvitity.Message);
 
                 // xác thực thành công
 
-                var response = await GetDetailProject( project.Id);
+                var response = await GetDetailProject(project.Id);
                 if (response.Status == false) return ServicesResult<DetailProject>.Failure(response.Message);
                 return ServicesResult<DetailProject>.Success(response.Data);
             }
@@ -412,15 +419,15 @@ namespace PM.Persistence.Implements.Services
                     return ServicesResult<DetailProject>.Failure(ownRoleResult.Message);
 
                 var member = await _unitOfWork.ProjectMemberRepository.GetOneByKeyAndValue("Id", MemberCurrentId);
-                if(!member.Status)
+                if (!member.Status)
                     return ServicesResult<DetailProject>.Failure(member.Message);
 
                 if (member.Data.RoleId != _ownRoleId)
                     return ServicesResult<DetailProject>.Failure("");
                 var userInfo = await _unitOfWork.UserRepository.GetOneByKeyAndValue("Id", member.Data.UserId);
-                if(userInfo.Status == false)
+                if (userInfo.Status == false)
                     return ServicesResult<DetailProject>.Failure(userInfo.Message);
-               return await UpdateMethodSupport(userInfo.Data.Id, projectId, updateProject);
+                return await UpdateMethodSupport(userInfo.Data.Id, projectId, updateProject);
             }
             catch (Exception ex)
             {
@@ -466,7 +473,7 @@ namespace PM.Persistence.Implements.Services
 
 
                 // tạo kết quả trả về
-                var response = await GetDetailProject( projectId);
+                var response = await GetDetailProject(projectId);
                 if (response.Status == false) return ServicesResult<DetailProject>.Failure(response.Message);
                 return ServicesResult<DetailProject>.Success(response.Data);
             }
@@ -499,10 +506,7 @@ namespace PM.Persistence.Implements.Services
             {
                 return ServicesResult<bool>.Failure(ex.Message);
             }
-            finally
-            {
-                _unitOfWork.Dispose();
-            }
+
         }
         #endregion
 
@@ -672,14 +676,14 @@ namespace PM.Persistence.Implements.Services
 
         #region Deletes a project and its associated plans, members, and logs if the user has ownership permissions.
         /// <summary>
-        /// Deletes a project and its associated plans, members, and logs if the user has ownership permissions.
+        /// Deletes a project if the user has the required ownership role.
         /// </summary>
-        /// <param name="memberId">The ID of the member initiating the deletion.</param>
-        /// <param name="projectId">The ID of the project to be deleted.</param>
-        /// <returns>A service result containing the list of projects or an error message.</returns>
-        public async Task<ServicesResult<IEnumerable<IndexProject>>> Delete(string memberId, string projectId)
+        /// <param name="userId">The ID of the user requesting deletion.</param>
+        /// <param name="projectId">The ID of the project to delete.</param>
+        /// <returns>A service result containing an updated list of projects the user owns.</returns>
+        public async Task<ServicesResult<IEnumerable<IndexProject>>> Delete(string userId, string projectId)
         {
-            if (string.IsNullOrEmpty(memberId))
+            if (string.IsNullOrEmpty(userId))
                 return ServicesResult<IEnumerable<IndexProject>>.Failure("Member ID cannot be null or empty.");
 
             if (string.IsNullOrEmpty(projectId))
@@ -687,52 +691,47 @@ namespace PM.Persistence.Implements.Services
 
             try
             {
-                // Validate user ownership role
+                // Validate if the user has the ownership role
                 var ownRoleResult = await GetOwnRole();
                 if (!ownRoleResult.Status)
                     return ServicesResult<IEnumerable<IndexProject>>.Failure($"Failed to validate role: {ownRoleResult.Message}");
 
-                // Fetch member data
-                var memberResult = await _unitOfWork.ProjectMemberRepository.GetOneByKeyAndValue("Id", memberId);
+                // Retrieve all project members
+                var memberResult = await _unitOfWork.ProjectMemberRepository.GetManyByKeyAndValue("ProjectId", projectId);
                 if (!memberResult.Status)
                     return ServicesResult<IEnumerable<IndexProject>>.Failure($"Failed to retrieve member: {memberResult.Message}");
 
-                var member = memberResult.Data;
-
-                // Fetch project data
+                // Retrieve project details
                 var projectResult = await _unitOfWork.ProjectRepository.GetOneByKeyAndValue("Id", projectId);
                 if (!projectResult.Status)
                     return ServicesResult<IEnumerable<IndexProject>>.Failure($"Failed to retrieve project: {projectResult.Message}");
 
-                // Check if the member has ownership and is associated with the project
-                if (member.RoleId != _ownRoleId || member.ProjectId != projectId)
+                // Check if the user is an owner of the project
+                var owner = memberResult.Data.FirstOrDefault(x => x.RoleId == _ownRoleId && x.ProjectId == projectId && x.UserId == userId);
+                if (owner == null)
                     return ServicesResult<IEnumerable<IndexProject>>.Failure("User does not have permission to delete this project.");
 
-                // Delete all associated plans
+                // Retrieve and delete all associated plans
                 var plansResult = await _unitOfWork.PlanRepository.GetManyByKeyAndValue("ProjectId", projectId);
                 if (!plansResult.Status)
                     return ServicesResult<IEnumerable<IndexProject>>.Failure($"Failed to retrieve plans: {plansResult.Message}");
 
                 foreach (var plan in plansResult.Data)
                 {
-                    var deletePlanResponse = await _planServices.DeleteAsync(memberId, plan.Id);
+                    var deletePlanResponse = await _planServices.DeleteAsync(owner.Id, plan.Id);
                     if (!deletePlanResponse.Status)
                         return ServicesResult<IEnumerable<IndexProject>>.Failure($"Failed to delete plan '{plan.Name}': {deletePlanResponse.Message}");
                 }
 
-                // Delete all project members
-                var membersResult = await _unitOfWork.ProjectMemberRepository.GetManyByKeyAndValue("ProjectId", projectId);
-                if (!membersResult.Status)
-                    return ServicesResult<IEnumerable<IndexProject>>.Failure($"Failed to retrieve project members: {membersResult.Message}");
-
-                foreach (var memberToDelete in membersResult.Data)
+                // Retrieve and delete all project members
+                foreach (var member in memberResult.Data)
                 {
-                    var deleteMemberResponse = await _memberServices.DeleteMember(memberId, memberToDelete.Id);
+                    var deleteMemberResponse = await _memberServices.DeleteMember(owner.Id, member.Id);
                     if (!deleteMemberResponse.Status)
                         return ServicesResult<IEnumerable<IndexProject>>.Failure($"Failed to delete project member: {deleteMemberResponse.Message}");
                 }
 
-                // Delete all activity logs for the project
+                // Retrieve and delete all activity logs
                 var logsResult = await _unitOfWork.ActivityLogRepository.GetManyByKeyAndValue("ProjectId", projectId);
                 if (!logsResult.Status)
                     return ServicesResult<IEnumerable<IndexProject>>.Failure($"Failed to retrieve logs: {logsResult.Message}");
@@ -744,7 +743,7 @@ namespace PM.Persistence.Implements.Services
                         return ServicesResult<IEnumerable<IndexProject>>.Failure($"Failed to delete log: {deleteLogResponse.Message}");
                 }
 
-                // Return the updated project list
+                // Return the updated list of projects the user owns
                 return await GetProjectListUserHasOwner(projectId);
             }
             catch (Exception ex)
@@ -752,6 +751,7 @@ namespace PM.Persistence.Implements.Services
                 return ServicesResult<IEnumerable<IndexProject>>.Failure($"An unexpected error occurred: {ex.Message}");
             }
         }
+
 
         #endregion
     }
