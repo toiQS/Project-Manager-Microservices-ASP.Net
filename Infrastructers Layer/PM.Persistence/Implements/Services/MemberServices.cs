@@ -1,6 +1,4 @@
-﻿using Azure.Core;
-using Microsoft.Extensions.Caching.Memory;
-using PM.Domain;
+﻿using PM.Domain;
 using PM.Domain.Entities;
 using PM.Domain.Interfaces;
 using PM.Domain.Interfaces.Services;
@@ -296,9 +294,9 @@ namespace PM.Persistence.Implements.Services
                 var updatedUser = updatedUserResult.Data;
 
                 // Update member details
-                member.PositionWork = updateMember.PositionWork;
-                member.ProjectId = updateMember.ProjectId;
-                member.UserId = updateMember.UserId;
+                member.PositionWork = updateMember.PositionWork is null ? member.PositionWork : updateMember.PositionWork;
+                member.ProjectId = updateMember.ProjectId is null ? member.ProjectId : updateMember.ProjectId;
+                member.UserId = updateMember.UserId is null ? member.UserId : updateMember.UserId;
 
                 var updateResponse = await _unitOfWork.ProjectMemberRepository.UpdateAsync(member);
                 if (!updateResponse.Status)
