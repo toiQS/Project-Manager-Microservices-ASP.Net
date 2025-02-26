@@ -1,4 +1,5 @@
-﻿using PM.Domain;
+﻿using Azure.Core;
+using PM.Domain;
 using PM.Domain.Entities;
 using PM.Domain.Interfaces;
 using PM.Domain.Interfaces.Services;
@@ -718,7 +719,7 @@ namespace PM.Persistence.Implements.Services
 
                 foreach (var plan in plansResult.Data)
                 {
-                    var deletePlanResponse = await _planServices.DeleteAsync(owner.Id, plan.Id);
+                    var deletePlanResponse = await _planServices.DeleteFunc(owner.Id, plan.Id);
                     if (!deletePlanResponse.Status)
                         return ServicesResult<IEnumerable<IndexProject>>.Failure($"Failed to delete plan '{plan.Name}': {deletePlanResponse.Message}");
                 }
@@ -726,11 +727,20 @@ namespace PM.Persistence.Implements.Services
                 // Retrieve and delete all project members
                 foreach (var member in memberResult.Data)
                 {
-                    var deleteMemberResponse = await _memberServices.DeleteMember(owner.Id, member.Id);
+                    var deleteMemberResponse = await _memberServices.DeleteMemberFunc(owner.Id, member.Id);
                     if (!deleteMemberResponse.Status)
                         return ServicesResult<IEnumerable<IndexProject>>.Failure($"Failed to delete project member: {deleteMemberResponse.Message}");
                 }
 
+                // Retrieve and delete all associated docs
+                var docs = await _unitOfWork.DocumentRepository.GetManyByKeyAndValue("ProjetId",projectId);
+                if (!docs.Status) return ServicesResult<IEnumerable<IndexProject>>.Failure(docs.Message);
+                foreach (var doc in docs.Data)
+                {
+                    var deleteDocumentResponse = await _unitOfWork.DocumentRepository.DeleteAsync(doc.Id);
+                    if (!deleteDocumentResponse.Status)
+                        return ServicesResult<IEnumerable<IndexProject>>.Failure($"Failed to delete project member: {deleteDocumentResponse.Message}");
+                }
                 // Retrieve and delete all activity logs
                 var logsResult = await _unitOfWork.ActivityLogRepository.GetManyByKeyAndValue("ProjectId", projectId);
                 if (!logsResult.Status)
