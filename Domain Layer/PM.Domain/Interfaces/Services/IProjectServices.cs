@@ -12,6 +12,7 @@ namespace PM.Domain.Interfaces.Services
         Task<ServicesResult<DetailProject>> Add(string userId, AddProject addProject);
         Task<ServicesResult<DetailProject>> UpdateInfo(string memberId, string projectId, UpdateProject updateProject);
         Task<ServicesResult<IEnumerable<IndexProject>>> Delete(string memberId, string projectId);
+        //Task<ServicesResult<bool>> DeleteFunc(string memberId, string projectId);
         Task<ServicesResult<DetailProject>> UpdateIsDelete(string memberId, string projectId);
         Task<ServicesResult<DetailProject>> UpdateIsCompleted(string memberId, string projectId);
     }
