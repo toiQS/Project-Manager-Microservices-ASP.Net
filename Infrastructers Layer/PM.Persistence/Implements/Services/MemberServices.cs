@@ -419,6 +419,91 @@ namespace PM.Persistence.Implements.Services
 
         #endregion
 
+        #region
+        public async Task<ServicesResult<bool>> DeleteMemberFunc(string memberCurrentId, string memberId)
+        {
+            if (string.IsNullOrEmpty(memberCurrentId) || string.IsNullOrEmpty(memberId))
+                return ServicesResult<bool>.Failure("Invalid input parameters.");
+
+            try
+            {
+                // Validate ownership role
+                var ownRoleResult = await GetOwnRole();
+                if (!ownRoleResult.Status)
+                    return ServicesResult<bool>.Failure($"Failed to validate ownership role: {ownRoleResult.Message}");
+
+                // Retrieve the project member to be deleted
+                var memberResult = await _unitOfWork.ProjectMemberRepository.GetOneByKeyAndValue("Id", memberId);
+                if (!memberResult.Status)
+                    return ServicesResult<bool>.Failure("Member not found.");
+
+                var member = memberResult.Data;
+
+                // Retrieve the requesting user
+                var requesterResult = await _unitOfWork.ProjectMemberRepository.GetOneByKeyAndValue("Id", memberCurrentId);
+                if (!requesterResult.Status)
+                    return ServicesResult<bool>.Failure($"Failed to retrieve requesting user: {requesterResult.Message}");
+
+                var requester = requesterResult.Data;
+
+                // Verify if the requesting user has the required role and belongs to the same project
+                if (requester.RoleId != _ownRoleId || requester.ProjectId != member.ProjectId)
+                    return ServicesResult<bool>.Failure("User does not have sufficient permissions to remove this member.");
+
+                // Retrieve assigned missions for the member
+                var missionsResult = await _unitOfWork.MissionAssignmentRepository.GetManyByKeyAndValue("ProjectMemberId", memberId);
+                if (!missionsResult.Status)
+                    return ServicesResult<bool>.Failure($"Failed to retrieve missions: {missionsResult.Message}");
+
+                // Delete all assigned missions
+                foreach (var mission in missionsResult.Data)
+                {
+                    var deleteMissionResult = await _unitOfWork.MissionAssignmentRepository.DeleteAsync(mission.MissionId);
+                    if (!deleteMissionResult.Status)
+                        return ServicesResult<bool>.Failure($"Failed to delete mission {mission.MissionId}: {deleteMissionResult.Message}");
+                }
+
+                // Delete the member from the project
+                var deleteMemberResult = await _unitOfWork.ProjectMemberRepository.DeleteAsync(memberId);
+                if (!deleteMemberResult.Status)
+                    return ServicesResult<bool>.Failure($"Failed to delete project member: {deleteMemberResult.Message}");
+
+                // Retrieve user and project details for logging
+                var ownerResult = await _unitOfWork.UserRepository.GetOneByKeyAndValue("Id", requester.UserId);
+                if (!ownerResult.Status)
+                    return ServicesResult<bool>.Failure($"Failed to retrieve owner info: {ownerResult.Message}");
+
+                var projectResult = await _unitOfWork.ProjectRepository.GetOneByKeyAndValue("Id", member.ProjectId);
+                if (!projectResult.Status)
+                    return ServicesResult<bool>.Failure($"Failed to retrieve project info: {projectResult.Message}");
+
+                var owner = ownerResult.Data;
+                var project = projectResult.Data;
+
+                // Log the deletion action
+                var log = new ActivityLog
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    Action = $"{owner.UserName} removed a member and deleted related missions in project {project.Name}.",
+                    ActionDate = DateTime.Now,
+                    ProjectId = project.Id,
+                    UserId = requester.UserId
+                };
+
+                var logResult = await _unitOfWork.ActivityLogRepository.AddAsync(log);
+                if (!logResult.Status)
+                    return ServicesResult<bool>.Failure($"Failed to create activity log: {logResult.Message}");
+
+                // Return the updated list of project members
+                 return ServicesResult<bool>.Success(true);
+            }
+            catch (Exception ex)
+            {
+                return ServicesResult<bool>.Failure($"An unexpected error occurred: {ex.Message}");
+            }
+        }
+        #endregion
+
         #region Helper methods
         /// <summary>
         /// Gets the role ID for the owner role.
