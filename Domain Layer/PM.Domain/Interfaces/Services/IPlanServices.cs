@@ -10,5 +10,6 @@ namespace PM.Domain.Interfaces.Services
         public Task<ServicesResult<DetailPlan>> AddAsync(string memberId, string projectId, AddPlan addPlan);
         public Task<ServicesResult<DetailPlan>> UpdateAsync(string memberId, string planId, UpdatePlan updatePlan);
         public Task<ServicesResult<IEnumerable<IndexPlan>>> DeleteAsync(string memberId, string planId);
+        public Task<ServicesResult<bool>> DeleteFunc(string memberId, string planId);
     }
 }
