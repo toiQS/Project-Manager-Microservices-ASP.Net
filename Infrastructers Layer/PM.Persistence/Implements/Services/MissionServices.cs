@@ -753,6 +753,122 @@ namespace PM.Persistence.Implements.Services
 
         #endregion
 
+        #region
+        public async Task<ServicesResult<bool>> DeleteMissionFunc(string memberId, string missionId)
+        {
+            // Validate input parameters
+            if (string.IsNullOrEmpty(memberId) || string.IsNullOrEmpty(missionId))
+            {
+                return ServicesResult<bool>.Failure("MemberId or MissionId is null");
+            }
+
+            try
+            {
+                var owner = await GetOwnRole();
+                if (owner.Status == false) return ServicesResult<bool>.Failure(owner.Message);
+
+                var leader = await GetLeaderRole();
+                if (leader.Status == false) return ServicesResult<bool>.Failure(leader.Message);
+
+                var manager = await GetManagerRole();
+                if (manager.Status == false) return ServicesResult<bool>.Failure(manager.Message);
+
+                // Check if the member exists
+                var member = await _unitOfWork.ProjectMemberRepository.GetOneByKeyAndValue("Id", memberId);
+                if (!member.Status)
+                {
+                    return ServicesResult<bool>.Failure(member.Message);
+                }
+
+                // Check if the mission exists
+                var mission = await _unitOfWork.MissionRepository.GetOneByKeyAndValue("Id", missionId);
+                if (!mission.Status)
+                {
+                    return ServicesResult<bool>.Failure(mission.Message);
+                }
+
+                // Check if the plan associated with the mission exists
+                var plan = await _unitOfWork.PlanRepository.GetOneByKeyAndValue("Id", mission.Data.PlanId);
+                if (!plan.Status)
+                {
+                    return ServicesResult<bool>.Failure(plan.Message);
+                }
+
+                // Get all members in the project associated with the plan
+                var members = await _unitOfWork.ProjectMemberRepository.GetManyByKeyAndValue("ProjectId", plan.Data.ProjectId);
+                if (!members.Status)
+                {
+                    return ServicesResult<bool>.Failure(members.Message);
+                }
+
+                // Check if the member has sufficient permissions (leader, owner, or manager roles)
+                var hasPermission = members.Data.Any(x => x.Id == memberId && (x.RoleId == _leaderId || x.RoleId == _ownerId || x.RoleId == _mamagerId));
+                if (!hasPermission)
+                {
+                    return ServicesResult<bool>.Failure("You do not have permission to delete this mission");
+                }
+
+                // Retrieve all mission assignments
+                var missionAssignments = await _unitOfWork.MissionAssignmentRepository.GetManyByKeyAndValue("MissionId", missionId);
+                if (!missionAssignments.Status)
+                {
+                    return ServicesResult<bool>.Failure(missionAssignments.Message);
+                }
+
+                // Delete all mission assignments if they exist
+                foreach (var assignment in missionAssignments.Data)
+                {
+                    var deleteAssignmentResponse = await _unitOfWork.MissionAssignmentRepository.DeleteAsync(assignment.Id);
+                    if (!deleteAssignmentResponse.Status)
+                    {
+                        return ServicesResult<bool>.Failure(deleteAssignmentResponse.Message);
+                    }
+                }
+
+
+                // Create a log for this action
+                var infoMember = await _unitOfWork.UserRepository.GetOneByKeyAndValue("Id", member.Data.UserId);
+                if (infoMember.Status == false)
+                    return ServicesResult<bool>.Failure(infoMember.Message);
+                var project = await _unitOfWork.ProjectRepository.GetOneByKeyAndValue("Id", plan.Data.ProjectId);
+                if (project.Status == false)
+                    return ServicesResult<bool>.Failure(project.Message);
+                var log = new ActivityLog()
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    Action = $"A misssion was deleted to plan {plan.Data.Name} in project {project.Data.Name} by {infoMember.Data.UserName}",
+                    UserId = member.Data.UserId,
+                    ProjectId = project.Data.Id,
+                    ActionDate = DateTime.Now,
+                };
+
+                var logResponse = await _unitOfWork.ActivityLogRepository.AddAsync(log);
+                if (!logResponse.Status)
+                    return ServicesResult<bool>.Failure(logResponse.Message);
+                // Delete the mission
+                var deleteMissionResponse = await _unitOfWork.MissionRepository.DeleteAsync(mission.Data.Id);
+                if (!deleteMissionResponse.Status)
+                {
+                    return ServicesResult<bool>.Failure(deleteMissionResponse.Message);
+                }
+
+                // Retrieve the updated list of missions in the plan
+                var updatedMissionsResponse = await GetIndexMissionsInPlan(plan.Data.Id);
+                if (!updatedMissionsResponse.Status)
+                {
+                    return ServicesResult<bool>.Failure(updatedMissionsResponse.Message);
+                }
+                // Return the updated mission list
+                return ServicesResult<bool>.Success(true);
+            }
+            catch (Exception e)
+            {
+                // Handle any exceptions by returning a failure result with the exception message
+                return ServicesResult<bool>.Failure(e.Message);
+            }
+        }
+        #endregion
+
         #region Adds members to a mission and log the action
         /// <summary>
         /// Adds members to a mission and logs the action.
