@@ -185,7 +185,7 @@ namespace PM.Persistence.Implements.Services
                     return ServicesResult<string>.Failure("Member does not have sufficient permissions to update this report.");
 
                 // Update report details
-                reportResult.Data.ReportDetails = reportDetail;
+                reportResult.Data.ReportDetails = reportDetail is null ? reportResult.Data.ReportDetails : reportDetail;
 
                 // Save the updated report
                 var updateResponse = await _unitOfWork.ProgressReportRepository.UpdateAsync(reportResult.Data);
