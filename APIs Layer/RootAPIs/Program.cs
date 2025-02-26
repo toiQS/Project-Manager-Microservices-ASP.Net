@@ -32,6 +32,12 @@ using (var scope = app.Services.CreateScope())
     await StatusSeeding.Initialize(services);
 }
 
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    await RoleInProjectSeeding.Initialize(services);
+}
+
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
