@@ -13,5 +13,6 @@ namespace PM.Domain.Interfaces.Services
         public Task<ServicesResult<DetailDoc>> AddDocToMission(string memberId, string missionId, AddDoc addDoc);
         public Task<ServicesResult<DetailDoc>> UpdateDoc(string memberId, string docId, UpdateDoc updateDoc);
         public Task<ServicesResult<IEnumerable<IndexDoc>>> DeleteDoc(string memberId, string docId);
+        public Task<ServicesResult<bool>> DeleteDocFunc(string memberId, string docId);
     }
 }
