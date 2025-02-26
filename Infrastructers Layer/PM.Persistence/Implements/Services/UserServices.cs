@@ -4,9 +4,6 @@ using PM.Domain.Entities;
 using PM.Domain.Interfaces;
 using PM.Domain.Interfaces.Services;
 using PM.Domain.Models.users;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace PM.Persistence.Implements.Services
 {
@@ -92,13 +89,13 @@ namespace PM.Persistence.Implements.Services
                 }
 
                 // Update user fields
-                userResponse.Data.FirstName = user.FirstName ?? userResponse.Data.FirstName;
-                userResponse.Data.LastName = user.LastName ?? userResponse.Data.LastName;
+                userResponse.Data.FirstName = user.FirstName is null ? userResponse.Data.FirstName : user.FirstName;
+                userResponse.Data.LastName = user.LastName is null ? userResponse.Data.LastName : user.LastName;
                 userResponse.Data.FullName = string.IsNullOrWhiteSpace(user.FirstName) || string.IsNullOrWhiteSpace(user.LastName) ? userResponse.Data.FullName : $"{user.FirstName} {user.LastName}";
-                userResponse.Data.Email = user.Email ?? userResponse.Data.Email;
-                userResponse.Data.PhoneNumber = user.Phone ?? userResponse.Data.PhoneNumber;
-                userResponse.Data.AvatarPath = user.PathImage ?? userResponse.Data.AvatarPath;
-                userResponse.Data.UserName = user.UserName ?? userResponse.Data.UserName;
+                userResponse.Data.Email = user.Email is null ? userResponse.Data.Email : user.Email;
+                userResponse.Data.PhoneNumber = user.Phone is null ? userResponse.Data.PhoneNumber : user.Phone;
+                userResponse.Data.AvatarPath = user.PathImage is null ? userResponse.Data.AvatarPath : user.PathImage;
+                userResponse.Data.UserName = user.UserName is null ? userResponse.Data.UserName : user.UserName;
 
                 var updateResponse = await _unitOfWork.UserRepository.UpdateAsync(userResponse.Data);
                 if (!updateResponse.Status)
@@ -171,7 +168,7 @@ namespace PM.Persistence.Implements.Services
                     return ServicesResult<DetailAppUser>.Failure(userResponse.Message);
                 }
 
-                userResponse.Data.AvatarPath = avata;
+                userResponse.Data.AvatarPath = avata is null ? userResponse.Data.AvatarPath : avata;
                 var updateResponse = await _unitOfWork.UserRepository.UpdateAsync(userResponse.Data);
                 if (!updateResponse.Status)
                 {
