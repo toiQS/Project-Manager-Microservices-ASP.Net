@@ -4,6 +4,7 @@ using PM.Domain.Interfaces;
 using PM.Domain.Interfaces.Services;
 using PM.Domain.Models.members;
 using PM.Domain.Models.missions;
+using PM.Domain.Models.missions.members;
 
 namespace PM.Persistence.Implements.Services
 {
@@ -175,6 +176,7 @@ namespace PM.Persistence.Implements.Services
                 // Map the retrieved data to a DetailMission object
                 var responseDetail = new DetailMission
                 {
+                    MissionId = detailMission.Data.Id,
                     MissionName = detailMission.Data.Name,
                     StartAt = detailMission.Data.StartDate,
                     CreateAt = detailMission.Data.CreateDate,
@@ -225,13 +227,15 @@ namespace PM.Persistence.Implements.Services
                     }
 
                     // Create an IndexMember object and add it to the mission detail
-                    var index = new IndexMember
+                    var index = new IndexMemberMission
                     {
+                        MisionMemberId = item.Id,
                         MemberId = item.ProjectMemberId,
                         UserName = infoMember.Data.UserName,
                         UserAvata = infoMember.Data.AvatarPath,
                         PositionWorkName = member.Data.PositionWork
                     };
+                    
 
                     responseDetail.IndexMembers.Add(index);
                 }
@@ -1001,13 +1005,13 @@ namespace PM.Persistence.Implements.Services
                 if (!missionAssignments.Status)
                     return ServicesResult<DetailMission>.Failure($"Failed to retrieve mission assignments: {missionAssignments.Message}");
 
-                // Check if the specified member is assigned to the mission
-                var assignmentToDelete = missionAssignments.Data.FirstOrDefault(x => x.ProjectMemberId == memberId);
-                if (assignmentToDelete == null)
-                    return ServicesResult<DetailMission>.Failure("The specified member is not assigned to this mission.");
+                //// Check if the specified member is assigned to the mission
+                //var assignmentToDelete = missionAssignments.Data.FirstOrDefault(x => x.ProjectMemberId == memberId);
+                //if (assignmentToDelete == null)
+                //    return ServicesResult<DetailMission>.Failure("The specified member is not assigned to this mission.");
 
                 // Delete the mission assignment
-                var deleteResponse = await _unitOfWork.MissionAssignmentRepository.DeleteAsync(assignmentToDelete.Id);
+                var deleteResponse = await _unitOfWork.MissionAssignmentRepository.DeleteAsync(memberId);
                 if (!deleteResponse.Status)
                     return ServicesResult<DetailMission>.Failure($"Failed to delete member from mission: {deleteResponse.Message}");
 
@@ -1082,11 +1086,7 @@ namespace PM.Persistence.Implements.Services
             {
                 return ServicesResult<bool>.Failure(ex.Message);
             }
-            finally
-            {
-                // Remove this if you don’t want to dispose the unit of work here.
-                _unitOfWork.Dispose();
-            }
+            
         }
 
         /// <summary>
