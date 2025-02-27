@@ -1,4 +1,5 @@
 ﻿using PM.Domain.Models.members;
+using PM.Domain.Models.missions.members;
 
 namespace PM.Domain.Models.missions
 {
@@ -12,6 +13,6 @@ namespace PM.Domain.Models.missions
         public string Status { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         public bool IsDone { get; set; }
-        public List<IndexMember> IndexMembers { get; set; } = new List<IndexMember>();
+        public List<IndexMemberMission> IndexMembers { get; set; } = new List<IndexMemberMission>();
     }
 }
