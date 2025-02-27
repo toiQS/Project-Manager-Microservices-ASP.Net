@@ -224,10 +224,10 @@ namespace PM.Persistence.Implements.Services
                 if (!hasPermission) return ServicesResult<DetailPlan>.Failure("You do not have permission to create a plan in this project.");
 
                 // Check for duplicate plan names
-                var plans = await GetPlansInProject(projectId);
+                var plans = await _unitOfWork.PlanRepository.GetManyByKeyAndValue("ProjectId",projectId);
                 if (!plans.Status) return ServicesResult<DetailPlan>.Failure(plans.Message);
 
-                if (plans.Data.Any(x => x.PlanName == addPlan.PlanName))
+                if (plans.Data.Any(x => x.Name == addPlan.PlanName))
                     return ServicesResult<DetailPlan>.Failure("This plan name already exists in the project.");
 
                 // Create the new plan
@@ -265,11 +265,7 @@ namespace PM.Persistence.Implements.Services
             {
                 return ServicesResult<DetailPlan>.Failure($"An error occurred: {ex.Message}");
             }
-            finally
-            {
-                await _unitOfWork.SaveChangesAsync();
-                _unitOfWork.Dispose();
-            }
+            
         }
         #endregion
 
@@ -315,10 +311,10 @@ namespace PM.Persistence.Implements.Services
                 if (!hasPermission) return ServicesResult<DetailPlan>.Failure("You do not have permission to update this plan.");
 
                 // Check for duplicate plan names
-                var plans = await GetPlansInProject(plan.Data.ProjectId);
+                var plans = await _unitOfWork.PlanRepository.GetManyByKeyAndValue("ProjectId",plan.Data.ProjectId);
                 if (!plans.Status) return ServicesResult<DetailPlan>.Failure(plans.Message);
 
-                if (plans.Data.Any(x => x.PlanName == updatePlan.PlanName && x.PlanId != planId))
+                if (plans.Data.Any(x => x.Name == updatePlan.PlanName && x.Id != planId))
                     return ServicesResult<DetailPlan>.Failure("This plan name already exists in the project.");
 
                 // Update the plan
@@ -331,11 +327,13 @@ namespace PM.Persistence.Implements.Services
                 var responseUpdate = await _unitOfWork.PlanRepository.UpdateAsync(plan.Data);
                 if (!responseUpdate.Status) return ServicesResult<DetailPlan>.Failure(responseUpdate.Message);
 
+                var project = await _unitOfWork.ProjectRepository.GetOneByKeyAndValue("Id", plan.Data.ProjectId);
+                if (project.Status == false) return ServicesResult<DetailPlan>.Failure(project.Message);
                 // Log the action
                 var log = new ActivityLog
                 {
                     Id = Guid.NewGuid().ToString(),
-                    Action = $"{memberInfo.Data.UserName} updated the plan {plan.Data.Name} in project {plan.Data.Project.Name}.",
+                    Action = $"{memberInfo.Data.UserName} updated the plan {plan.Data.Name} in project {project.Data.Name}.",
                     ActionDate = DateTime.Now,
                     ProjectId = plan.Data.ProjectId,
                     UserId = memberInfo.Data.Id
@@ -350,11 +348,7 @@ namespace PM.Persistence.Implements.Services
             {
                 return ServicesResult<DetailPlan>.Failure($"An error occurred: {ex.Message}");
             }
-            finally
-            {
-                await _unitOfWork.SaveChangesAsync();
-                _unitOfWork.Dispose();
-            }
+            
         }
         #endregion
 
@@ -685,11 +679,6 @@ namespace PM.Persistence.Implements.Services
             catch (Exception ex)
             {
                 return ServicesResult<bool>.Failure(ex.Message);
-            }
-            finally
-            {
-                // Remove this if you don’t want to dispose the unit of work here.
-                _unitOfWork.Dispose();
             }
         }
 
