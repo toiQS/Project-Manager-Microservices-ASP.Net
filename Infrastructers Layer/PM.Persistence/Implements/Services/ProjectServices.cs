@@ -248,7 +248,7 @@ namespace PM.Persistence.Implements.Services
                     {
                         PositionWorkName = member.PositionWork,
                         UserName = memberInfoResult.Data.UserName,
-                        MemberId = memberInfoResult.Data.Id,
+                        MemberId = member.Id,
                         UserAvata = memberInfoResult.Data.AvatarPath
                     });
                 }
