@@ -3,6 +3,7 @@ using PM.Domain.Entities;
 using PM.Domain.Interfaces;
 using PM.Domain.Interfaces.Services;
 using PM.Domain.Models.documents;
+using System.Globalization;
 
 namespace PM.Persistence.Implements.Services
 {
@@ -315,9 +316,9 @@ namespace PM.Persistence.Implements.Services
                 if (memberData.ProjectId != projectId)
                     return ServicesResult<DetailDoc>.Failure("Member is not associated with the specified project.");
 
-                // NOTE: The following check is ambiguous; adjust as necessary to verify proper role.
-                if (memberData.RoleId != memberId)
-                    return ServicesResult<DetailDoc>.Failure("Member does not have sufficient permissions to add a document.");
+                //// NOTE: The following check is ambiguous; adjust as necessary to verify proper role.
+                //if (memberData.RoleId != memberId)
+                //    return ServicesResult<DetailDoc>.Failure("Member does not have sufficient permissions to add a document.");
 
                 // Create a new document
                 var newDocument = new Document
@@ -325,6 +326,10 @@ namespace PM.Persistence.Implements.Services
                     Id = Guid.NewGuid().ToString(),
                     Name = addDoc.Name,
                     Descriotion = addDoc.Description, // Ensure that this property name is correct (e.g., "Description")
+                    //MissionId = string.Empty,
+                    Path = addDoc.Path,
+                    ProjectId = projectId,
+                    MissionId = null
                 };
 
                 // Add the document to the repository
@@ -402,7 +407,7 @@ namespace PM.Persistence.Implements.Services
 
                 // Validate the member's permission: check if the member is part of the project and has the appropriate role.
                 // NOTE: Adjust the role check logic if needed; here we assume _memberId is the required role.
-                if (memberResult.Data.ProjectId != projectResult.Data.Id || memberResult.Data.RoleId != _memberId)
+                if (memberResult.Data.ProjectId != projectResult.Data.Id)
                     return ServicesResult<DetailDoc>.Failure("Member does not have sufficient permissions to add a document to this mission.");
 
                 // Create the new document
@@ -413,6 +418,7 @@ namespace PM.Persistence.Implements.Services
                     Descriotion = addDoc.Description, // Check the property name; should it be "Description"?
                     MissionId = missionId,
                     Path = addDoc.Path,
+                    ProjectId = null
                 };
 
                 // Add the document to the repository
@@ -493,13 +499,15 @@ namespace PM.Persistence.Implements.Services
                     return ServicesResult<DetailDoc>.Failure($"Failed to retrieve member: {memberResult.Message}");
 
                 // Validate that the member belongs to the project and has the required role
-                if (memberResult.Data.ProjectId != projectResult.Data.Id || memberResult.Data.RoleId != _memberId)
+                if (memberResult.Data.ProjectId != projectResult.Data.Id)
                     return ServicesResult<DetailDoc>.Failure("Member does not have sufficient permissions to update this document.");
 
                 // Update the document details
                 docResult.Data.Name = updateDoc.Name is null ? docResult.Data.Name : updateDoc.Name;
                 docResult.Data.Path = updateDoc.Path is null ? docResult.Data.Path : updateDoc.Path;
                 docResult.Data.Descriotion = updateDoc.Description is null ? docResult.Data.Descriotion : updateDoc.Description;  // Confirm if this property should be "Descriotion" or "Description"
+                docResult.Data.ProjectId = docResult.Data.ProjectId;
+                docResult.Data.MissionId = docResult.Data.MissionId;
 
                 var updateResponse = await _unitOfWork.DocumentRepository.UpdateAsync(docResult.Data);
                 if (!updateResponse.Status)
