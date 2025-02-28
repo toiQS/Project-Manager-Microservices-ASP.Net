@@ -267,7 +267,6 @@ namespace PM.Persistence.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("MissionId")
-                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("MissionId1")
@@ -282,7 +281,6 @@ namespace PM.Persistence.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ProjectId")
-                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("ProjectId1")
@@ -668,8 +666,7 @@ namespace PM.Persistence.Migrations
                     b.HasOne("PM.Domain.Entities.Mission", "Mission")
                         .WithMany()
                         .HasForeignKey("MissionId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("PM.Domain.Entities.Mission", null)
                         .WithMany("Documents")
@@ -678,8 +675,7 @@ namespace PM.Persistence.Migrations
                     b.HasOne("PM.Domain.Entities.Project", "Project")
                         .WithMany()
                         .HasForeignKey("ProjectId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("PM.Domain.Entities.Project", null)
                         .WithMany("Documents")
