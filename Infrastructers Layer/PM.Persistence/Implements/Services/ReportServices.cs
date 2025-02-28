@@ -96,7 +96,7 @@ namespace PM.Persistence.Implements.Services
                     return ServicesResult<string>.Failure($"Failed to retrieve member: {memberResult.Message}");
 
                 // Check if the member is part of the project and has the required role
-                if (memberResult.Data.ProjectId != projectResult.Data.Id || memberResult.Data.RoleId != _memberId)
+                if (memberResult.Data.ProjectId != projectResult.Data.Id || memberResult.Data.RoleId == _memberId)
                     return ServicesResult<string>.Failure("Member does not have sufficient permissions to add a report.");
 
                 // Create a new progress report
@@ -181,7 +181,7 @@ namespace PM.Persistence.Implements.Services
                     return ServicesResult<string>.Failure($"Failed to retrieve member: {memberResult.Message}");
 
                 // Verify that the member belongs to the project and has the required role
-                if (memberResult.Data.ProjectId != projectResult.Data.Id || memberResult.Data.RoleId != _memberId)
+                if (memberResult.Data.ProjectId != projectResult.Data.Id || memberResult.Data.RoleId == _memberId)
                     return ServicesResult<string>.Failure("Member does not have sufficient permissions to update this report.");
 
                 // Update report details
@@ -260,7 +260,7 @@ namespace PM.Persistence.Implements.Services
                     return ServicesResult<string>.Failure($"Failed to retrieve member: {memberResult.Message}");
 
                 // Verify that the member belongs to the project and has the required role
-                if (memberResult.Data.ProjectId != projectResult.Data.Id || memberResult.Data.RoleId != _memberId)
+                if (memberResult.Data.ProjectId != projectResult.Data.Id || memberResult.Data.RoleId == _memberId)
                     return ServicesResult<string>.Failure("Member does not have sufficient permissions to delete this report.");
 
                 // Delete the report
@@ -335,11 +335,7 @@ namespace PM.Persistence.Implements.Services
             {
                 return ServicesResult<bool>.Failure(ex.Message);
             }
-            finally
-            {
-                // Remove this if you don’t want to dispose the unit of work here.
-                _unitOfWork.Dispose();
-            }
+           
         }
 
         /// <summary>
