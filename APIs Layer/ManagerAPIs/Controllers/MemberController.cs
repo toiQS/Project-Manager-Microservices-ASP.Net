@@ -19,7 +19,7 @@ namespace AuthAPIs.Controllers
         /// Retrieves all members.
         /// </summary>
         /// <returns>An IActionResult containing the list of members or an error message.</returns>
-        [HttpGet("all")]
+        [HttpGet("get-members")]
         public async Task<IActionResult> GetMembers()
         {
             return await _memberLogic.GetMembers();
@@ -30,7 +30,7 @@ namespace AuthAPIs.Controllers
         /// </summary>
         /// <param name="projectId">The ID of the project.</param>
         /// <returns>An IActionResult containing the list of project members or an error message.</returns>
-        [HttpGet("project")]
+        [HttpGet("get-members-in-project")]
         public async Task<IActionResult> GetMembers([FromQuery] string projectId)
         {
             return await _memberLogic.GetMembers(projectId);
@@ -41,7 +41,7 @@ namespace AuthAPIs.Controllers
         /// </summary>
         /// <param name="memberId">The ID of the member.</param>
         /// <returns>An IActionResult containing the member details or an error message.</returns>
-        [HttpGet("{memberId}")]
+        [HttpGet("get-member")]
         public async Task<IActionResult> GetMember(string memberId)
         {
             return await _memberLogic.GetMember(memberId);
