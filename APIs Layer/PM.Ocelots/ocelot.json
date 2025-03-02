@@ -16,7 +16,7 @@
       "DownstreamPathTemplate": "/api/Auth/login",
       "DownstreamScheme": "https",
       "UpstreamHttpMethod": [ "Post" ],
-      "UpstreamPathTemplate": "/api/login"
+      "UpstreamPathTemplate": "/login"
     },
     // auth register
     {
@@ -29,7 +29,7 @@
       "DownstreamPathTemplate": "/api/Auth/register",
       "DownstreamScheme": "https",
       "UpstreamHttpMethod": [ "Post" ],
-      "UpstreamPathTemplate": "/api/register"
+      "UpstreamPathTemplate": "/register"
     },
     // auth log-out
     {
@@ -42,7 +42,7 @@
       "DownstreamPathTemplate": "/api/Auth/logout",
       "DownstreamScheme": "https",
       "UpstreamHttpMethod": [ "Post" ],
-      "UpstreamPathTemplate": "/api/logout"
+      "UpstreamPathTemplate": "/logout"
     },
     // auth forgot password
 
@@ -61,7 +61,7 @@
       "DownstreamPathTemplate": "/api/Document/get-docs",
       "DownstreamScheme": "https",
       "UpstreamHttpMethod": [ "Get" ],
-      "UpstreamPathTemplate": "/api/doc/get-docs"
+      "UpstreamPathTemplate": "/doc/get-docs"
     },
     // get all docs in a project specific
     {
@@ -74,7 +74,7 @@
       "DownstreamPathTemplate": "/api/Document/get-docs-in-project",
       "DownstreamScheme": "https",
       "UpstreamHttpMethod": [ "Get" ],
-      "UpstreamPathTemplate": "/api/project/doc/get-docs"
+      "UpstreamPathTemplate": "/project/doc/get-docs"
     },
     // get all docs in a plan specific
     {
@@ -87,7 +87,7 @@
       "DownstreamPathTemplate": "/api/Document/get-docs-in-plan",
       "DownstreamScheme": "https",
       "UpstreamHttpMethod": [ "Get" ],
-      "UpstreamPathTemplate": "/api/project/plan/doc/get-doc-in-plan"
+      "UpstreamPathTemplate": "/project/plan/doc/get-doc-in-plan"
     },
     // get all docs in a misson specific
     {
@@ -100,7 +100,7 @@
       "DownstreamPathTemplate": "/api/Document/get-docs-in-misson",
       "DownstreamScheme": "https",
       "UpstreamHttpMethod": [ "Get" ],
-      "UpstreamPathTemplate": "/api/project/plan/mission/doc/get-docs-in-mission"
+      "UpstreamPathTemplate": "/project/plan/mission/doc/get-docs-in-mission"
     },
     // get detail doc
     {
@@ -113,7 +113,7 @@
       "DownstreamPathTemplate": "/api/Document/get-doc",
       "DownstreamScheme": "https",
       "UpstreamHttpMethod": [ "Get" ],
-      "UpstreamPathTemplate": "/api/doc/get-doc"
+      "UpstreamPathTemplate": "/doc/get-doc"
     },
     // add doc to project
     {
@@ -126,7 +126,7 @@
       "DownstreamPathTemplate": "/api/Document/add-doc-to-project",
       "DownstreamScheme": "https",
       "UpstreamHttpMethod": [ "Post" ],
-      "UpstreamPathTemplate": "/api/project/doc/add-doc"
+      "UpstreamPathTemplate": "/project/doc/add-doc"
     },
     // add doc to misson
     {
@@ -139,7 +139,7 @@
       "DownstreamPathTemplate": "/api/Document/add-doc-to-misson",
       "DownstreamScheme": "https",
       "UpstreamHttpMethod": [ "Post" ],
-      "UpstreamPathTemplate": "/api/mission/doc/add-doc"
+      "UpstreamPathTemplate": "/mission/doc/add-doc"
     },
     // update doc
     {
@@ -152,7 +152,7 @@
       "DownstreamPathTemplate": "/api/Document/udpate-doc",
       "DownstreamScheme": "https",
       "UpstreamHttpMethod": [ "Put" ],
-      "UpstreamPathTemplate": "/api/doc/update-doc"
+      "UpstreamPathTemplate": "/doc/update-doc"
     },
     // delete doc
     {
@@ -165,7 +165,7 @@
       "DownstreamPathTemplate": "/api/Document/delete-doc",
       "DownstreamScheme": "https",
       "UpstreamHttpMethod": [ "Delete" ],
-      "UpstreamPathTemplate": "/api/doc/delete-doc"
+      "UpstreamPathTemplate": "/doc/delete-doc"
     },
     /****************** member APIs ocelot *******************/
     // get members
@@ -179,7 +179,7 @@
       "DownstreamPathTemplate": "/api/Member/get-members",
       "DownstreamScheme": "https",
       "UpstreamHttpMethod": [ "Get" ],
-      "UpstreamPathTemplate": "/api/member/get-members"
+      "UpstreamPathTemplate": "/member/get-members"
     },
     // get members in project
     {
@@ -192,7 +192,7 @@
       "DownstreamPathTemplate": "/api/Member/get-members-in-project",
       "DownstreamScheme": "https",
       "UpstreamHttpMethod": [ "Get" ],
-      "UpstreamPathTemplate": "/api/project/member/get-members-in-project"
+      "UpstreamPathTemplate": "/project/member/get-members-in-project"
     },
     // get member
     {
@@ -205,7 +205,7 @@
       "DownstreamPathTemplate": "/api/Member/get-member",
       "DownstreamScheme": "https",
       "UpstreamHttpMethod": [ "Get" ],
-      "UpstreamPathTemplate": "/api/project/member/get-member"
+      "UpstreamPathTemplate": "/project/member/get-member"
     },
     // add member
     {
@@ -218,7 +218,7 @@
       "DownstreamPathTemplate": "/api/Member/add",
       "DownstreamScheme": "https",
       "UpstreamHttpMethod": [ "Post" ],
-      "UpstreamPathTemplate": "/api/project/member/add-member"
+      "UpstreamPathTemplate": "/project/member/add-member"
     },
     // update member
     {
@@ -231,7 +231,7 @@
       "DownstreamPathTemplate": "/api/Member/update",
       "DownstreamScheme": "https",
       "UpstreamHttpMethod": [ "Put" ],
-      "UpstreamPathTemplate": "/api/project/member/update-member"
+      "UpstreamPathTemplate": "/project/member/update-member"
     },
     // delete member
     {
@@ -244,7 +244,7 @@
       "DownstreamPathTemplate": "/api/Member/delete",
       "DownstreamScheme": "https",
       "UpstreamHttpMethod": [ "Delete" ],
-      "UpstreamPathTemplate": "/api/project/member/delete-member"
+      "UpstreamPathTemplate": "/project/member/delete-member"
     },
     /****************** mission APIs ocelot *******************/
     // get missions
@@ -258,7 +258,7 @@
       "DownstreamPathTemplate": "/api/Mission/get-index-missions",
       "DownstreamScheme": "https",
       "UpstreamHttpMethod": [ "Get" ],
-      "UpstreamPathTemplate": "/api/mission/get-missions"
+      "UpstreamPathTemplate": "/mission/get-missions"
     }, // get missions in plan
     {
       "DownstreamHostAndPorts": [
@@ -270,7 +270,7 @@
       "DownstreamPathTemplate": "/api/Mission/get-index-missions-in-plan",
       "DownstreamScheme": "https",
       "UpstreamHttpMethod": [ "Get" ],
-      "UpstreamPathTemplate": "/api/project/plan/mission/get-missions"
+      "UpstreamPathTemplate": "/project/plan/mission/get-missions"
     },
     // get missions in plan
     {
@@ -283,7 +283,7 @@
       "DownstreamPathTemplate": "/api/Misions/get-detail-mision",
       "DownstreamScheme": "https",
       "UpstreamHttpMethod": [ "Get" ],
-      "UpstreamPathTemplate": "/api/project/plan/mission/get-detail-mision"
+      "UpstreamPathTemplate": "/project/plan/mission/get-detail-mision"
     },
     // add mission
     {
@@ -296,7 +296,7 @@
       "DownstreamPathTemplate": "/api/Mission/add-mission",
       "DownstreamScheme": "https",
       "UpstreamHttpMethod": [ "Post" ],
-      "UpstreamPathTemplate": "/api/project/plan/mission/add-missison"
+      "UpstreamPathTemplate": "/project/plan/mission/add-missison"
     },
     // update mission
     {
@@ -309,7 +309,7 @@
       "DownstreamPathTemplate": "/api/Mission/update-mission",
       "DownstreamScheme": "https",
       "UpstreamHttpMethod": [ "Put" ],
-      "UpstreamPathTemplate": "/api/project/plan/mission/update-mission"
+      "UpstreamPathTemplate": "/project/plan/mission/update-mission"
     },
     // delete mission
     {
@@ -322,7 +322,7 @@
       "DownstreamPathTemplate": "/api/Mission/delete-mission",
       "DownstreamScheme": "https",
       "UpstreamHttpMethod": [ "Delete" ],
-      "UpstreamPathTemplate": "/api/project/plan/mission/delete-mission"
+      "UpstreamPathTemplate": "/project/plan/mission/delete-mission"
     },
     /****************** plan APIs ocelot *******************/
 
@@ -337,7 +337,7 @@
       "DownstreamPathTemplate": "/api/Plan/get-plans",
       "DownstreamScheme": "https",
       "UpstreamHttpMethod": [ "Get" ],
-      "UpstreamPathTemplate": "/api/plan/get-plans"
+      "UpstreamPathTemplate": "/plan/get-plans"
     },
     // get plan in project
     {
@@ -350,7 +350,7 @@
       "DownstreamPathTemplate": "/api/Plan/get-plans-in-project",
       "DownstreamScheme": "https",
       "UpstreamHttpMethod": [ "Get" ],
-      "UpstreamPathTemplate": "/api/project/plan/get-plan-in-project"
+      "UpstreamPathTemplate": "/project/plan/get-plan-in-project"
     },
     // get detail plan
     {
@@ -363,7 +363,7 @@
       "DownstreamPathTemplate": "/api/Plan/get-detail-plan",
       "DownstreamScheme": "https",
       "UpstreamHttpMethod": [ "Get" ],
-      "UpstreamPathTemplate": "/api/project/plan/get-detail-plan"
+      "UpstreamPathTemplate": "/project/plan/get-detail-plan"
     },
     // add plan
     {
@@ -376,7 +376,7 @@
       "DownstreamPathTemplate": "/api/Plan/add-plan",
       "DownstreamScheme": "https",
       "UpstreamHttpMethod": [ "Post" ],
-      "UpstreamPathTemplate": "/api/project/plan/add-plan"
+      "UpstreamPathTemplate": "/project/plan/add-plan"
     },
     // update plan
     {
@@ -389,7 +389,7 @@
       "DownstreamPathTemplate": "/api/Plan/update-plan",
       "DownstreamScheme": "https",
       "UpstreamHttpMethod": [ "Put" ],
-      "UpstreamPathTemplate": "/api/project/plan/update-plan"
+      "UpstreamPathTemplate": "/project/plan/update-plan"
     },
     // detele plan
     {
@@ -402,7 +402,7 @@
       "DownstreamPathTemplate": "/api/Plan/delete-plan",
       "DownstreamScheme": "https",
       "UpstreamHttpMethod": [ "Delete" ],
-      "UpstreamPathTemplate": "/api/project/plan/delete-plan"
+      "UpstreamPathTemplate": "/project/plan/delete-plan"
     },
     /****************** progress report APIs ocelot *******************/
 
@@ -417,7 +417,7 @@
       "DownstreamPathTemplate": "/api/ProgressReport/get-reports-in-plan",
       "DownstreamScheme": "https",
       "UpstreamHttpMethod": [ "Get" ],
-      "UpstreamPathTemplate": "/api/project/plan/progress-report/get-reports-in-plan"
+      "UpstreamPathTemplate": "/project/plan/progress-report/get-reports-in-plan"
     },
 
     // add report
@@ -431,7 +431,7 @@
       "DownstreamPathTemplate": "/api/ProgressReport/add-report",
       "DownstreamScheme": "https",
       "UpstreamHttpMethod": [ "Post" ],
-      "UpstreamPathTemplate": "/api/project/plan/progress-report/add-report"
+      "UpstreamPathTemplate": "/project/plan/progress-report/add-report"
     },
     // update report
     {
@@ -444,7 +444,7 @@
       "DownstreamPathTemplate": "/api/ProgressReport/update-report",
       "DownstreamScheme": "https",
       "UpstreamHttpMethod": [ "Post" ],
-      "UpstreamPathTemplate": "/api/project/plan/progress-report/update-report"
+      "UpstreamPathTemplate": "/project/plan/progress-report/update-report"
     },
     // delete report
     {
@@ -457,8 +457,181 @@
       "DownstreamPathTemplate": "/api/ProgressReport/delete-report",
       "DownstreamScheme": "https",
       "UpstreamHttpMethod": [ "Post" ],
-      "UpstreamPathTemplate": "/api/project/plan/progress-report/delete-report"
-    }
+      "UpstreamPathTemplate": "/project/plan/progress-report/delete-report"
+    },
     /****************** project APIs ocelot *******************/
+
+    // joined
+    {
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7202
+        }
+      ],
+      "DownstreamPathTemplate": "/api/Project/joined",
+      "DownstreamScheme": "https",
+      "UpstreamHttpMethod": [ "Get" ],
+      "UpstreamPathTemplate": "/project/joined"
+    },
+    // owned
+    {
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7202
+        }
+      ],
+      "DownstreamPathTemplate": "/api/Project/owned",
+      "DownstreamScheme": "https",
+      "UpstreamHttpMethod": [ "Get" ],
+      "UpstreamPathTemplate": "/project/onwed"
+    },
+    // get detail project
+    {
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7202
+        }
+      ],
+      "DownstreamPathTemplate": "/api/Project/get-detail-project",
+      "DownstreamScheme": "https",
+      "UpstreamHttpMethod": [ "Get" ],
+      "UpstreamPathTemplate": "/project/get-detail-project"
+    },
+    // add project
+    {
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7202
+        }
+      ],
+      "DownstreamPathTemplate": "/api/Project/add-project",
+      "DownstreamScheme": "https",
+      "UpstreamHttpMethod": [ "Post" ],
+      "UpstreamPathTemplate": "/project/add-project"
+    },
+    // update project
+    {
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7202
+        }
+      ],
+      "DownstreamPathTemplate": "/api/Project/update-project",
+      "DownstreamScheme": "https",
+      "UpstreamHttpMethod": [ "Put" ],
+      "UpstreamPathTemplate": "/project/update-project"
+    },
+    // delete project
+    {
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7202
+        }
+      ],
+      "DownstreamPathTemplate": "/api/Project/delete-project",
+      "DownstreamScheme": "https",
+      "UpstreamHttpMethod": [ "Delete" ],
+      "UpstreamPathTemplate": "/project/delete-project"
+    },
+    // update complete
+    {
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7202
+        }
+      ],
+      "DownstreamPathTemplate": "/api/Project/update-complete",
+      "DownstreamScheme": "https",
+      "UpstreamHttpMethod": [ "Put" ],
+      "UpstreamPathTemplate": "/project/update-complete"
+    },
+    // update status
+    {
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7202
+        }
+      ],
+      "DownstreamPathTemplate": "/api/Project/update-status",
+      "DownstreamScheme": "https",
+      "UpstreamHttpMethod": [ "Put" ],
+      "UpstreamPathTemplate": "/project/update-status"
+    },
+    /****************** user APIs ocelot *******************/
+
+    // user detail token
+    {
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7202
+        }
+      ],
+      "DownstreamPathTemplate": "/api/User/user-detail-token",
+      "DownstreamScheme": "https",
+      "UpstreamHttpMethod": [ "Get" ],
+      "UpstreamPathTemplate": "/user/user-detail-token"
+    },
+    // user orther detail
+    {
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7202
+        }
+      ],
+      "DownstreamPathTemplate": "/api/User/another-user-detail-identity",
+      "DownstreamScheme": "https",
+      "UpstreamHttpMethod": [ "Get" ],
+      "UpstreamPathTemplate": "/user/another-user-detail-identity"
+    },
+    // update user
+    {
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7202
+        }
+      ],
+      "DownstreamPathTemplate": "/api/User/update-user",
+      "DownstreamScheme": "https",
+      "UpstreamHttpMethod": [ "Put" ],
+      "UpstreamPathTemplate": "/user/update-user"
+    },
+    // update avatar
+    {
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7202
+        }
+      ],
+      "DownstreamPathTemplate": "/api/User/update-avatar",
+      "DownstreamScheme": "https",
+      "UpstreamHttpMethod": [ "Put" ],
+      "UpstreamPathTemplate": "/user/update-avatar"
+    },
+    // change password
+    {
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7202
+        }
+      ],
+      "DownstreamPathTemplate": "/api/User/change-password",
+      "DownstreamScheme": "https",
+      "UpstreamHttpMethod": [ "Patch" ],
+      "UpstreamPathTemplate": "/user/change-password"
+    }
+
   ]
 }
