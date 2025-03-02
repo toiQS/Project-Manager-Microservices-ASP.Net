@@ -42,7 +42,7 @@ namespace ManagerAPIs.Controllers
         /// </summary>
         /// <param name="projectId">The ID of the project.</param>
         /// <returns>An IActionResult containing the project details or an error message.</returns>
-        [HttpGet("{projectId}")]
+        [HttpGet("get-detail-project")]
         public async Task<IActionResult> GetDetailProject(string projectId)
         {
             return await _projectLogic.GetDetailProject(projectId);
@@ -53,7 +53,7 @@ namespace ManagerAPIs.Controllers
         /// </summary>
         /// <param name="model">The model containing project information and the JWT token.</param>
         /// <returns>An IActionResult containing the newly created project details or an error message.</returns>
-        [HttpPost]
+        [HttpPost("add-project")]
         public async Task<IActionResult> AddProject([FromBody] AddProjectModel model)
         {
             return await _projectLogic.AddProject(model);
@@ -64,7 +64,7 @@ namespace ManagerAPIs.Controllers
         /// </summary>
         /// <param name="model">The model containing updated project info and the JWT token.</param>
         /// <returns>An IActionResult containing the updated project details or an error message.</returns>
-        [HttpPut("update")]
+        [HttpPut("update-project")]
         public async Task<IActionResult> UpdateProjectInfo([FromBody] UpdateProjectModel model)
         {
             return await _projectLogic.UpdateProjectInfo(model);
@@ -75,7 +75,7 @@ namespace ManagerAPIs.Controllers
         /// </summary>
         /// <param name="model">The model containing the project ID to delete and the JWT token.</param>
         /// <returns>An IActionResult containing the updated project list or an error message.</returns>
-        [HttpDelete]
+        [HttpDelete("delete-project")]
         public async Task<IActionResult> DeleteProject([FromBody] MutilProjectModel model)
         {
             return await _projectLogic.DeleteProject(model);
