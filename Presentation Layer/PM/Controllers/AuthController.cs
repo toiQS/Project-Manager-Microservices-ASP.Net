@@ -1,6 +1,6 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using PM.Models.auths;
+using System.Net.Http.Json;
 
 namespace PM.Controllers
 {
@@ -10,23 +10,86 @@ namespace PM.Controllers
     {
         private readonly HttpClient _httpClient;
         private readonly ILogger<AuthController> _logger;
-        public AuthController(ILogger<AuthController> loggers)
+
+        public AuthController(ILogger<AuthController> logger)
         {
-            _logger = loggers;
-            var url = new Uri("https://localhost:7203");
-            _httpClient = new HttpClient();
-            _httpClient.BaseAddress = url;
+            _logger = logger;
+            _httpClient = new HttpClient { BaseAddress = new Uri("https://localhost:7203") };
         }
+
+        /// <summary>
+        /// Handles user login.
+        /// </summary>
+        /// <param name="model">Login credentials.</param>
+        /// <returns>JWT token or error response.</returns>
         [HttpPost("login")]
-        public async Task<IActionResult> Login(LoginModel model)
+        public async Task<IActionResult> Login([FromBody] LoginModel model)
         {
-            var request = await _httpClient.PostAsJsonAsync("/login", model);
-            if (request.IsSuccessStatusCode)
+            try
             {
-                var response = await request.Content.ReadAsStringAsync();
-                return Ok(response);
+                var response = await _httpClient.PostAsJsonAsync("/login", model);
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadAsStringAsync();
+                    return Ok(result);
+                }
+                return BadRequest("Invalid login attempt.");
             }
-            return BadRequest();
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during login attempt.");
+                return StatusCode(500, "Internal server error.");
+            }
+        }
+
+        /// <summary>
+        /// Handles user registration.
+        /// </summary>
+        /// <param name="model">User registration data.</param>
+        /// <returns>Success or error response.</returns>
+        [HttpPost("register")]
+        public async Task<IActionResult> Register([FromBody] RegisterModel model)
+        {
+            try
+            {
+                var response = await _httpClient.PostAsJsonAsync("/register", model);
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadAsStringAsync();
+                    return Ok(result);
+                }
+                return BadRequest("Registration failed.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during registration attempt.");
+                return StatusCode(500, "Internal server error.");
+            }
+        }
+
+        /// <summary>
+        /// Logs out the user.
+        /// </summary>
+        /// <param name="token">JWT token.</param>
+        /// <returns>Success or error response.</returns>
+        [HttpPost("log-out")]
+        public async Task<IActionResult> LogOut([FromBody] string token)
+        {
+            try
+            {
+                var response = await _httpClient.PostAsJsonAsync("/logout", new { Token = token });
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadAsStringAsync();
+                    return Ok(result);
+                }
+                return BadRequest("Logout failed.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during logout attempt.");
+                return StatusCode(500, "Internal server error.");
+            }
         }
     }
 }
