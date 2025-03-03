@@ -4,7 +4,8 @@ using System.Net.Http.Json;
 
 namespace PM.Controllers
 {
-    [Route("api/[controller]")]
+    //[Route("api/[controller]")]
+    [Route("/")]
     [ApiController]
     public class AuthController : ControllerBase
     {
@@ -77,7 +78,7 @@ namespace PM.Controllers
         {
             try
             {
-                var response = await _httpClient.PostAsJsonAsync("/logout", new { Token = token });
+                var response = await _httpClient.PostAsJsonAsync("/logout", token );
                 if (response.IsSuccessStatusCode)
                 {
                     var result = await response.Content.ReadAsStringAsync();
