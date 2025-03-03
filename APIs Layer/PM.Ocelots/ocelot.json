@@ -74,7 +74,7 @@
       "DownstreamPathTemplate": "/api/Document/get-docs-in-project",
       "DownstreamScheme": "https",
       "UpstreamHttpMethod": [ "Get" ],
-      "UpstreamPathTemplate": "/project/doc/get-docs"
+      "UpstreamPathTemplate": "/project/doc/get-docs-in-project"
     },
     // get all docs in a plan specific
     {
@@ -87,7 +87,7 @@
       "DownstreamPathTemplate": "/api/Document/get-docs-in-plan",
       "DownstreamScheme": "https",
       "UpstreamHttpMethod": [ "Get" ],
-      "UpstreamPathTemplate": "/project/plan/doc/get-doc-in-plan"
+      "UpstreamPathTemplate": "/project/plan/doc/get-docs-in-plan"
     },
     // get all docs in a misson specific
     {
@@ -139,7 +139,7 @@
       "DownstreamPathTemplate": "/api/Document/add-doc-to-misson",
       "DownstreamScheme": "https",
       "UpstreamHttpMethod": [ "Post" ],
-      "UpstreamPathTemplate": "/mission/doc/add-doc"
+      "UpstreamPathTemplate": "/project/plan/mission/doc/add-doc"
     },
     // update doc
     {
