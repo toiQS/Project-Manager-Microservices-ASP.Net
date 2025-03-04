@@ -270,7 +270,7 @@
       "DownstreamPathTemplate": "/api/Mission/get-index-missions-in-plan",
       "DownstreamScheme": "https",
       "UpstreamHttpMethod": [ "Get" ],
-      "UpstreamPathTemplate": "/project/plan/mission/get-missions"
+      "UpstreamPathTemplate": "/project/plan/mission/get-missions-in-plan"
     },
     // get missions in plan
     {
