@@ -109,7 +109,7 @@ namespace PM.Controllers
             {
                 var docsEndpoint = new UriBuilder(_baseUrl + "/project/plan/doc/get-docs-in-project")
                 {
-                    Query = $"projectId={Uri.EscapeDataString(projectId)}"
+                    Query = $"projectId={projectId}"
                 }.Uri;
 
                 using var request = new HttpRequestMessage(HttpMethod.Get, docsEndpoint);
