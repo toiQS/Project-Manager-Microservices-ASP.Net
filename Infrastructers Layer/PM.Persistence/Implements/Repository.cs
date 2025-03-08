@@ -1,4 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query.Internal;
+using Microsoft.Identity.Client;
 using PM.Domain;
 using PM.Domain.Interfaces;
 
@@ -177,5 +179,95 @@ namespace PM.Persistence.Implements
                 return ServicesResult<bool>.Failure($"Error: {ex.Message}");
             }
         }
+
+
+
+        /// <summary>
+        /// update logic of action add
+        /// </summary>
+        public async Task<ServicesResult<bool>> AddAsync(IEnumerable<T> arr, T entity)
+        {
+            if (entity is null) return ServicesResult<bool>.Failure("Entity is required");
+            try
+            {
+                var findNameExist = arr.Any(t => EF.Property<object>(t, "Name").Equals(EF.Property<object>(entity, "Name")));
+                if (findNameExist)
+                {
+                    return ServicesResult<bool>.Failure("Name is exist");
+                }
+                using (var transaction = await _context.Database.BeginTransactionAsync())
+                {
+                    await _dbSet.AddAsync(entity);
+                    await _context.SaveChangesAsync();
+                    await transaction.CommitAsync();
+                    return ServicesResult<bool>.Success(true);
+                }
+            }
+            catch (Exception ex)
+            {
+                return ServicesResult<bool>.Failure($"Database access error: {ex.Message}");
+            }
+        }
+        /// <summary>
+        /// update logic of action update
+        /// </summary>
+
+        public async Task<ServicesResult<bool>> UpdateAsync(IEnumerable<T> arr, T entity)
+        {
+            if (entity is null) return ServicesResult<bool>.Failure("Entity is required");
+            try
+            {
+                var findNameExist = arr.Any(t => EF.Property<object>(t, "Name").Equals(EF.Property<object>(entity, "Name")));
+                if (findNameExist)
+                {
+                    return ServicesResult<bool>.Failure("Name is exist");
+                }
+                using (var transaction = await _context.Database.BeginTransactionAsync())
+                {
+                    _dbSet.Update(entity);
+                    await _context.SaveChangesAsync();
+                    await transaction.CommitAsync();
+                    return ServicesResult<bool>.Success(true);
+                }
+            }
+            catch (Exception ex)
+            {
+                return ServicesResult<bool>.Failure($"Database access error: {ex.Message}");
+            }
+        }
+        /// <summary>
+        /// delele many entity
+        /// </summary>
+        public async Task<ServicesResult<bool>> DeleteAsync(string key, TKey value)
+        {
+            if (string.IsNullOrEmpty(key) || value == null)
+                return ServicesResult<bool>.Failure("Key or value cannot be null.");
+            try
+            {
+                using (var transaction = await _context.Database.BeginTransactionAsync())
+                {
+                    var arr = await _dbSet.Where(t =>
+                        EF.Property<object>(t, key).Equals(value)).ToListAsync();
+                    if (arr.Count == 0)
+                    {
+                        
+                        return ServicesResult<bool>.Failure("Entity not found.");
+                    }
+                    foreach (var item in arr)
+                    {
+                        _dbSet.Remove(item);
+                    }
+                    await _context.SaveChangesAsync();
+                    await transaction.CommitAsync();
+                    return ServicesResult<bool>.Success(true);
+                }
+            }
+            catch (Exception ex)
+            {
+                return ServicesResult<bool>.Failure($"Database access error: {ex.Message}");
+            }
+
+        }
+
     }
 }
