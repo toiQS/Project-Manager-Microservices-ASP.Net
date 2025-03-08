@@ -12,16 +12,6 @@ namespace PM.Persistence.Implements.Services
     {
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
-        //private readonly IUnitOfWork _unitOfWork;   
-
-        //public AuthServices(
-        //    UserManager<User> userManager,
-        //    SignInManager<User> signInManager, IUnitOfWork unitOfWork)
-        //{
-        //    _userManager = userManager;
-        //    _signInManager = signInManager;
-        //    _unitOfWork = unitOfWork;
-        //}
 
         public AuthServices(UserManager<User> userManager, SignInManager<User> signInManager)
         {
@@ -62,37 +52,6 @@ namespace PM.Persistence.Implements.Services
                 return ServicesResult<DetailAppUser>.Failure($"An error occurred: {ex.Message}");
             }
         }
-        //public async Task<ServicesResult<DetailAppUser>> LoginMethodSecondAsync(LoginModel loginModel)
-        //{
-        //    if (loginModel is null)
-        //        return ServicesResult<DetailAppUser>.Failure("User Name and Password may not be null");
-
-        //    try
-        //    {
-        //        var isUserValid = await _unitOfWork.UserRepository.GetOneByKeyAndValue("Email", loginModel.Email);
-        //        if (isUserValid == null)
-        //            return ServicesResult<DetailAppUser>.Failure("Invalid email");
-        //        var isPasswordValid = await _userManager.CheckPasswordAsync(isUserValid.Data, loginModel.Password);
-        //        if (!isPasswordValid)
-        //            return ServicesResult<DetailAppUser>.Failure("Invalid password");
-        //        await _signInManager.SignInAsync(isUserValid.Data, isPersistent: false);
-        //        var detailAppUser = new DetailAppUser
-        //        {
-        //            UserId = isUserValid.Data.Id,
-        //            UserName = isUserValid.Data.UserName ?? string.Empty, // Handle possible null reference
-        //            Email = isUserValid.Data.Email,
-        //            FullName = isUserValid.Data.FullName ?? string.Empty, // Handle possible null reference
-        //            Phone = isUserValid.Data.PhoneNumber ?? string.Empty, // Handle possible null reference
-        //            Avata = isUserValid.Data.AvatarPath ?? string.Empty // Handle possible null reference
-        //        };
-        //        return ServicesResult<DetailAppUser>.Success(detailAppUser);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        // Log exception here
-        //        return ServicesResult<DetailAppUser>.Failure($"An error occurred: {ex.Message}");
-        //    }
-        //}
 
         public async Task<ServicesResult<DetailAppUser>> RegisterAsync(RegisterModel registerModel)
         {
