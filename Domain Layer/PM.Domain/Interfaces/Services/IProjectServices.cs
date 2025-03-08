@@ -5,15 +5,17 @@ namespace PM.Domain.Interfaces.Services
     public interface 
         IProjectServices
     {
-        Task<ServicesResult<IEnumerable<IndexProject>>> GetProductListUserHasJoined(string userId);
-        //Task<ServicesResult<IEnumerable<IndexProject>>> GetProjects();
-        Task<ServicesResult<IEnumerable<IndexProject>>> GetProjectListUserHasOwner(string userId);
-        public Task<ServicesResult<DetailProject>> GetDetailProject(string projectId);
-        Task<ServicesResult<DetailProject>> Add(string userId, AddProject addProject);
-        Task<ServicesResult<DetailProject>> UpdateInfo(string memberId, string projectId, UpdateProject updateProject);
-        Task<ServicesResult<IEnumerable<IndexProject>>> Delete(string memberId, string projectId);
-        //Task<ServicesResult<bool>> DeleteFunc(string memberId, string projectId);
-        Task<ServicesResult<DetailProject>> UpdateIsDelete(string memberId, string projectId);
-        Task<ServicesResult<DetailProject>> UpdateIsCompleted(string memberId, string projectId);
+        public Task<ServicesResult<IEnumerable<IndexProject>>> GetProjectsAsync();
+        public Task<ServicesResult<IEnumerable<IndexProject>>> GetProjectsUserIsOwnerAsync(string userId);
+        public Task<ServicesResult<IEnumerable<IndexProject>>> GetProjectsUserIsLeaderAsync(string userId);
+        public Task<ServicesResult<IEnumerable<IndexProject>>> GetProjectsUserIsManagerAsync(string userId);
+        public Task<ServicesResult<IEnumerable<IndexProject>>> GetProjectsUserIsMemberAsync(string userId);
+        public Task<ServicesResult<IEnumerable<IndexProject>>> GetProjectsUserHasJoined(string userId);
+        public Task<ServicesResult<DetailProject>> GetDetailProjectAsync(string projectId);
+        public Task<ServicesResult<bool>> CreateProjectAsync(string userId, AddProject project);
+        public Task<ServicesResult<bool>> UpdateProjectAsync(string userId, UpdateProject project);
+        public Task<ServicesResult<bool>> DeleteProjectAsync(string userId, string projectId);
+        public Task<ServicesResult<bool>> UpdateIsDeleteAsync(string userId, string projectId);
+        public Task<ServicesResult<bool>> UpdateIsCompletedAsync(string userId, string projectId);
     }
 }
