@@ -28,7 +28,9 @@ namespace PM.Domain.Interfaces
         /// Kiểm tra sự tồn tại của bản ghi.
         /// </summary>
         Task<bool> ExistsAsync(TKey primaryKey);
-        
+        /// <summary>
+        /// Kiểm tra sự tồn tại của bản ghi.
+        /// </summary>
         Task<bool> ExistAsync(string key, TKey value);
 
         /// <summary>
@@ -50,5 +52,9 @@ namespace PM.Domain.Interfaces
         /// Lưu thay đổi vào database.
         /// </summary>
         Task<ServicesResult<bool>> SaveChangesAsync();
+
+        Task<ServicesResult<bool>> AddAsync(IEnumerable<T> entities, T entity);
+        Task<ServicesResult<bool>> UpdateAsync(IEnumerable<T> entities, T entity);
+        Task<ServicesResult<bool>> DeleteAsync(string key, TKey value);
     }
 }
