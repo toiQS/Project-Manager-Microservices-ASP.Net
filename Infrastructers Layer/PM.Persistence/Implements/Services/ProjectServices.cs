@@ -1,4 +1,6 @@
-﻿using Azure.Core;
+﻿using System.Globalization;
+using Azure.Core;
+using Microsoft.Identity.Client;
 using PM.Domain;
 using PM.Domain.Entities;
 using PM.Domain.Interfaces;
@@ -13,10 +15,7 @@ namespace PM.Persistence.Implements.Services
     {
         #region Constructor
         private readonly IUnitOfWork _unitOfWork;
-        private string _ownerId;
-        private string _leaderId;
-        private string _managerId;
-        private string _memberId;
+        private string _roleCurrent;
         public ProjectServices(IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
@@ -24,47 +23,175 @@ namespace PM.Persistence.Implements.Services
         #endregion
 
         #region public method
+
+        #region 
         public async Task<ServicesResult<IEnumerable<IndexProject>>> GetProjectsAsync()
         {
             try
             {
+                var response = new List<IndexProject>();
                 var projectResponse = await _unitOfWork.ProjectRepository.GetAllAsync();
                 if (projectResponse.Status == false)
                 {
                     return ServicesResult<IEnumerable<IndexProject>>.Failure(projectResponse.Message);
                 }
+                if (projectResponse.Data == null)
+                {
+                    return ServicesResult<IEnumerable<IndexProject>>.Success(response);
+                }
                 foreach (var item in projectResponse.Data)
                 {
-                    var ownerResponse = await GetOwnerInProject(item.Id);
-                    if (ownerResponse.Status == false)
+                    if (item.IsDeleted == true)
                     {
-                        return ServicesResult<IEnumerable<IndexProject>>.Failure(ownerResponse.Message);
+                        continue;
                     }
-                    var owner = ownerResponse.Data;
-                    var membersResponse = await GetMembersInProject(item.Id);
-                    if (membersResponse.Status == false)
+                    var ownerMember = await GetOwnerInProject(item.Id);
+                    var index = new IndexProject
                     {
-                        return ServicesResult<IEnumerable<IndexProject>>.Failure(membersResponse.Message);
-                    }
-                    var members = membersResponse.Data;
-
+                        Id = item.Id,
+                        Name = item.Name,
+                        OwnerName = ownerMember.Data.UserName,
+                        OwnerAvata = ownerMember.Data.AvatarPath
+                    };
+                    response.Add(index);
                 }
-
+                return ServicesResult<IEnumerable<IndexProject>>.Success(response);
             }
             catch (Exception ex)
             {
                 return ServicesResult<IEnumerable<IndexProject>>.Failure(ex.Message);
             }
         }
-        public Task<ServicesResult<IEnumerable<IndexProject>>> GetProjectsUserIsOwnerAsync(string userId);
-        public Task<ServicesResult<IEnumerable<IndexProject>>> GetProjectsUserIsLeaderAsync(string userId);
-        public Task<ServicesResult<IEnumerable<IndexProject>>> GetProjectsUserIsManagerAsync(string userId);
-        public Task<ServicesResult<IEnumerable<IndexProject>>> GetProjectsUserIsMemberAsync(string userId);
-        public Task<ServicesResult<IEnumerable<IndexProject>>> GetProjectsUserHasJoined(string userId);
+        #endregion
+
+        #region 
+        public async Task<ServicesResult<IEnumerable<IndexProject>>> GetProjectsUserIsOwnerAsync(string userId)
+        {
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                return ServicesResult<IEnumerable<IndexProject>>.Failure("UserId is null or empty");
+            }
+            try
+            {
+                return await GetProjectsOfUserWithRole(userId, "Owner");
+            }
+            catch (Exception ex)
+            {
+                return ServicesResult<IEnumerable<IndexProject>>.Failure(ex.Message);
+            }
+        }
+        #endregion
+
+        #region
+        public async Task<ServicesResult<IEnumerable<IndexProject>>> GetProjectsUserIsLeaderAsync(string userId)
+        {
+            if (string.IsNullOrEmpty(userId))
+            {
+                return ServicesResult<IEnumerable<IndexProject>>.Failure("UserId is null or empty");
+            }
+            try
+            {
+                return await GetProjectsOfUserWithRole(userId, "Leader");
+            }
+            catch (Exception ex)
+            {
+                return ServicesResult<IEnumerable<IndexProject>>.Failure(ex.Message);
+            }
+        }
+        #endregion
+
+        #region 
+        public async Task<ServicesResult<IEnumerable<IndexProject>>> GetProjectsUserIsManagerAsync(string userId)
+        {
+            if (string.IsNullOrEmpty(userId))
+            {
+                return ServicesResult<IEnumerable<IndexProject>>.Failure("UserId is null or empty");
+            }
+            try
+            {
+                return await GetProjectsOfUserWithRole(userId, "Manager");
+            }
+            catch (Exception ex)
+            {
+                return ServicesResult<IEnumerable<IndexProject>>.Failure(ex.Message);
+            }
+        }
+        #endregion
+
+        #region 
+        public async Task<ServicesResult<IEnumerable<IndexProject>>> GetProjectsUserIsMemberAsync(string userId)
+        {
+            if (string.IsNullOrEmpty(userId))
+            {
+                return ServicesResult<IEnumerable<IndexProject>>.Failure("UserId is null or empty");
+            }
+            try
+            {
+                return await GetProjectsOfUserWithRole(userId, "Member");
+            }
+            catch (Exception ex)
+            {
+                return ServicesResult<IEnumerable<IndexProject>>.Failure(ex.Message);
+            }
+        }
+        #endregion
+
+        #region
+        public async Task<ServicesResult<IEnumerable<IndexProject>>> GetProjectsUserHasJoined(string userId)
+        {
+            if (!string.IsNullOrEmpty(userId)) return ServicesResult<IEnumerable<IndexProject>>.Failure("UserId is null or empty");
+            try
+            {
+                var response = new List<IndexProject>();
+                var projectJoined = await _unitOfWork.ProjectMemberRepository.GetManyByKeyAndValue("UserId", userId);
+                if (projectJoined.Status == false)
+                {
+                    return ServicesResult<IEnumerable<IndexProject>>.Failure(projectJoined.Message);
+                }
+                if (projectJoined.Data == null)
+                {
+                    return ServicesResult<IEnumerable<IndexProject>>.Success(response);
+                }
+                foreach (var item in projectJoined.Data)
+                {
+                    var project = await _unitOfWork.ProjectRepository.GetOneByKeyAndValue("Id", item.ProjectId);
+                    if (project.Status == false)
+                    {
+                        return ServicesResult<IEnumerable<IndexProject>>.Failure(project.Message);
+                    }
+                    if (project.Data == null)
+                    {
+                        return ServicesResult<IEnumerable<IndexProject>>.Success(response);
+                    }
+                    if (project.Data.IsDeleted == true)
+                    {
+                        continue;
+                    }
+                    var ownerMember = await GetOwnerInProject(item.ProjectId);
+                    var index = new IndexProject
+                    {
+                        Id = item.ProjectId,
+                        Name = project.Data.Name,
+                        OwnerName = ownerMember.Data.UserName,
+                        OwnerAvata = ownerMember.Data.AvatarPath
+                    };
+                    response.Add(index);
+                }
+                return ServicesResult<IEnumerable<IndexProject>>.Success(response);
+            }
+            catch (Exception ex)
+            {
+                return ServicesResult<IEnumerable<IndexProject>>.Failure(ex.Message);
+            }
+
+        }
+        #endregion
 
         #endregion
 
         #region  private method
+
         #region 
         /// <summary>
         /// 
@@ -103,11 +230,11 @@ namespace PM.Persistence.Implements.Services
         /// </summary>
         /// <param name="projectId"></param>
         /// <returns></returns>
-        private async Task<ServicesResult<ProjectMember>> GetOwnerInProject(string projectId)
+        private async Task<ServicesResult<User>> GetOwnerInProject(string projectId)
         {
             if (string.IsNullOrEmpty(projectId))
             {
-                return ServicesResult<ProjectMember>.Failure("ProjectId is null or empty");
+                return ServicesResult<User>.Failure("ProjectId is null or empty");
             }
             try
             {
@@ -116,30 +243,137 @@ namespace PM.Persistence.Implements.Services
                 var membersResponse = await _unitOfWork.ProjectMemberRepository.GetManyByKeyAndValue("ProjectId", projectId);
                 if (membersResponse.Status == false)
                 {
-                    return ServicesResult<ProjectMember>.Failure(membersResponse.Message);
+                    return ServicesResult<User>.Failure(membersResponse.Message);
                 }
 
                 if (membersResponse.Data == null)
                 {
-                    return ServicesResult<ProjectMember>.Failure("Members is null");
+                    return ServicesResult<User>.Failure("Members is null");
                 }
 
-                var ownerMember = membersResponse.Data.FirstOrDefault(x => x.RoleId == _ownerId);
+                var ownerMember = membersResponse.Data.FirstOrDefault(x => x.RoleId == _roleCurrent);
                 if (ownerMember == null)
                 {
-                    return ServicesResult<ProjectMember>.Failure("Owner is null");
+                    return ServicesResult<User>.Failure("Owner is null");
                 }
 
-                return ServicesResult<ProjectMember>.Success(ownerMember);
+                return await GetInfoUser(ownerMember.UserId);
             }
             catch (Exception ex)
             {
-                return ServicesResult<ProjectMember>.Failure(ex.Message);
+                return ServicesResult<User>.Failure(ex.Message);
             }
         }
         #endregion
 
-        #region Private method helper
+        #region 
+        private async Task<ServicesResult<User>> GetInfoUser(string userId)
+        {
+            if (string.IsNullOrEmpty(userId))
+            {
+                return ServicesResult<User>.Failure("UserId is null or empty");
+            }
+            try
+            {
+                var userResponse = await _unitOfWork.UserRepository.GetOneByKeyAndValue("Id", userId);
+                if (userResponse.Status == false)
+                {
+                    return ServicesResult<User>.Failure(userResponse.Message);
+                }
+                return ServicesResult<User>.Success(userResponse.Data);
+            }
+            catch (Exception ex)
+            {
+                return ServicesResult<User>.Failure(ex.Message);
+            }
+        }
+        #endregion
+
+        #region 
+        private async Task<ServicesResult<IEnumerable<IndexProject>>> GetProjectsOfUserWithRole(string userId, string roleName)
+        {
+            if (string.IsNullOrEmpty(userId))
+            {
+                return ServicesResult<IEnumerable<IndexProject>>.Failure("UserId is null or empty");
+            }
+            if (string.IsNullOrEmpty(roleName))
+            {
+                return ServicesResult<IEnumerable<IndexProject>>.Failure("RoleName is null or empty");
+            }
+
+            if (roleName == "Owner")
+            {
+                await GetOwnRole();
+            }
+            else if (roleName == "Leader")
+            {
+                await GetLeaderRole();
+            }
+            else if (roleName == "Manager")
+            {
+                await GetManagerRole();
+            }
+            else if (roleName == "Member")
+            {
+                await GetMemberRole();
+            }
+            else
+            {
+                return ServicesResult<IEnumerable<IndexProject>>.Failure("Invalid role name");
+            }
+
+            try
+            {
+                var response = new List<IndexProject>();
+                var projectJoined = await _unitOfWork.ProjectMemberRepository.GetManyByKeyAndValue("UserId", userId);
+                if (projectJoined.Status == false)
+                {
+                    return ServicesResult<IEnumerable<IndexProject>>.Failure(projectJoined.Message);
+                }
+                if (projectJoined.Data == null)
+                {
+                    return ServicesResult<IEnumerable<IndexProject>>.Success(response);
+
+                }
+                foreach (var item in projectJoined.Data)
+                {
+                    if (item.RoleId != _roleCurrent) continue;
+
+                    var project = await _unitOfWork.ProjectRepository.GetOneByKeyAndValue("Id", item.ProjectId);
+                    if (project.Status == false)
+                    {
+                        return ServicesResult<IEnumerable<IndexProject>>.Failure(project.Message);
+                    }
+                    if (project.Data == null)
+                    {
+                        return ServicesResult<IEnumerable<IndexProject>>.Success(response);
+                    }
+                    if (project.Data.IsDeleted == true)
+                    {
+                        continue;
+                    }
+                    var ownerMember = await GetOwnerInProject(item.ProjectId);
+                    var index = new IndexProject
+                    {
+                        Id = item.ProjectId,
+                        Name = project.Data.Name,
+                        OwnerName = ownerMember.Data.UserName,
+                        OwnerAvata = ownerMember.Data.AvatarPath
+                    };
+                    response.Add(index);
+
+
+                }
+                return ServicesResult<IEnumerable<IndexProject>>.Success(response);
+            }
+            catch (Exception ex)
+            {
+                return ServicesResult<IEnumerable<IndexProject>>.Failure(ex.Message);
+            }
+        }
+        #endregion
+
+        #region Private role method helper
         /// <summary>
         /// Gets the role ID by role name.
         /// </summary>
@@ -157,16 +391,16 @@ namespace PM.Persistence.Implements.Services
                 switch (roleName)
                 {
                     case "Owner":
-                        _ownerId = role.Data.Id;
+                        _roleCurrent = role.Data.Id;
                         break;
                     case "Leader":
-                        _leaderId = role.Data.Id;
+                        _roleCurrent = role.Data.Id;
                         break;
                     case "Manager":
-                        _managerId = role.Data.Id;
+                        _roleCurrent = role.Data.Id;
                         break;
                     case "Member":
-                        _memberId = role.Data.Id;
+                        _roleCurrent = role.Data.Id;
                         break;
                     default:
                         return ServicesResult<bool>.Failure("Invalid role name");
@@ -219,6 +453,7 @@ namespace PM.Persistence.Implements.Services
 
 
         #endregion
+
         #endregion
     }
 }
