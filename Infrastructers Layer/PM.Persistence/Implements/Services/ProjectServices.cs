@@ -914,9 +914,6 @@ namespace PM.Persistence.Implements.Services
         #endregion
 
 
-
-        #endregion
-
         #region Get Status by ID
         /// <summary>
         /// Retrieves a status entity based on the given status ID.
