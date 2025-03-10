@@ -5,8 +5,8 @@ namespace PM.Domain.Models.projects
 {
     public class DetailProject
     {
-        public string ProjectId { get; set; } = string.Empty;
-        public string ProjectName { get; set; } = string.Empty;
+        public string Id { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
         public DateTime? StartAt { get; set; }
         public DateTime? EndAt { get; set; }
         public DateTime CreateAt { get; set; }
