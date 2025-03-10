@@ -6,10 +6,10 @@ namespace PM.Domain.Entities
     public class Document
     {
         [Key]
-        public string Id { get; set; } // Mã tài liệu
-        public string Name { get; set; } // Tên tài liệu
-        public string Path { get; set; } // Đường dẫn tài liệu
-        public string Descriotion { get; set; } // Miêu tả tài liệu 
+        public string Id { get; set; } = string.Empty;// Mã tài liệu
+        public string Name { get; set; } = string.Empty;// Tên tài liệu
+        public string Path { get; set; } = string.Empty;// Đường dẫn tài liệu
+        public string Descriotion { get; set; } = string.Empty;// Miêu tả tài liệu 
         [ForeignKey(nameof(Project))]
         public string? ProjectId { get; set; } = string.Empty; // Liên kết đến dự án (nếu có)
         [ForeignKey(nameof(Mission))]
