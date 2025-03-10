@@ -1,12 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore.Query;
-using Microsoft.Identity.Client;
-using PM.Domain;
+﻿using PM.Domain;
 using PM.Domain.Entities;
 using PM.Domain.Interfaces;
 using PM.Domain.Models.members;
 using PM.Domain.Models.plans;
 using PM.Domain.Models.projects;
-using System.Data.Entity.Core.Metadata.Edm;
 
 namespace PM.Persistence.Implements.Services
 {
@@ -14,7 +11,6 @@ namespace PM.Persistence.Implements.Services
     {
         #region Constructor
         private readonly IUnitOfWork _unitOfWork;
-        private string _roleCurrent;
         public ProjectServices(IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
@@ -381,18 +377,20 @@ namespace PM.Persistence.Implements.Services
             }
             try
             {
-                var ownerRole = await GetOwnRole();
-                if (_roleCurrent == null)
+                var ownerRoleResult = await GetRoleId(RoleType.Owner);
+                if (!ownerRoleResult.Status)
                 {
-                    return ServicesResult<bool>.Failure("Failed to retrieve the owner role.");
+                    return ServicesResult<bool>.Failure(ownerRoleResult.Message);
                 }
+                var ownerRoleId = ownerRoleResult.Data;
+
                 var projectJoined = await _unitOfWork.ProjectMemberRepository.GetManyByKeyAndValue("UserId", userId);
                 if (!projectJoined.Status)
                 {
                     return ServicesResult<bool>.Failure(projectJoined.Message);
                 }
 
-                var projectUserAreOwner = projectJoined.Data.Where(x => x.RoleId == _roleCurrent).ToList();
+                var projectUserAreOwner = projectJoined.Data.Where(x => x.RoleId == ownerRoleId).ToList();
 
                 var projects = new List<Project>();
 
@@ -458,11 +456,14 @@ namespace PM.Persistence.Implements.Services
             try
             {
                 // Retrieve the user's owner role
-                var ownerRole = await GetOwnRole();
-                if (ownerRole == null)
+                var ownerRoleResult = await GetRoleId(RoleType.Owner);
+                if (!ownerRoleResult.Status)
                 {
-                    return ServicesResult<bool>.Failure("Failed to retrieve the owner role.");
+                    return ServicesResult<bool>.Failure(ownerRoleResult.Message);
                 }
+                var ownerRoleId = ownerRoleResult.Data;
+
+                
 
                 // Fetch projects the user is part of
                 var projectJoined = await _unitOfWork.ProjectMemberRepository.GetManyByKeyAndValue("UserId", userId);
@@ -473,7 +474,7 @@ namespace PM.Persistence.Implements.Services
 
                 // Get projects where the user is the owner
                 var userOwnedProjectIds = projectJoined.Data
-                    .Where(x => x.RoleId == _roleCurrent)
+                    .Where(x => x.RoleId == ownerRoleId)
                     .Select(x => x.ProjectId)
                     .ToList();
 
@@ -524,8 +525,13 @@ namespace PM.Persistence.Implements.Services
         }
         #endregion
 
-        #region
-
+        #region Delete Project
+        /// <summary>
+        /// Deletes a project if the user is the owner.
+        /// </summary>
+        /// <param name="userId">The ID of the user attempting to delete the project.</param>
+        /// <param name="projectId">The ID of the project to be deleted.</param>
+        /// <returns>A service result indicating success or failure.</returns>
         public async Task<ServicesResult<bool>> DeleteProjectAsync(string userId, string projectId)
         {
             if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(projectId))
@@ -534,18 +540,30 @@ namespace PM.Persistence.Implements.Services
             }
             try
             {
-                var ownerRole = await GetOwnRole();
-                var projectMember = await _unitOfWork.ProjectMemberRepository.GetOneByKeyAndValue("ProjectId", projectId, "RoleId", _roleCurrent, "UserId", userId);
+                // Get the role ID for the "Owner" role
+                var ownerRoleResult = await GetRoleId(RoleType.Owner);
+                if (!ownerRoleResult.Status)
+                {
+                    return ServicesResult<bool>.Failure(ownerRoleResult.Message);
+                }
+                var ownerRoleId = ownerRoleResult.Data;
+
+                // Check if the user is the owner of the project
+                var projectMember = await _unitOfWork.ProjectMemberRepository
+                    .GetOneByKeyAndValue("ProjectId", projectId, "RoleId", ownerRoleId, "UserId", userId);
+
                 if (!projectMember.Status || projectMember.Data == null)
                 {
                     return ServicesResult<bool>.Failure("User is not the owner of the project.");
                 }
 
+                // Proceed with project deletion
                 var deleteResponse = await _unitOfWork.ProjectRepository.DeleteAsync(projectMember.Data.ProjectId);
                 if (!deleteResponse.Status)
                 {
                     return ServicesResult<bool>.Failure(deleteResponse.Message);
                 }
+
                 return ServicesResult<bool>.Success(true);
             }
             catch (Exception ex)
@@ -554,8 +572,69 @@ namespace PM.Persistence.Implements.Services
             }
         }
         #endregion
-        public Task<ServicesResult<bool>> UpdateIsDeleteAsync(string userId, string projectId);
-        public Task<ServicesResult<bool>> UpdateIsCompletedAsync(string userId, string projectId);
+
+        #region Update Project Deletion Status
+        /// <summary>
+        /// Toggles the IsDeleted status of a project if the user is the owner.
+        /// </summary>
+        /// <param name="userId">The ID of the user.</param>
+        /// <param name="projectId">The ID of the project.</param>
+        /// <returns>Result indicating success or failure.</returns>
+        public async Task<ServicesResult<bool>> UpdateIsDeleteAsync(string userId, string projectId)
+        {
+            if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(projectId))
+            {
+                return ServicesResult<bool>.Failure("UserId or projectId cannot be null or empty.");
+            }
+
+            return await UpdateProjectAsync(userId, projectId, async project =>
+            {
+                // Fetch latest project state to avoid stale data
+                var latestProject = await _unitOfWork.ProjectRepository.GetOneByKeyAndValue("Id", projectId);
+                if (!latestProject.Status || latestProject.Data == null)
+                {
+                    throw new Exception("Project not found or cannot be retrieved.");
+                }
+
+                // Toggle IsDeleted safely
+                project.IsDeleted = !latestProject.Data.IsDeleted;
+            });
+        }
+        #endregion
+
+        #region Update Project Completion Status
+        /// <summary>
+        /// Toggles the IsCompleted status of a project if the user is the owner.
+        /// </summary>
+        /// <param name="userId">The ID of the user.</param>
+        /// <param name="projectId">The ID of the project.</param>
+        /// <returns>Result indicating success or failure.</returns>
+        public async Task<ServicesResult<bool>> UpdateIsCompletedAsync(string userId, string projectId)
+        {
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                return ServicesResult<bool>.Failure("User ID cannot be null or empty.");
+            }
+            if (string.IsNullOrWhiteSpace(projectId))
+            {
+                return ServicesResult<bool>.Failure("Project ID cannot be null or empty.");
+            }
+
+            return await UpdateProjectAsync(userId, projectId, async project =>
+            {
+                // Ensure we work with the latest state
+                var latestProject = await _unitOfWork.ProjectRepository.GetOneByKeyAndValue("Id", projectId);
+                if (!latestProject.Status || latestProject.Data == null)
+                {
+                    throw new Exception("Project not found or cannot be retrieved.");
+                }
+
+                // Toggle IsCompleted safely
+                project.IsCompleted = !latestProject.Data.IsCompleted;
+            });
+        }
+        #endregion
+
 
         #endregion
 
@@ -621,7 +700,13 @@ namespace PM.Persistence.Implements.Services
             try
             {
                 // Retrieve the current role of the user
-                await GetOwnRole();
+                var ownerRoleResult = await GetRoleId(RoleType.Owner);
+                if (!ownerRoleResult.Status)
+                {
+                    return ServicesResult<User>.Failure(ownerRoleResult.Message);
+                }
+                var ownerRoleId = ownerRoleResult.Data;
+
 
                 // Fetch all members of the project based on the projectId
                 var membersResponse = await _unitOfWork.ProjectMemberRepository.GetManyByKeyAndValue("ProjectId", projectId);
@@ -639,7 +724,7 @@ namespace PM.Persistence.Implements.Services
                 }
 
                 // Find the owner of the project based on the current role
-                var ownerMember = membersResponse.Data.FirstOrDefault(x => x.RoleId == _roleCurrent);
+                var ownerMember = membersResponse.Data.FirstOrDefault(x => x.RoleId == ownerRoleId);
                 if (ownerMember == null)
                 {
                     return ServicesResult<User>.Failure("Project owner not found.");
@@ -712,26 +797,18 @@ namespace PM.Persistence.Implements.Services
             }
 
             // Assign the current role based on roleName
-            switch (roleName)
-            {
-                case "Owner":
-                    await GetOwnRole();
-                    break;
-                case "Leader":
-                    await GetLeaderRole();
-                    break;
-                case "Manager":
-                    await GetManagerRole();
-                    break;
-                case "Member":
-                    await GetMemberRole();
-                    break;
-                default:
-                    return ServicesResult<IEnumerable<IndexProject>>.Failure("Invalid role name.");
-            }
+            
 
             try
             {
+                var roleResult = await GetRoleIdByName(roleName);
+                if (!roleResult.Status)
+                {
+                    return ServicesResult<IEnumerable<IndexProject>>.Failure(roleResult.Message);
+                }
+
+                var roleId = roleResult.Data;
+
                 var response = new List<IndexProject>();
 
                 // Fetch the projects that the user has joined
@@ -749,7 +826,7 @@ namespace PM.Persistence.Implements.Services
                 foreach (var member in projectJoined.Data)
                 {
                     // Skip projects where the role does not match
-                    if (member.RoleId != _roleCurrent) continue;
+                    if (member.RoleId != roleId) continue;
 
                     // Retrieve project details
                     var project = await _unitOfWork.ProjectRepository.GetOneByKeyAndValue("Id", member.ProjectId);
@@ -789,82 +866,53 @@ namespace PM.Persistence.Implements.Services
         #endregion
 
         #region Private role method helper
+
         /// <summary>
         /// Gets the role ID by role name.
         /// </summary>
         /// <param name="roleName">The name of the role to fetch.</param>
-        /// <returns>Service result indicating success or failure.</returns>
-        private async Task<ServicesResult<bool>> GetRoleByName(string roleName)
+        /// <returns>Role ID if found, otherwise null.</returns>
+        private async Task<ServicesResult<string>> GetRoleIdByName(string roleName)
         {
             try
             {
                 var role = await _unitOfWork.RoleInProjectRepository.GetOneByKeyAndValue("Name", roleName);
-                if (!role.Status)
-                    return ServicesResult<bool>.Failure(role.Message);
-
-                // Assign the role ID to the appropriate variable
-                switch (roleName)
+                if (!role.Status || role.Data == null)
                 {
-                    case "Owner":
-                        _roleCurrent = role.Data.Id;
-                        break;
-                    case "Leader":
-                        _roleCurrent = role.Data.Id;
-                        break;
-                    case "Manager":
-                        _roleCurrent = role.Data.Id;
-                        break;
-                    case "Member":
-                        _roleCurrent = role.Data.Id;
-                        break;
-                    default:
-                        return ServicesResult<bool>.Failure("Invalid role name");
+                    return ServicesResult<string>.Failure($"Role '{roleName}' not found.");
                 }
 
-                return ServicesResult<bool>.Success(true);
+                return ServicesResult<string>.Success(role.Data.Id);
             }
             catch (Exception ex)
             {
-                return ServicesResult<bool>.Failure(ex.Message);
+                return ServicesResult<string>.Failure($"An error occurred while fetching role '{roleName}': {ex.Message}");
             }
-
         }
 
         /// <summary>
-        /// Gets the role ID for the "Owner" role.
+        /// Gets the role ID for a given role type.
         /// </summary>
-        /// <returns>Service result indicating success or failure.</returns>
-        private async Task<ServicesResult<bool>> GetOwnRole()
+        /// <param name="roleType">The role type (Owner, Leader, Manager, Member).</param>
+        /// <returns>Role ID if found, otherwise null.</returns>
+        private Task<ServicesResult<string>> GetRoleId(RoleType roleType)
         {
-            return await GetRoleByName("Owner");
+            return GetRoleIdByName(roleType.ToString());
         }
 
         /// <summary>
-        /// Gets the role ID for the "Leader" role.
+        /// Enum for role types.
         /// </summary>
-        /// <returns>Service result indicating success or failure.</returns>
-        private async Task<ServicesResult<bool>> GetLeaderRole()
+        private enum RoleType
         {
-            return await GetRoleByName("Leader");
+            Owner,
+            Leader,
+            Manager,
+            Member
         }
 
-        /// <summary>
-        /// Gets the role ID for the "Manager" role.
-        /// </summary>
-        /// <returns>Service result indicating success or failure.</returns>
-        private async Task<ServicesResult<bool>> GetManagerRole()
-        {
-            return await GetRoleByName("Manager");
-        }
+        #endregion
 
-        /// <summary>
-        /// Gets the role ID for the "Member" role.
-        /// </summary>
-        /// <returns>Service result indicating success or failure.</returns>
-        private async Task<ServicesResult<bool>> GetMemberRole()
-        {
-            return await GetRoleByName("Member");
-        }
 
 
         #endregion
@@ -934,39 +982,72 @@ namespace PM.Persistence.Implements.Services
         }
         #endregion
 
-        private async Task<ServicesResult<bool>> UpdateProject(string userId, string projectId, Action updateProject)
+        #region Update Project
+        /// <summary>
+        /// Updates a project if the user is the owner.
+        /// </summary>
+        /// <param name="userId">The ID of the user attempting to update the project.</param>
+        /// <param name="projectId">The ID of the project to be updated.</param>
+        /// <param name="updateProject">A function to update the project details.</param>
+        /// <returns>A boolean indicating success or failure.</returns>
+        private async Task<ServicesResult<bool>> UpdateProjectAsync(string userId, string projectId, Func<Project, Task> updateProject)
         {
-            if(string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(projectId))
+            // Validate input
+            if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(projectId))
             {
                 return ServicesResult<bool>.Failure("UserId or projectId cannot be null or empty.");
             }
+
             try
             {
-                var ownerRole = await GetOwnRole();
-                var projectMember = await _unitOfWork.ProjectMemberRepository.GetOneByKeyAndValue("ProjectId", projectId, "RoleId", _roleCurrent, "UserId", userId);
+                var ownerRoleResult = await GetRoleId(RoleType.Owner);
+                if (!ownerRoleResult.Status)
+                {
+                    return ServicesResult<bool>.Failure(ownerRoleResult.Message);
+                }
+                var ownerRoleId = ownerRoleResult.Data;
+
+                // Check if the user is the owner of the project
+                var projectMember = await _unitOfWork.ProjectMemberRepository.GetOneByKeyAndValue("ProjectId", projectId, "RoleId", ownerRoleId, "UserId", userId);
+
                 if (!projectMember.Status || projectMember.Data == null)
                 {
                     return ServicesResult<bool>.Failure("User is not the owner of the project.");
                 }
+
+                // Retrieve the project
                 var projectResponse = await _unitOfWork.ProjectRepository.GetOneByKeyAndValue("Id", projectId);
                 if (!projectResponse.Status || projectResponse.Data == null)
                 {
                     return ServicesResult<bool>.Failure("Project not found.");
                 }
-                updateProject();
-                var updateResponse = await _unitOfWork.ProjectRepository.UpdateAsync(projectResponse.Data);
+
+                var project = projectResponse.Data;
+
+                // Apply update logic
+                await updateProject(project);
+
+                // Update project status dynamically based on the dates
+                project.StatusId = DateTime.Now == project.StartDate
+                   ? 3 // Ongoing
+                   : (DateTime.Now < project.EndDate ? 2 : 1); // Upcoming or Overdue
+
+                // Save changes
+                var updateResponse = await _unitOfWork.ProjectRepository.UpdateAsync(project);
                 if (!updateResponse.Status)
                 {
                     return ServicesResult<bool>.Failure(updateResponse.Message);
                 }
-                return ServicesResult<bool>.Success(true);
 
+                return ServicesResult<bool>.Success(true);
             }
             catch (Exception ex)
             {
-                return ServicesResult<ServicesResult<bool>>.Failure($"An error occurred while updating the project: {ex.Message}");
+                return ServicesResult<bool>.Failure($"An error occurred while updating the project: {ex.Message}");
             }
         }
+        #endregion
+
 
         #endregion
     }
