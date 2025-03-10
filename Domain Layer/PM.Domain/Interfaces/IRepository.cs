@@ -37,6 +37,14 @@ namespace PM.Domain.Interfaces
         /// Lấy đơn dữ liệu bằng thuộc tính và giá trị
         /// </summary>
         Task<ServicesResult<T>> GetOneByKeyAndValue(string key, TKey value);
+        /// <summary>
+        /// Lấy đơn dữ liệu bằng thuộc tính và giá trị
+        /// </summary>
+        Task<ServicesResult<T>> GetOneByKeyAndValue(string key1, TKey value1, string key2, TKey value2);
+        /// <summary>
+        /// Lấy đơn dữ liệu bằng thuộc tính và giá trị
+        /// </summary>
+        Task<ServicesResult<T>> GetOneByKeyAndValue(string key1, TKey value1, string key2, TKey value2, string key3, TKey value3);
 
         /// <summary>
         /// Lấy đa dữ liệu bằng thuộc tính và giá trị
