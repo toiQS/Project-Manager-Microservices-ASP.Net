@@ -1,6 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Query.Internal;
-using Microsoft.Identity.Client;
 using PM.Domain;
 using PM.Domain.Interfaces;
 
@@ -125,6 +123,47 @@ namespace PM.Persistence.Implements
             {
                 var entity = await _dbSet.FirstOrDefaultAsync(t =>
                     EF.Property<object>(t, key).Equals(value));
+
+                return entity != null ? ServicesResult<T>.Success(entity) : ServicesResult<T>.Failure("Entity not found.");
+            }
+            catch (Exception ex)
+            {
+                return ServicesResult<T>.Failure($"Error: {ex.Message}");
+            }
+        }
+
+        public async Task<ServicesResult<T>> GetOneByKeyAndValue(string key1, TKey value1, string key2, TKey value2)
+        {
+            if (string.IsNullOrWhiteSpace(key1) || value1 == null)
+                return ServicesResult<T>.Failure("Key 1 or value 1 cannot be null.");
+            if (string.IsNullOrWhiteSpace(key2) || value2 == null)
+                return ServicesResult<T>.Failure("Key 2 or value 2 cannot be null.");
+
+            try
+            {
+                var entity = await _dbSet.FirstOrDefaultAsync(t =>
+                    EF.Property<object>(t, key1).Equals(value1) && EF.Property<object>(t,key2).Equals(value2));
+
+                return entity != null ? ServicesResult<T>.Success(entity) : ServicesResult<T>.Failure("Entity not found.");
+            }
+            catch (Exception ex)
+            {
+                return ServicesResult<T>.Failure($"Error: {ex.Message}");
+            }
+        }
+        public async Task<ServicesResult<T>> GetOneByKeyAndValue(string key1, TKey value1, string key2, TKey value2, string key3, TKey value3)
+        {
+            if (string.IsNullOrWhiteSpace(key1) || value1 == null)
+                return ServicesResult<T>.Failure("Key 1 or value 1 cannot be null.");
+            if (string.IsNullOrWhiteSpace(key2) || value2 == null)
+                return ServicesResult<T>.Failure("Key 2 or value 2 cannot be null.");
+             if (string.IsNullOrWhiteSpace(key3) || value3 == null)
+                return ServicesResult<T>.Failure("Key 3 or value 3 cannot be null.");
+
+            try
+            {
+                var entity = await _dbSet.FirstOrDefaultAsync(t =>
+                    EF.Property<object>(t, key1).Equals(value1) && EF.Property<object>(t,key2).Equals(value2)&&EF.Property<object>(t,key3).Equals(value3));
 
                 return entity != null ? ServicesResult<T>.Success(entity) : ServicesResult<T>.Failure("Entity not found.");
             }
