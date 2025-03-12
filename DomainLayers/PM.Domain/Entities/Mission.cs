@@ -8,20 +8,20 @@ namespace PM.Domain.Entities
     {
         [Key]
         public string Id { get; set; } // Mã nhiệm vụ
-        [ForeignKey(nameof(Plan))]
+        //[ForeignKey(nameof(Plan))]
         public string PlanId { get; set; } // Mã kế hoạch
         public string Name { get; set; } // Tên nhiệm vụ
         public string Description { get; set; } // Mô tả nhiệm vụ
         public DateTime StartDate { get; set; } // Ngày bắt đầu
         public DateTime EndDate { get; set; } // Ngày kết thúc
         public DateTime CreateDate { get; set; } // Ngày tạo
-        [ForeignKey(nameof(Status))]
+        //[ForeignKey(nameof(Status))]
         public int StatusId { get; set; } // ID tình trạng
         public bool IsCompleted { get; set; } // Đã hoàn thành chưa
 
         public Plan Plan { get; set; } // Liên kết đến kế hoạch
         public Status Status { get; set; } // Liên kết đến tình trạng
         public ICollection<MissionAssignment> Assignments { get; set; } // Giao nhiệm vụ
-        public ICollection<Document> Documents { get; set; } // Tài liệu nhiệm vụ
+        //public ICollection<Document> Documents { get; set; } // Tài liệu nhiệm vụ
     }
 }
