@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PM.Domain.Entities
@@ -6,13 +7,19 @@ namespace PM.Domain.Entities
     public class ActivityLog
     {
         [Key]
-        public string Id { get; set; } // Mã nhật ký
-        //[ForeignKey(nameof(User))]
-        public string UserId { get; set; } // Mã người dùng
-        public string? ProjectId { get; set; } // Mã dự án
-        public string Action { get; set; } // Hành động thực hiện
-        public DateTime ActionDate { get; set; } // Ngày thực hiện
-        public User User { get; set; } // Liên kết đến người dùng
+        public string Id { get; set; } = Guid.NewGuid().ToString();
 
+        [Required]
+        public string UserId { get; set; } = string.Empty;
+
+        public string? ProjectId { get; set; }
+
+        [Required, MaxLength(500)]
+        public string Action { get; set; } = string.Empty;
+
+        public DateTime ActionDate { get; set; } = DateTime.UtcNow;
+
+        [ForeignKey(nameof(UserId))]
+        public User User { get; set; } = new User();
     }
 }
