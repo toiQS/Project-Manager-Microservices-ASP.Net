@@ -1,14 +1,20 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using System.ComponentModel.DataAnnotations;
 
 namespace PM.Domain.Entities
 {
     public class User : IdentityUser
     {
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
-        //public string Email { get; set; }
-        public string FullName { get; set; }
+        [Required, MaxLength(100)]
+        public string FirstName { get; set; } = string.Empty;
 
-        public string AvatarPath { get; set; } // Đường dẫn ảnh đại diện
+        [Required, MaxLength(100)]
+        public string LastName { get; set; } = string.Empty;
+
+        [Required, MaxLength(200)]
+        public string FullName { get; set; } = string.Empty;
+
+        [MaxLength(500)]
+        public string AvatarPath { get; set; } = string.Empty;
     }
 }
