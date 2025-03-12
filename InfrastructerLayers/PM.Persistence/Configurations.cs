@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using EasyNetQ;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -9,6 +11,7 @@ namespace PM.Persistence
         public static void InitializePersistence(this IServiceCollection services, IConfiguration configuration)
         {
             RegisterDatabase(services, configuration);
+            RegisterServices(services, configuration);
         }
         private static void RegisterDatabase(this IServiceCollection services, IConfiguration configuration)
         {
@@ -20,7 +23,8 @@ namespace PM.Persistence
         }
         private static void RegisterServices(this IServiceCollection services, IConfiguration configuration)
         {
-
+            services.AddScoped<IMemoryCache, MemoryCache>();
+            services.AddScoped<IEventBus, EventBus>();
         }
     }
 }
