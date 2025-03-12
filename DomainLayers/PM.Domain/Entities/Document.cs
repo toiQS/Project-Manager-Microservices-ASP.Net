@@ -10,9 +10,9 @@ namespace PM.Domain.Entities
         public string Name { get; set; } // Tên tài liệu
         public string Path { get; set; } // Đường dẫn tài liệu
         public string Descriotion { get; set; } // Miêu tả tài liệu 
-        [ForeignKey(nameof(Project))]
+        //[ForeignKey(nameof(Project))]
         public string? ProjectId { get; set; } = string.Empty; // Liên kết đến dự án (nếu có)
-        [ForeignKey(nameof(Mission))]
+        //[ForeignKey(nameof(Mission))]
         public string? MissionId { get; set; } = string.Empty; // Liên kết đến nhiệm vụ (nếu có)
 
         public Project? Project { get; set; } // Liên kết đến dự án
