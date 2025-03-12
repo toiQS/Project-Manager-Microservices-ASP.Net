@@ -7,7 +7,7 @@ namespace PM.Domain.Entities
     {
         [Key]
         public string Id { get; set; } // Mã báo cáo
-        [ForeignKey(nameof(Plan))]
+        //[ForeignKey(nameof(Plan))]
         public string PlanId { get; set; } // Mã kế hoạch
         public string ReportDetails { get; set; } // Chi tiết báo cáo
         public DateTime ReportDate { get; set; } // Ngày báo cáo
