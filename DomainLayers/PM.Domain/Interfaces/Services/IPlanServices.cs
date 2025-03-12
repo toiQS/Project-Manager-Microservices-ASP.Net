@@ -1,15 +1,15 @@
-﻿using PM.Domain.Models.plans;
+﻿using PM.Domain.Entities;
 
 namespace PM.Domain.Interfaces.Services
 {
     public interface IPlanServices
     {
-        public Task<ServicesResult<IEnumerable<IndexPlan>>> GetPlans();
-        public Task<ServicesResult<IEnumerable<IndexPlan>>> GetPlansInProject(string projectId);
-        public Task<ServicesResult<DetailPlan>> GetDetailPlan(string planId);
-        public Task<ServicesResult<DetailPlan>> AddAsync(string memberId, string projectId, AddPlan addPlan);
-        public Task<ServicesResult<DetailPlan>> UpdateAsync(string memberId, string planId, UpdatePlan updatePlan);
-        public Task<ServicesResult<IEnumerable<IndexPlan>>> DeleteAsync(string memberId, string planId);
-        public Task<ServicesResult<bool>> DeleteFunc(string memberId, string planId);
+        public Task<ServicesResult<IEnumerable<Plan>>> GetPlans();
+        public Task<ServicesResult<IEnumerable<Plan>>> GetPlansInProject(string projectId);
+        public Task<ServicesResult<Plan>> GetDetailPlan(string planId);
+        public Task<ServicesResult<bool>> AddAsync(Plan plan);
+        public Task<ServicesResult<bool>> UpdateAsync(Plan plan);
+        public Task<ServicesResult<bool>> PatchAsync(string planId, Plan plan);
+        public Task<ServicesResult<bool>> DeleteAsync(string planId);
     }
 }
