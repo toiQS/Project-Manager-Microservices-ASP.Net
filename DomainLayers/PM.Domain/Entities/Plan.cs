@@ -6,21 +6,29 @@ namespace PM.Domain.Entities
     public class Plan
     {
         [Key]
-        public string Id { get; set; } // Mã kế hoạch
-        //[ForeignKey(nameof(Project))]
-        public string ProjectId { get; set; } // Mã dự án
-        public string Name { get; set; } // Tên kế hoạch
-        public string Description { get; set; } // miêu tả kể hoạch
-        public DateTime StartDate { get; set; } // Ngày bắt đầu
-        public DateTime EndDate { get; set; } // Ngày kết thúc
-        //[ForeignKey(nameof(Status))]
-        public int StatusId { get; set; } // ID tình trạng
-        public bool IsCompleted { get; set; } // Đã hoàn thành chưa
+        public string Id { get; set; } = Guid.NewGuid().ToString();
 
-        public Project Project { get; set; } // Liên kết đến dự án
-        public Status Status { get; set; } // Liên kết đến tình trạng
-        public ICollection<Mission> Missions { get; set; } // Các nhiệm vụ
-        public ICollection<ProgressReport> ProgressReports { get; set; } // Báo cáo tiến độ
+        [Required]
+        public string ProjectId { get; set; } = string.Empty;
+
+        [Required, MaxLength(255)]
+        public string Name { get; set; } = string.Empty;
+
+        [MaxLength(1000)]
+        public string Description { get; set; } = string.Empty;
+
+        public DateTime StartDate { get; set; } = DateTime.UtcNow;
+
+        public DateTime EndDate { get; set; } = DateTime.UtcNow;
+
+        public int StatusId { get; set; }
+
+        public bool IsCompleted { get; set; } = false;
+
+        [ForeignKey(nameof(ProjectId))]
+        public Project Project { get; set; } = null!;
+
+        [ForeignKey(nameof(StatusId))]
+        public Status Status { get; set; } = null!;
     }
 }
-
