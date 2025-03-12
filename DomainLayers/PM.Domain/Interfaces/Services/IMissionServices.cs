@@ -1,17 +1,17 @@
-﻿using PM.Domain.Models.missions;
+﻿using PM.Domain.Entities;
 
 namespace PM.Domain.Interfaces.Services
 {
     public interface IMissionServices
     {
-        public Task<ServicesResult<IEnumerable<IndexMission>>> GetIndexMissions();
-        public Task<ServicesResult<IEnumerable<IndexMission>>> GetIndexMissionsInPlan(string planId);
-        public Task<ServicesResult<DetailMission>> GetDetailMission(string missionId);
-        public Task<ServicesResult<DetailMission>> CreateMission(string memberId, string planId ,AddMission mission);
-        public Task<ServicesResult<DetailMission>> UpdateMission(string memberId, string missionId, UpdateMission mission);
-        public Task<ServicesResult<IEnumerable<IndexMission>>> DeleteMission(string memberId, string missionId);
-        public Task<ServicesResult<bool>> DeleteMissionFunc(string memberId, string missionId);
-        public Task<ServicesResult<DetailMission>> AddMembers(string memberCurrentId, string missionId, List<string> memberIds);
-        public Task<ServicesResult<DetailMission>> DeleteMember(string memberCurrentId, string missionId, string memberId);
+        public Task<ServicesResult<IEnumerable<Mission>>> GetIndexMissions();
+        public Task<ServicesResult<IEnumerable<Mission>>> GetIndexMissionsInPlan(string planId);
+        public Task<ServicesResult<Mission>> GetDetailMission(string missionId);
+        public Task<ServicesResult<bool>> CreateMission(Mission mission);
+        public Task<ServicesResult<bool>> UpdateMission(Mission mission);
+        public Task<ServicesResult<bool>> PacthMission(string missionId, Mission mission);
+        public Task<ServicesResult<bool>> DeleteMission(string missionId);
+        public Task<ServicesResult<bool>> AddMembers( string missionId, List<string> memberIds);
+        public Task<ServicesResult<bool>> DeleteMember( string missionId, string memberId);
     }
 }
