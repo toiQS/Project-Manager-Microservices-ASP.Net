@@ -1,19 +1,21 @@
-﻿using PM.Domain.Models.projects;
+﻿using PM.Domain.Entities;
 
 namespace PM.Domain.Interfaces.Services
 {
-    public interface 
+    public interface
         IProjectServices
     {
-        Task<ServicesResult<IEnumerable<IndexProject>>> GetProductListUserHasJoined(string userId);
-        //Task<ServicesResult<IEnumerable<IndexProject>>> GetProjects();
-        Task<ServicesResult<IEnumerable<IndexProject>>> GetProjectListUserHasOwner(string userId);
-        public Task<ServicesResult<DetailProject>> GetDetailProject(string projectId);
-        Task<ServicesResult<DetailProject>> Add(string userId, AddProject addProject);
-        Task<ServicesResult<DetailProject>> UpdateInfo(string memberId, string projectId, UpdateProject updateProject);
-        Task<ServicesResult<IEnumerable<IndexProject>>> Delete(string memberId, string projectId);
-        //Task<ServicesResult<bool>> DeleteFunc(string memberId, string projectId);
-        Task<ServicesResult<DetailProject>> UpdateIsDelete(string memberId, string projectId);
-        Task<ServicesResult<DetailProject>> UpdateIsCompleted(string memberId, string projectId);
+        public Task<ServicesResult<IEnumerable<Project>>> GetProjectsAsync();
+        public Task<ServicesResult<IEnumerable<Project>>> GetProjectsUserHasJoined(string userId);
+        public Task<ServicesResult<IEnumerable<Project>>> GetProjectsUserIsOwner(string userId);
+        public Task<ServicesResult<IEnumerable<Project>>> GetProjectsUserIsLeader(string userId);
+        public Task<ServicesResult<IEnumerable<Project>>> GetProjectsUserIsManager(string userId);
+        public Task<ServicesResult<IEnumerable<Project>>> GetProjectsUserIsMember(string userId);
+        public Task<ServicesResult<IEnumerable<Project>>> GetProjectsUserIsOrtherPosition(string userId);
+        public Task<ServicesResult<Project>> GetProjectAsync(string projectId);
+        public Task<ServicesResult<bool>> CreateProjectAsync(Project project);
+        public Task<ServicesResult<bool>> UpdateProjectAsync(Project project);
+        public Task<ServicesResult<bool>> PatchProjectAsync(string projectId, Project project);
+        public Task<ServicesResult<bool>> DeleteProjectAsync(string projectId);
     }
 }
