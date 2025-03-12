@@ -1,54 +1,30 @@
 ﻿using System.Linq.Expressions;
+using System.Threading;
 
 namespace PM.Domain.Interfaces
 {
     public interface IRepository<T, TKey> where T : class where TKey : notnull
     {
-        /// <summary>
-        /// Lấy tất cả dữ liệu.
-        /// </summary>
-        Task<ServicesResult<IEnumerable<T>>> GetAllAsync();
+        // Truy vấn dữ liệu (Query Methods)
+        public Task<ServicesResult<IEnumerable<T>>> GetAllAsync(int pageNumber, int pageSize, CancellationToken cancellationToken = default);
+        public Task<ServicesResult<T>> GetOneByKeyAndValue(Dictionary<string, TKey> value, bool useAndOperator, CancellationToken cancellationToken = default);
+        public Task<ServicesResult<T>> GetOneByKeyAndValue(Dictionary<string, TKey> value, bool useAndOperator, CancellationToken cancellationToken = default, params Expression<Func<T, object>>[] includes);
+        public Task<ServicesResult<IEnumerable<T>>> GetManyByKeyAndValue(Dictionary<string, TKey> value, bool useAndOperator, int pageNumber, int pageSize, CancellationToken cancellationToken = default);
+        public Task<ServicesResult<IEnumerable<T>>> GetManyByKeyAndValue(Dictionary<string, TKey> value, bool useAndOperator, int pageNumber, int pageSize, CancellationToken cancellationToken = default, params Expression<Func<T, object>>[] includes);
 
-        /// <summary>
-        /// Thêm mới một phần tử và trả về chính phần tử đã thêm.
-        /// </summary>
-        Task<ServicesResult<T>> AddAsync(T entity);
+        // Thêm, cập nhật, xóa dữ liệu (Mutation Methods)
+        public Task<ServicesResult<bool>> AddAsync(IEnumerable<T> arr, T entity, CancellationToken cancellationToken = default);
+        public Task<ServicesResult<bool>> UpdateAsync(IEnumerable<T> arr, T entity, CancellationToken cancellationToken = default);
+        public Task<ServicesResult<bool>> PatchAsync(IEnumerable<T> arr, TKey primaryKey, Dictionary<string, object> updateValue, CancellationToken cancellationToken = default);
+        public Task<ServicesResult<bool>> DeleteAsync(TKey primaryKey, CancellationToken cancellationToken = default);
+        public Task<ServicesResult<bool>> DeleteManyAsync(Dictionary<string, TKey> value, bool useAndOperator, CancellationToken cancellationToken = default);
 
-        /// <summary>
-        /// Cập nhật phần tử và trả về đối tượng sau khi cập nhật.
-        /// </summary>
-        Task<ServicesResult<T>> UpdateAsync(T entity);
+        // Transaction & Caching
+        public Task<ServicesResult<bool>> ExecuteTransactionAsync(Func<Task> transactionOperations, CancellationToken cancellationToken = default);
+        public Task<ServicesResult<T>> GetCachedAsync(TKey id, CancellationToken cancellationToken = default);
 
-        /// <summary>
-        /// Xóa phần tử theo khóa chính.
-        /// </summary>
-        Task<ServicesResult<bool>> DeleteAsync(TKey primaryKey);
-
-        /// <summary>
-        /// Kiểm tra sự tồn tại của bản ghi.
-        /// </summary>
-        Task<bool> ExistsAsync(TKey primaryKey);
-        
-        Task<bool> ExistAsync(string key, TKey value);
-
-        /// <summary>
-        /// Lấy đơn dữ liệu bằng thuộc tính và giá trị
-        /// </summary>
-        Task<ServicesResult<T>> GetOneByKeyAndValue(string key, TKey value);
-
-        /// <summary>
-        /// Lấy đa dữ liệu bằng thuộc tính và giá trị
-        /// </summary>
-        Task<ServicesResult<IEnumerable<T>>> GetManyByKeyAndValue(string key, TKey value);
-
-        /// <summary>
-        /// Lấy dữ liệu có phân trang.
-        /// </summary>
-        Task<ServicesResult<(IEnumerable<T> Items, int TotalCount)>> GetPagedAsync(int pageNumber, int pageSize);
-
-        /// <summary>
-        /// Lưu thay đổi vào database.
-        /// </summary>
-        Task<ServicesResult<bool>> SaveChangesAsync();
+        // Event-driven & SaveChanges
+        public Task<ServicesResult<bool>> PublishEventAsync(string eventName, object eventData, CancellationToken cancellationToken = default);
+        public Task<ServicesResult<bool>> SaveChangesAsync(CancellationToken cancellationToken = default);
     }
 }
