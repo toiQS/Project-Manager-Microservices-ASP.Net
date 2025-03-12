@@ -7,13 +7,13 @@ namespace PM.Domain.Entities
     {
         [Key]
         public string Id { get; set; } // Mã kế hoạch
-        [ForeignKey(nameof(Project))]
+        //[ForeignKey(nameof(Project))]
         public string ProjectId { get; set; } // Mã dự án
         public string Name { get; set; } // Tên kế hoạch
         public string Description { get; set; } // miêu tả kể hoạch
         public DateTime StartDate { get; set; } // Ngày bắt đầu
         public DateTime EndDate { get; set; } // Ngày kết thúc
-        [ForeignKey(nameof(Status))]
+        //[ForeignKey(nameof(Status))]
         public int StatusId { get; set; } // ID tình trạng
         public bool IsCompleted { get; set; } // Đã hoàn thành chưa
 
