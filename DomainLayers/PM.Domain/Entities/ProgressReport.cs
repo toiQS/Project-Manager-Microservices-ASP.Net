@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PM.Domain.Entities
@@ -6,12 +7,17 @@ namespace PM.Domain.Entities
     public class ProgressReport
     {
         [Key]
-        public string Id { get; set; } // Mã báo cáo
-        //[ForeignKey(nameof(Plan))]
-        public string PlanId { get; set; } // Mã kế hoạch
-        public string ReportDetails { get; set; } // Chi tiết báo cáo
-        public DateTime ReportDate { get; set; } // Ngày báo cáo
+        public string Id { get; set; } = Guid.NewGuid().ToString();
 
-        public Plan Plan { get; set; } // Liên kết đến kế hoạch
+        [Required]
+        public string PlanId { get; set; } = string.Empty;
+
+        [Required, MaxLength(2000)]
+        public string ReportDetails { get; set; } = string.Empty;
+
+        public DateTime ReportDate { get; set; } = DateTime.UtcNow;
+
+        [ForeignKey(nameof(PlanId))]
+        public Plan Plan { get; set; } = null!;
     }
 }
