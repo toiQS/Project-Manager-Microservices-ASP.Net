@@ -27,16 +27,18 @@ namespace PM.Persistence.Migrations
                     b.Property<string>("Id")
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("Descriotion")
+                    b.Property<string>("Description")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<string>("MissionId")
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
 
                     b.Property<string>("Path")
                         .IsRequired()
@@ -74,7 +76,8 @@ namespace PM.Persistence.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
 
                     b.Property<string>("PlanId")
                         .IsRequired()
@@ -124,7 +127,8 @@ namespace PM.Persistence.Migrations
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("datetime2");
@@ -134,7 +138,8 @@ namespace PM.Persistence.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
 
                     b.Property<string>("ProjectId")
                         .IsRequired()
@@ -169,7 +174,8 @@ namespace PM.Persistence.Migrations
 
                     b.Property<string>("ReportDetails")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
 
                     b.HasKey("Id");
 
@@ -188,7 +194,8 @@ namespace PM.Persistence.Migrations
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<DateTime?>("EndDate")
                         .HasColumnType("datetime2");
@@ -201,7 +208,8 @@ namespace PM.Persistence.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
 
                     b.Property<DateTime?>("StartDate")
                         .HasColumnType("datetime2");
@@ -223,7 +231,8 @@ namespace PM.Persistence.Migrations
 
                     b.Property<string>("PositionWork")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
 
                     b.Property<string>("ProjectId")
                         .IsRequired()
@@ -231,9 +240,6 @@ namespace PM.Persistence.Migrations
 
                     b.Property<string>("RoleId")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("RoleInProjectId")
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("UserId")
@@ -244,7 +250,7 @@ namespace PM.Persistence.Migrations
 
                     b.HasIndex("ProjectId");
 
-                    b.HasIndex("RoleInProjectId");
+                    b.HasIndex("RoleId");
 
                     b.ToTable("ProjectMember");
                 });
@@ -256,11 +262,13 @@ namespace PM.Persistence.Migrations
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
 
                     b.HasKey("Id");
 
@@ -277,7 +285,8 @@ namespace PM.Persistence.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
 
                     b.HasKey("Id");
 
@@ -304,7 +313,7 @@ namespace PM.Persistence.Migrations
             modelBuilder.Entity("PM.Domain.Entities.Mission", b =>
                 {
                     b.HasOne("PM.Domain.Entities.Plan", "Plan")
-                        .WithMany("Missions")
+                        .WithMany()
                         .HasForeignKey("PlanId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -323,7 +332,7 @@ namespace PM.Persistence.Migrations
             modelBuilder.Entity("PM.Domain.Entities.MissionAssignment", b =>
                 {
                     b.HasOne("PM.Domain.Entities.Mission", "Mission")
-                        .WithMany("Assignments")
+                        .WithMany()
                         .HasForeignKey("MissionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -342,7 +351,7 @@ namespace PM.Persistence.Migrations
             modelBuilder.Entity("PM.Domain.Entities.Plan", b =>
                 {
                     b.HasOne("PM.Domain.Entities.Project", "Project")
-                        .WithMany("Plans")
+                        .WithMany()
                         .HasForeignKey("ProjectId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -361,7 +370,7 @@ namespace PM.Persistence.Migrations
             modelBuilder.Entity("PM.Domain.Entities.ProgressReport", b =>
                 {
                     b.HasOne("PM.Domain.Entities.Plan", "Plan")
-                        .WithMany("ProgressReports")
+                        .WithMany()
                         .HasForeignKey("PlanId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -383,42 +392,20 @@ namespace PM.Persistence.Migrations
             modelBuilder.Entity("PM.Domain.Entities.ProjectMember", b =>
                 {
                     b.HasOne("PM.Domain.Entities.Project", "Project")
-                        .WithMany("Members")
+                        .WithMany()
                         .HasForeignKey("ProjectId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("PM.Domain.Entities.RoleInProject", "RoleInProject")
-                        .WithMany("ProjectMembers")
-                        .HasForeignKey("RoleInProjectId");
+                        .WithMany()
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Project");
 
                     b.Navigation("RoleInProject");
-                });
-
-            modelBuilder.Entity("PM.Domain.Entities.Mission", b =>
-                {
-                    b.Navigation("Assignments");
-                });
-
-            modelBuilder.Entity("PM.Domain.Entities.Plan", b =>
-                {
-                    b.Navigation("Missions");
-
-                    b.Navigation("ProgressReports");
-                });
-
-            modelBuilder.Entity("PM.Domain.Entities.Project", b =>
-                {
-                    b.Navigation("Members");
-
-                    b.Navigation("Plans");
-                });
-
-            modelBuilder.Entity("PM.Domain.Entities.RoleInProject", b =>
-                {
-                    b.Navigation("ProjectMembers");
                 });
 #pragma warning restore 612, 618
         }
