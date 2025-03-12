@@ -9,7 +9,7 @@ namespace PM.Domain.Entities
         public string Id { get; set; } // Mã dự án
         public string Name { get; set; } // Tên dự án
         public string Description { get; set; } // Miêu tả dự án
-        [ForeignKey(nameof(Status))]
+        //[ForeignKey(nameof(Status))]
         public int StatusId { get; set; } // ID tình trạng
         public DateTime CreatedDate { get; set; } // Ngày tạo
         public DateTime? StartDate { get; set; } // Ngày bắt đầu
@@ -20,7 +20,7 @@ namespace PM.Domain.Entities
         public Status Status { get; set; } // Liên kết đến tình trạng
         public ICollection<ProjectMember> Members { get; set; } // Thành viên dự án
         public ICollection<Plan> Plans { get; set; } // Các kế hoạch
-        public ICollection<Document> Documents { get; set; } // Tài liệu dự án
-        public ICollection<ActivityLog> ActivityLogs { get; set; } // Nhật ký hoạt động
+        //public ICollection<Document> Documents { get; set; } // Tài liệu dự án
+        //public ICollection<ActivityLog> ActivityLogs { get; set; } // Nhật ký hoạt động
     }
 }
