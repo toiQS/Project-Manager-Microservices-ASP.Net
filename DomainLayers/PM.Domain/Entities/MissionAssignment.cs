@@ -7,9 +7,9 @@ namespace PM.Domain.Entities
     {
         [Key]
         public string Id { get; set; } // Mã gán nhiệm vụ
-        [ForeignKey(nameof(Mission))]
+        //[ForeignKey(nameof(Mission))]
         public string MissionId { get; set; } // Mã nhiệm vụ
-        [ForeignKey(nameof(ProjectMember))]
+        //[ForeignKey(nameof(ProjectMember))]
         public string ProjectMemberId { get; set; } // Mã thành viên dự án
 
         public Mission Mission { get; set; } // Liên kết đến nhiệm vụ
