@@ -1,12 +1,14 @@
-﻿using PM.Domain.Models.reports;
+﻿using PM.Domain.Entities;
 
 namespace PM.Domain.Interfaces.Services
 {
     public interface IReportServices
     {
-        public Task<ServicesResult<IEnumerable<IndexReport>>> GetReportsInPlan(string planId);
-        public Task<ServicesResult<string>> AddReport(string memberId, string planId, string reportDetail);
-        public Task<ServicesResult<string>> UpdateReport(string memberId, string reportId, string reportDetail);
-        public Task<ServicesResult<string>> DeleteReport(string memberId, string reportId);
+        public Task<ServicesResult<IEnumerable<ProgressReport>>> GetReports();
+        public Task<ServicesResult<IEnumerable<ProgressReport>>> GetReportsInPlan(string planId);
+        public Task<ServicesResult<bool>> AddAsync(ProgressReport progressReport);
+        public Task<ServicesResult<bool>> UpdateAsync(ProgressReport progressReport);
+        public Task<ServicesResult<bool>> PatchAsync(string progressReportId, ProgressReport progressReport);
+        public Task<ServicesResult<bool>> DeleteAsync(string progressReportId);
     }
 }
