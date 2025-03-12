@@ -1,27 +1,35 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Reflection.Metadata;
 
 namespace PM.Domain.Entities
 {
     public class Mission
     {
         [Key]
-        public string Id { get; set; } // Mã nhiệm vụ
-        //[ForeignKey(nameof(Plan))]
-        public string PlanId { get; set; } // Mã kế hoạch
-        public string Name { get; set; } // Tên nhiệm vụ
-        public string Description { get; set; } // Mô tả nhiệm vụ
-        public DateTime StartDate { get; set; } // Ngày bắt đầu
-        public DateTime EndDate { get; set; } // Ngày kết thúc
-        public DateTime CreateDate { get; set; } // Ngày tạo
-        //[ForeignKey(nameof(Status))]
-        public int StatusId { get; set; } // ID tình trạng
-        public bool IsCompleted { get; set; } // Đã hoàn thành chưa
+        public string Id { get; set; } = Guid.NewGuid().ToString();
 
-        public Plan Plan { get; set; } // Liên kết đến kế hoạch
-        public Status Status { get; set; } // Liên kết đến tình trạng
-        public ICollection<MissionAssignment> Assignments { get; set; } // Giao nhiệm vụ
-        //public ICollection<Document> Documents { get; set; } // Tài liệu nhiệm vụ
+        [Required]
+        public string PlanId { get; set; } = string.Empty;
+
+        [Required, MaxLength(255)]
+        public string Name { get; set; } = string.Empty;
+
+        public string Description { get; set; } = string.Empty;
+
+        public DateTime StartDate { get; set; } = DateTime.UtcNow;
+
+        public DateTime EndDate { get; set; } = DateTime.UtcNow;
+
+        public DateTime CreateDate { get; set; } = DateTime.UtcNow;
+
+        public int StatusId { get; set; }
+
+        public bool IsCompleted { get; set; } = false;
+
+        [ForeignKey(nameof(PlanId))]
+        public Plan Plan { get; set; } = new Plan();
+
+        [ForeignKey(nameof(StatusId))]
+        public Status Status { get; set; } = new Status();
     }
 }
