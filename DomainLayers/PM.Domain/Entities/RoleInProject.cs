@@ -1,14 +1,17 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace PM.Domain.Entities
 {
     public class RoleInProject
     {
         [Key]
-        public string Id { get; set; } // Mã vai trò
-        public string Name { get; set; } // Tên vai trò
-        public string Description { get; set; } // Mô tả vai trò
+        public string Id { get; set; } = Guid.NewGuid().ToString();
 
-        public ICollection<ProjectMember> ProjectMembers { get; set; } // Thành viên có vai trò này
+        [Required, MaxLength(255)]
+        public string Name { get; set; } = string.Empty;
+
+        [MaxLength(1000)]
+        public string Description { get; set; } = string.Empty;
     }
 }
