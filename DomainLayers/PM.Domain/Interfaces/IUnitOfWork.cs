@@ -5,18 +5,31 @@ namespace PM.Domain.Interfaces
     public interface IUnitOfWork : IDisposable
     {
         // Repositories
-        public IRepository<ActivityLog, string> ActivityLogRepository { get; }
-        public IRepository<Document, string> DocumentRepository { get; }
-        public IRepository<Mission, string> MissionRepository { get; }
-        public IRepository<MissionAssignment, string> MissionAssignmentRepository { get; }
-        public IRepository<ProgressReport, string> ProgressReportRepository { get; }
-        public IRepository<Project, string> ProjectRepository { get; }
-        public IRepository<RoleInProject, string> RoleInProjectRepository { get; }
-        public IRepository<ProjectMember, string> ProjectMemberRepository { get; }
-        public IRepository<Status, int> StatusRepository { get; }
-        public IRepository<User, string> UserRepository { get; }
-        public IRepository<Plan, string> PlanRepository { get; }
-        public IRepository<RefreshToken, string> RefreshTokenRepository { get; }
+        public IQueryRepository<ActivityLog, string> ActivityLogQueryRepository { get; }
+        public IQueryRepository<Document, string> DocumentQueryRepository { get; }
+        public IQueryRepository<Mission, string> MissionQueryRepository { get; }
+        public IQueryRepository<MissionAssignment, string> MissionAssignmentQueryRepository { get; }
+        public IQueryRepository<ProgressReport, string> ProgressReportQueryRepository { get; }
+        public IQueryRepository<Project, string> ProjectQueryRepository { get; }
+        public IQueryRepository<RoleInProject, string> RoleInProjectQueryRepository { get; }
+        public IQueryRepository<ProjectMember, string> ProjectMemberQueryRepository { get; }
+        public IQueryRepository<Status, int> StatusQueryRepository { get; }
+        public IQueryRepository<User, string> UserQueryRepository { get; }
+        public IQueryRepository<Plan, string> PlanQueryRepository { get; }
+        public IQueryRepository<RefreshToken, string> RefreshTokenQueryRepository { get; }
+
+        public ICommandRepository<ActivityLog, string> ActivityLogCommandRepository { get; }
+        public ICommandRepository<Document, string> DocumentCommandRepository { get; }
+        public ICommandRepository<Mission, string> MissionCommandRepository { get; }
+        public ICommandRepository<MissionAssignment, string> MissionAssignmentCommandRepository { get; }
+        public ICommandRepository<ProgressReport, string> ProgressReportCommandRepository { get; }
+        public ICommandRepository<Project, string> ProjectCommandRepository { get; }
+        public ICommandRepository<RoleInProject, string> RoleInProjectCommandRepository { get; }
+        public ICommandRepository<ProjectMember, string> ProjectMemberCommandRepository { get; }
+        public ICommandRepository<Status, int> StatusCommandRepository { get; }
+        public ICommandRepository<User, string> UserCommandRepository { get; }
+        public ICommandRepository<Plan, string> PlanCommandRepository { get; }
+        public ICommandRepository<RefreshToken, string> RefreshTokenCommandRepository { get; }
 
         // Transaction & Caching
         public Task<ServicesResult<bool>> ExecuteTransactionAsync(Func<Task<ServicesResult<bool>>> transactionOperations, CancellationToken cancellationToken = default);
