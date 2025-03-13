@@ -17,14 +17,10 @@ namespace PM.Persistence.Implements.Services
         }
 
         #region Get All Assignments
-        /// <summary>
-        /// Lấy tất cả mission assignments.
-        /// </summary>
-        /// <returns>Danh sách mission assignments</returns>
         public async Task<ServicesResult<IEnumerable<MissionAssignment>>> GetMissionAssignmentsAsync()
         {
             _logger.LogInformation("[Service] Fetching all MissionAssignments...");
-            var response = await _unitOfWork.MissionAssignmentRepository.GetAllAsync(1, 100);
+            var response = await _unitOfWork.MissionAssignmentQueryRepository.GetAllAsync(1, 100);
 
             if (!response.Status)
             {
@@ -38,15 +34,10 @@ namespace PM.Persistence.Implements.Services
         #endregion
 
         #region Get Assignments By Mission
-        /// <summary>
-        /// Lấy danh sách mission assignments theo MissionId.
-        /// </summary>
-        /// <param name="missionId">ID của mission</param>
-        /// <returns>Danh sách mission assignments</returns>
         public async Task<ServicesResult<IEnumerable<MissionAssignment>>> GetMissionAssignmentsInMissionAsync(string missionId)
         {
             _logger.LogInformation("[Service] Fetching MissionAssignments for MissionId={MissionId}", missionId);
-            var missionResponse = await _unitOfWork.MissionAssignmentRepository.GetManyByKeyAndValue("MissionId", missionId);
+            var missionResponse = await _unitOfWork.MissionAssignmentQueryRepository.GetManyByKeyAndValue("MissionId", missionId);
 
             if (!missionResponse.Status)
             {
@@ -60,15 +51,10 @@ namespace PM.Persistence.Implements.Services
         #endregion
 
         #region Get Assignment By ID
-        /// <summary>
-        /// Lấy thông tin một mission assignment theo ID.
-        /// </summary>
-        /// <param name="missionAssignmentId">ID của mission assignment</param>
-        /// <returns>Mission assignment</returns>
         public async Task<ServicesResult<MissionAssignment>> GetMissionAssignmentAsync(string missionAssignmentId)
         {
             _logger.LogInformation("[Service] Fetching MissionAssignment: Id={AssignmentId}", missionAssignmentId);
-            var missionResponse = await _unitOfWork.MissionAssignmentRepository.GetOneByKeyAndValue("Id", missionAssignmentId);
+            var missionResponse = await _unitOfWork.MissionAssignmentQueryRepository.GetOneByKeyAndValue("Id", missionAssignmentId);
 
             if (!missionResponse.Status)
             {
@@ -82,17 +68,12 @@ namespace PM.Persistence.Implements.Services
         #endregion
 
         #region Add Assignment
-        /// <summary>
-        /// Thêm mới một mission assignment.
-        /// </summary>
-        /// <param name="missionAssignment">Mission assignment cần thêm</param>
-        /// <returns>Kết quả thêm thành công hoặc thất bại</returns>
         public async Task<ServicesResult<bool>> AddAsync(MissionAssignment missionAssignment)
         {
             _logger.LogInformation("[Service] Adding new MissionAssignment: MissionId={MissionId}", missionAssignment.MissionId);
 
             var addResponse = await _unitOfWork.ExecuteTransactionAsync(
-                async () => await _unitOfWork.MissionAssignmentRepository.AddAsync(new List<MissionAssignment> { missionAssignment }, missionAssignment)
+                async () => await _unitOfWork.MissionAssignmentCommandRepository.AddAsync(new List<MissionAssignment> { missionAssignment }, missionAssignment)
             );
 
             if (!addResponse.Status)
@@ -107,22 +88,17 @@ namespace PM.Persistence.Implements.Services
         #endregion
 
         #region Remove Assignment
-        /// <summary>
-        /// Xóa một mission assignment theo ID.
-        /// </summary>
-        /// <param name="missionAssignmentId">ID của mission assignment</param>
-        /// <returns>Kết quả xóa thành công hoặc thất bại</returns>
         public async Task<ServicesResult<bool>> RemoveAsync(string missionAssignmentId)
         {
             _logger.LogInformation("[Service] Removing MissionAssignment: Id={AssignmentId}", missionAssignmentId);
 
             var removeResponse = await _unitOfWork.ExecuteTransactionAsync(
-                async () => await _unitOfWork.MissionAssignmentRepository.DeleteAsync(missionAssignmentId)
+                async () => await _unitOfWork.MissionAssignmentCommandRepository.DeleteAsync(missionAssignmentId)
             );
 
             if (!removeResponse.Status)
             {
-                _logger.LogError("[Service] RemoveAsync failed: Database error for AssignmentId={AssignmentId}", missionAssignmentId);
+                _logger.LogError("[Service] RemoveAsync failed: Database error for AssignmentId={AssignmentIdMi}", missionAssignmentId);
                 return ServicesResult<bool>.Failure("Database error.");
             }
 
@@ -132,17 +108,12 @@ namespace PM.Persistence.Implements.Services
         #endregion
 
         #region Update Assignment
-        /// <summary>
-        /// Cập nhật một mission assignment.
-        /// </summary>
-        /// <param name="missionAssignment">Mission assignment cần cập nhật</param>
-        /// <returns>Kết quả cập nhật thành công hoặc thất bại</returns>
         public async Task<ServicesResult<bool>> UpdateAsync(MissionAssignment missionAssignment)
         {
             _logger.LogInformation("[Service] Updating MissionAssignment: Id={AssignmentId}", missionAssignment.Id);
 
             var updateResponse = await _unitOfWork.ExecuteTransactionAsync(
-                async () => await _unitOfWork.MissionAssignmentRepository.UpdateAsync(new List<MissionAssignment> { missionAssignment }, missionAssignment)
+                async () => await _unitOfWork.MissionAssignmentCommandRepository.UpdateAsync(new List<MissionAssignment> { missionAssignment }, missionAssignment)
             );
 
             if (!updateResponse.Status)
@@ -157,18 +128,12 @@ namespace PM.Persistence.Implements.Services
         #endregion
 
         #region Patch Assignment
-        /// <summary>
-        /// Cập nhật một phần dữ liệu của mission assignment.
-        /// </summary>
-        /// <param name="missionId">ID của mission</param>
-        /// <param name="missionAssignment">Dữ liệu cần cập nhật</param>
-        /// <returns>Kết quả cập nhật thành công hoặc thất bại</returns>
         public async Task<ServicesResult<bool>> PatchAsync(string missionId, MissionAssignment missionAssignment)
         {
             _logger.LogInformation("[Service] Patching MissionAssignment: MissionId={MissionId}", missionId);
 
             var updateResponse = await _unitOfWork.ExecuteTransactionAsync(
-                async () => await _unitOfWork.MissionAssignmentRepository.PatchAsync(
+                async () => await _unitOfWork.MissionAssignmentCommandRepository.PatchAsync(
                     new List<MissionAssignment> { missionAssignment }, missionId,
                     new Dictionary<string, object> { { "MissionId", missionAssignment.MissionId }, { "ProjectMemberId", missionAssignment.ProjectMemberId } }
                 )
