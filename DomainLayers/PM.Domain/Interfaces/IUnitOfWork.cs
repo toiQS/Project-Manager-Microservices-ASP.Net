@@ -19,11 +19,11 @@ namespace PM.Domain.Interfaces
         public IRepository<RefreshToken, string> RefreshTokenRepository { get; }
 
         // Transaction & Caching
-        public Task<ServicesResult<bool>> ExecuteTransactionAsync(Func<Task> transactionOperations, CancellationToken cancellationToken = default);
+        public Task<ServicesResult<bool>> ExecuteTransactionAsync(Func<Task<ServicesResult<bool>>> transactionOperations, CancellationToken cancellationToken = default);
         public Task<ServicesResult<T>> GetCachedAsync<T, TKey>(TKey id, CancellationToken cancellationToken = default) where T : class;
 
         // SaveChanges & Event-driven
         public Task<ServicesResult<bool>> SaveChangesAsync(CancellationToken cancellationToken = default);
-        public Task<ServicesResult<bool>> PublishEventAsync(string eventName, object eventData, CancellationToken cancellationToken = default);
+        public Task<ServicesResult<bool>> PublishEventAsync<T>(string eventName, T eventData, CancellationToken cancellationToken = default);
     }
 }
