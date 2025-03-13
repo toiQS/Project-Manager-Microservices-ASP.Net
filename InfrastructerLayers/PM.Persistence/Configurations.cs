@@ -25,6 +25,7 @@ namespace PM.Persistence
         {
             services.AddScoped<IMemoryCache, MemoryCache>();
             services.AddScoped<IEventBus, EventBus>();
+            services.AddScoped<IPubSub>();
         }
     }
 }
