@@ -8,7 +8,7 @@ using PM.Domain.Interfaces;
 
 namespace PM.Persistence.Implements
 {
-    public class UnitOfWork
+    public class UnitOfWork : IUnitOfWork
     {
         private readonly ApplicationDbContext _context;
         private readonly IMemoryCache _cache;
@@ -55,7 +55,7 @@ namespace PM.Persistence.Implements
         /// <summary>
         /// Executes database operations within a transaction scope.
         /// </summary>
-        public async Task<ServicesResult<bool>> ExecuteTransactionAsync(Func<Task> transactionOperations, CancellationToken cancellationToken = default)
+        public async Task<ServicesResult<bool>> ExecuteTransactionAsync(Func<Task<ServicesResult<bool>>> transactionOperations, CancellationToken cancellationToken = default)
         {
             if (transactionOperations == null)
                 return ServicesResult<bool>.Failure("Transaction operations cannot be null.");
@@ -63,7 +63,13 @@ namespace PM.Persistence.Implements
             using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
             try
             {
-                await transactionOperations();
+                var result = await transactionOperations();
+                if (!result.Status)
+                {
+                    await transaction.RollbackAsync(cancellationToken);
+                    return result;
+                }
+
                 await _context.SaveChangesAsync(cancellationToken);
                 await transaction.CommitAsync(cancellationToken);
                 return ServicesResult<bool>.Success(true);
@@ -91,7 +97,7 @@ namespace PM.Persistence.Implements
             {
                 var cacheKey = $"Entity:{typeof(T).Name}:{id}";
                 if (_cache.TryGetValue(cacheKey, out T cachedEntity))
-                    return ServicesResult<T>.Success(cachedEntity);
+                    return ServicesResult<T>.Success(cachedEntity!);
 
                 var entity = await _context.Set<T>().FindAsync(new object[] { id }, cancellationToken);
                 if (entity == null)
@@ -153,5 +159,6 @@ namespace PM.Persistence.Implements
             }
         }
         #endregion
+        public void Dispose() => _context.Dispose();
     }
 }
