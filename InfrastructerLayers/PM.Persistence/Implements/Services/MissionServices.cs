@@ -1,14 +1,11 @@
-﻿using EasyNetQ.Logging;
-using PM.Domain;
+﻿using PM.Domain;
 using PM.Domain.Entities;
 using PM.Domain.Interfaces;
 using PM.Domain.Interfaces.Services;
+using Microsoft.Extensions.Logging;
 
 namespace PM.Persistence.Implements.Services
 {
-    /// <summary>
-    /// Service class to handle operations related to missions.
-    /// </summary>
     public class MissionServices : IMissionServices
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -21,129 +18,125 @@ namespace PM.Persistence.Implements.Services
         }
 
         #region GET Methods
-
-        /// <summary>
-        /// Retrieves all missions.
-        /// </summary>
         public async Task<ServicesResult<IEnumerable<Mission>>> GetMissions()
         {
-            var response = await _unitOfWork.MissionRepository.GetAllAsync(1, 100);
+            _logger.LogInformation("[Service] Fetching all Missions...");
+            var response = await _unitOfWork.MissionQueryRepository.GetAllAsync(1, 100);
+
             if (!response.Status)
             {
-                _logger.Error($"GetMissions failed: {response.Message}");
+                _logger.LogError("[Service] GetMissions failed: {Message}", response.Message);
                 return ServicesResult<IEnumerable<Mission>>.Failure(response.Message);
             }
+
+            _logger.LogInformation("[Service] Successfully fetched {Count} Missions", response.Data?.Count());
             return ServicesResult<IEnumerable<Mission>>.Success(response.Data!);
         }
 
-        /// <summary>
-        /// Retrieves all missions belonging to a specific plan.
-        /// </summary>
         public async Task<ServicesResult<IEnumerable<Mission>>> GetMissionsInPlan(string planId)
         {
-            var response = await _unitOfWork.MissionRepository.GetManyByKeyAndValue(
+            _logger.LogInformation("[Service] Fetching Missions for PlanId={PlanId}", planId);
+            var response = await _unitOfWork.MissionQueryRepository.GetManyByKeyAndValue(
                 new Dictionary<string, string> { { "PlanId", planId } }, true, 1, 100);
+
             if (!response.Status)
             {
-                _logger.Error($"GetMissionsInPlan failed: {response.Message}");
+                _logger.LogError("[Service] GetMissionsInPlan failed for PlanId={PlanId}: {Message}", planId, response.Message);
                 return ServicesResult<IEnumerable<Mission>>.Failure(response.Message);
             }
+
+            _logger.LogInformation("[Service] Found {Count} missions for PlanId={PlanId}", response.Data?.Count(), planId);
             return ServicesResult<IEnumerable<Mission>>.Success(response.Data!);
         }
 
-        /// <summary>
-        /// Retrieves mission details by ID.
-        /// </summary>
         public async Task<ServicesResult<Mission>> GetDetailMission(string missionId)
         {
-            var response = await _unitOfWork.MissionRepository.GetOneByKeyAndValue(
+            _logger.LogInformation("[Service] Fetching Mission details: Id={MissionId}", missionId);
+            var response = await _unitOfWork.MissionQueryRepository.GetOneByKeyAndValue(
                 new Dictionary<string, string> { { "Id", missionId } }, true);
+
             if (!response.Status)
             {
-                _logger.Error($"GetDetailMission failed: {response.Message}");
+                _logger.LogError("[Service] GetDetailMission failed for Id={MissionId}: {Message}", missionId, response.Message);
                 return ServicesResult<Mission>.Failure(response.Message);
             }
+
+            _logger.LogInformation("[Service] Successfully fetched Mission: Id={MissionId}", missionId);
             return ServicesResult<Mission>.Success(response.Data!);
         }
-
         #endregion
 
         #region CREATE/UPDATE Methods
-
-        /// <summary>
-        /// Creates a new mission.
-        /// </summary>
         public async Task<ServicesResult<bool>> CreateMission(Mission mission)
         {
+            _logger.LogInformation("[Service] Creating new Mission: PlanId={PlanId}", mission.PlanId);
             var addMissionResponse = await _unitOfWork.ExecuteTransactionAsync(
-                async () => await _unitOfWork.MissionRepository.AddAsync(new List<Mission>(), mission)
+                async () => await _unitOfWork.MissionCommandRepository.AddAsync(new List<Mission> { mission }, mission)
             );
 
             if (!addMissionResponse.Status)
             {
-                _logger.Error($"CreateMission failed: {addMissionResponse.Message}");
+                _logger.LogError("[Service] CreateMission failed: {Message}", addMissionResponse.Message);
                 return ServicesResult<bool>.Failure(addMissionResponse.Message);
             }
 
+            _logger.LogInformation("[Service] Successfully created Mission: Id={MissionId}", mission.Id);
             return ServicesResult<bool>.Success(true);
         }
 
-        /// <summary>
-        /// Updates an existing mission.
-        /// </summary>
         public async Task<ServicesResult<bool>> UpdateMission(Mission mission)
         {
+            _logger.LogInformation("[Service] Updating Mission: Id={MissionId}", mission.Id);
             var updateMissionResponse = await _unitOfWork.ExecuteTransactionAsync(
-                async () => await _unitOfWork.MissionRepository.UpdateAsync(new List<Mission>(), mission)
+                async () => await _unitOfWork.MissionCommandRepository.UpdateAsync(new List<Mission> { mission }, mission)
             );
 
             if (!updateMissionResponse.Status)
             {
-                _logger.Error($"UpdateMission failed: {updateMissionResponse.Message}");
+                _logger.LogError("[Service] UpdateMission failed for Id={MissionId}: {Message}", mission.Id, updateMissionResponse.Message);
                 return ServicesResult<bool>.Failure(updateMissionResponse.Message);
             }
+
+            _logger.LogInformation("[Service] Successfully updated Mission: Id={MissionId}", mission.Id);
             return ServicesResult<bool>.Success(true);
         }
 
-        /// <summary>
-        /// Patches a mission with partial updates.
-        /// </summary>
         public async Task<ServicesResult<bool>> PatchMission(string missionId, Mission mission)
         {
+            _logger.LogInformation("[Service] Patching Mission: Id={MissionId}", missionId);
             var patchMissionResponse = await _unitOfWork.ExecuteTransactionAsync(
-                async () => await _unitOfWork.MissionRepository.PatchAsync(new List<Mission>(), missionId,
+                async () => await _unitOfWork.MissionCommandRepository.PatchAsync(new List<Mission> { mission }, missionId,
                     new Dictionary<string, object> { { "PlanId", mission.PlanId }, { "Name", mission.Name } })
             );
 
             if (!patchMissionResponse.Status)
             {
-                _logger.Error($"PatchMission failed: {patchMissionResponse.Message}");
+                _logger.LogError("[Service] PatchMission failed for Id={MissionId}: {Message}", missionId, patchMissionResponse.Message);
                 return ServicesResult<bool>.Failure(patchMissionResponse.Message);
             }
+
+            _logger.LogInformation("[Service] Successfully patched Mission: Id={MissionId}", missionId);
             return ServicesResult<bool>.Success(true);
         }
-
         #endregion
 
         #region DELETE Method
-
-        /// <summary>
-        /// Deletes a mission by ID.
-        /// </summary>
         public async Task<ServicesResult<bool>> DeleteMission(string missionId)
         {
+            _logger.LogInformation("[Service] Deleting Mission: Id={MissionId}", missionId);
             var deleteResponse = await _unitOfWork.ExecuteTransactionAsync(
-                async () => await _unitOfWork.MissionRepository.DeleteAsync(missionId)
+                async () => await _unitOfWork.MissionCommandRepository.DeleteAsync(missionId)
             );
 
             if (!deleteResponse.Status)
             {
-                _logger.Error($"DeleteMission failed: {deleteResponse.Message}");
+                _logger.LogError("[Service] DeleteMission failed for Id={MissionId}: {Message}", missionId, deleteResponse.Message);
                 return ServicesResult<bool>.Failure(deleteResponse.Message);
             }
+
+            _logger.LogInformation("[Service] Successfully deleted Mission: Id={MissionId}", missionId);
             return ServicesResult<bool>.Success(true);
         }
-
         #endregion
     }
 }
