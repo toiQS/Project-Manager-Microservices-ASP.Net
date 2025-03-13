@@ -14,20 +14,34 @@ namespace PM.Persistence.Implements
         private readonly IMemoryCache _cache;
         private readonly IPubSub _eventBus;
         private readonly ILoggerFactory _loggerFactory;
-        private readonly ILogger<UnitOfWork> _logger;   
+        private readonly ILogger<UnitOfWork> _logger;
+        // Query Repositories
+        public IQueryRepository<ActivityLog, string> ActivityLogQueryRepository { get; }
+        public IQueryRepository<Document, string> DocumentQueryRepository { get; }
+        public IQueryRepository<Mission, string> MissionQueryRepository { get; }
+        public IQueryRepository<MissionAssignment, string> MissionAssignmentQueryRepository { get; }
+        public IQueryRepository<ProgressReport, string> ProgressReportQueryRepository { get; }
+        public IQueryRepository<Project, string> ProjectQueryRepository { get; }
+        public IQueryRepository<RoleInProject, string> RoleInProjectQueryRepository { get; }
+        public IQueryRepository<ProjectMember, string> ProjectMemberQueryRepository { get; }
+        public IQueryRepository<Status, int> StatusQueryRepository { get; }
+        public IQueryRepository<User, string> UserQueryRepository { get; }
+        public IQueryRepository<Plan, string> PlanQueryRepository { get; }
+        public IQueryRepository<RefreshToken, string> RefreshTokenQueryRepository { get; }
 
-        public IRepository<ActivityLog, string> ActivityLogRepository { get; }
-        public IRepository<Document, string> DocumentRepository { get; }
-        public IRepository<Mission, string> MissionRepository { get; }
-        public IRepository<MissionAssignment, string> MissionAssignmentRepository { get; }
-        public IRepository<ProgressReport, string> ProgressReportRepository { get; }
-        public IRepository<Project, string> ProjectRepository { get; }
-        public IRepository<RoleInProject, string> RoleInProjectRepository { get; }
-        public IRepository<ProjectMember, string> ProjectMemberRepository { get; }
-        public IRepository<Status, int> StatusRepository { get; }
-        public IRepository<User, string> UserRepository { get; }
-        public IRepository<Plan, string> PlanRepository { get; }
-        public IRepository<RefreshToken, string> RefreshTokenRepository { get; }
+        // Command Repositories
+        public ICommandRepository<ActivityLog, string> ActivityLogCommandRepository { get; }
+        public ICommandRepository<Document, string> DocumentCommandRepository { get; }
+        public ICommandRepository<Mission, string> MissionCommandRepository { get; }
+        public ICommandRepository<MissionAssignment, string> MissionAssignmentCommandRepository { get; }
+        public ICommandRepository<ProgressReport, string> ProgressReportCommandRepository { get; }
+        public ICommandRepository<Project, string> ProjectCommandRepository { get; }
+        public ICommandRepository<RoleInProject, string> RoleInProjectCommandRepository { get; }
+        public ICommandRepository<ProjectMember, string> ProjectMemberCommandRepository { get; }
+        public ICommandRepository<Status, int> StatusCommandRepository { get; }
+        public ICommandRepository<User, string> UserCommandRepository { get; }
+        public ICommandRepository<Plan, string> PlanCommandRepository { get; }
+        public ICommandRepository<RefreshToken, string> RefreshTokenCommandRepository { get; }
 
         public UnitOfWork(ApplicationDbContext context, IMemoryCache cache, IPubSub eventBus, ILoggerFactory loggerFactory, ILogger<UnitOfWork> logger)
         {
@@ -36,19 +50,46 @@ namespace PM.Persistence.Implements
             _eventBus = eventBus;
             _logger = logger;
             _loggerFactory = loggerFactory;
-            ActivityLogRepository = new Repository<ActivityLog, string>(_context, _loggerFactory.CreateLogger<Repository<ActivityLog, string>>());
-            DocumentRepository = new Repository<Document, string>(_context, _loggerFactory.CreateLogger<Repository<Document, string>>());
-            MissionRepository = new Repository<Mission, string>(_context, _loggerFactory.CreateLogger<Repository<Mission, string>>());
-            MissionAssignmentRepository = new Repository<MissionAssignment, string>(_context, _loggerFactory.CreateLogger<Repository<MissionAssignment, string>>());
-            ProgressReportRepository = new Repository<ProgressReport, string>(_context, _loggerFactory.CreateLogger<Repository<ProgressReport, string>>());
-            ProjectRepository = new Repository<Project, string>(_context, _loggerFactory.CreateLogger<Repository<Project, string>>());
-            RoleInProjectRepository = new Repository<RoleInProject, string>(_context, _loggerFactory.CreateLogger<Repository<RoleInProject, string>>());
-            ProjectMemberRepository = new Repository<ProjectMember, string>(_context, _loggerFactory.CreateLogger<Repository<ProjectMember, string>>());
-            StatusRepository = new Repository<Status, int>(_context, _loggerFactory.CreateLogger<Repository<Status, int>>());
-            UserRepository = new Repository<User, string>(_context, _loggerFactory.CreateLogger<Repository<User, string>>());
-            PlanRepository = new Repository<Plan, string>(_context, _loggerFactory.CreateLogger<Repository<Plan, string>>());
-            RefreshTokenRepository = new Repository<RefreshToken, string>(_context, _loggerFactory.CreateLogger<Repository<RefreshToken, string>>());
+
+            // Khởi tạo QueryRepository
+            ActivityLogQueryRepository = CreateQueryRepository<ActivityLog, string>();
+            DocumentQueryRepository = CreateQueryRepository<Document, string>();
+            MissionQueryRepository = CreateQueryRepository<Mission, string>();
+            MissionAssignmentQueryRepository = CreateQueryRepository<MissionAssignment, string>();
+            ProgressReportQueryRepository = CreateQueryRepository<ProgressReport, string>();
+            ProjectQueryRepository = CreateQueryRepository<Project, string>();
+            RoleInProjectQueryRepository = CreateQueryRepository<RoleInProject, string>();
+            ProjectMemberQueryRepository = CreateQueryRepository<ProjectMember, string>();
+            StatusQueryRepository = CreateQueryRepository<Status, int>();
+            UserQueryRepository = CreateQueryRepository<User, string>();
+            PlanQueryRepository = CreateQueryRepository<Plan, string>();
+            RefreshTokenQueryRepository = CreateQueryRepository<RefreshToken, string>();
+
+            // Khởi tạo CommandRepository
+            ActivityLogCommandRepository = CreateCommandRepository<ActivityLog, string>();
+            DocumentCommandRepository = CreateCommandRepository<Document, string>();
+            MissionCommandRepository = CreateCommandRepository<Mission, string>();
+            MissionAssignmentCommandRepository = CreateCommandRepository<MissionAssignment, string>();
+            ProgressReportCommandRepository = CreateCommandRepository<ProgressReport, string>();
+            ProjectCommandRepository = CreateCommandRepository<Project, string>();
+            RoleInProjectCommandRepository = CreateCommandRepository<RoleInProject, string>();
+            ProjectMemberCommandRepository = CreateCommandRepository<ProjectMember, string>();
+            StatusCommandRepository = CreateCommandRepository<Status, int>();
+            UserCommandRepository = CreateCommandRepository<User, string>();
+            PlanCommandRepository = CreateCommandRepository<Plan, string>();
+            RefreshTokenCommandRepository = CreateCommandRepository<RefreshToken, string>();
         }
+
+        private IQueryRepository<TEntity, TKey> CreateQueryRepository<TEntity, TKey>() where TEntity : class
+        {
+            return new QueryRepository<TEntity, TKey>(_context, _loggerFactory.CreateLogger<QueryRepository<TEntity, TKey>>());
+        }
+
+        private ICommandRepository<TEntity, TKey> CreateCommandRepository<TEntity, TKey>() where TEntity : class
+        {
+            return new CommandRepository<TEntity, TKey>(_context, _loggerFactory.CreateLogger<CommandRepository<TEntity, TKey>>());
+        }
+
 
         // Transaction & Caching
         #region Transaction Management - ExecuteTransactionAsync
