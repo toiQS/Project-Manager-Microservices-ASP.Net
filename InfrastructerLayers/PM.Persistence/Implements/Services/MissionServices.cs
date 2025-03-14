@@ -36,8 +36,7 @@ namespace PM.Persistence.Implements.Services
         public async Task<ServicesResult<IEnumerable<Mission>>> GetMissionsInPlan(string planId)
         {
             _logger.LogInformation("[Service] Fetching Missions for PlanId={PlanId}", planId);
-            var response = await _unitOfWork.MissionQueryRepository.GetManyByKeyAndValue(
-                new Dictionary<string, string> { { "PlanId", planId } }, true, 1, 100);
+            var response = await _unitOfWork.MissionQueryRepository.GetManyByKeyAndValue("PlanId", planId);
 
             if (!response.Status)
             {
@@ -53,7 +52,7 @@ namespace PM.Persistence.Implements.Services
         {
             _logger.LogInformation("[Service] Fetching Mission details: Id={MissionId}", missionId);
             var response = await _unitOfWork.MissionQueryRepository.GetOneByKeyAndValue(
-                new Dictionary<string, string> { { "Id", missionId } }, true);
+                "Id", missionId);
 
             if (!response.Status)
             {
