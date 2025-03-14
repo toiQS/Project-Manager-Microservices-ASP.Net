@@ -1,13 +1,12 @@
-﻿using Azure.Core;
-using EasyNetQ.Events;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using PM.Domain;
 using PM.Domain.Entities;
 using PM.Domain.Interfaces;
+using PM.Domain.Interfaces.Services;
 
 namespace PM.Persistence.Implements.Services
 {
-    public class ProjectMemberServices
+    public class ProjectMemberServices : IMemberServices
     {
         private readonly IUnitOfWork _unitOfWork;
         private ILogger<ProjectMemberServices> _logger;
@@ -16,141 +15,107 @@ namespace PM.Persistence.Implements.Services
             _unitOfWork = unitOfWork;
             _logger = logger;
         }
-        #region
+
+        #region GET Methods
         public async Task<ServicesResult<IEnumerable<ProjectMember>>> GetMembers()
         {
+            _logger.LogInformation("[Service] Fetching all ProjectMembers...");
             var response = await _unitOfWork.ProjectMemberQueryRepository.GetAllAsync(1, 100);
-            if (response.Status == false)
+            if (!response.Status)
             {
-                _logger.LogError("");
-                return ServicesResult<IEnumerable<ProjectMember>>.Failure("");
+                _logger.LogError("[Service] GetMembers failed: {Message}", response.Message);
+                return ServicesResult<IEnumerable<ProjectMember>>.Failure(response.Message);
             }
-            _logger.LogInformation("");
+            _logger.LogInformation("[Service] Successfully fetched {Count} ProjectMembers", response.Data?.Count());
             return ServicesResult<IEnumerable<ProjectMember>>.Success(response.Data!.ToList());
         }
-        #endregion
-        #region
+
         public async Task<ServicesResult<IEnumerable<ProjectMember>>> GetMembersInProject(string projectId)
         {
+            _logger.LogInformation("[Service] Fetching ProjectMembers for ProjectId={ProjectId}", projectId);
             var response = await _unitOfWork.ProjectMemberQueryRepository.GetManyByKeyAndValue("ProjectId", projectId);
-            if (response.Status == false)
+            if (!response.Status || response.Data == null)
             {
-                _logger.LogError("");
-                return ServicesResult<IEnumerable<ProjectMember>>.Failure("");
+                _logger.LogError("[Service] GetMembersInProject failed: {Message}", response.Message);
+                return ServicesResult<IEnumerable<ProjectMember>>.Failure(response.Message);
             }
-            if (response.Data == null)
-            {
-                _logger.LogError("");
-                return ServicesResult<IEnumerable<ProjectMember>>.Failure("");
-            }
-            _logger.LogInformation("");
+            _logger.LogInformation("[Service] Found {Count} members for ProjectId={ProjectId}", response.Data.Count(), projectId);
             return ServicesResult<IEnumerable<ProjectMember>>.Success(response.Data);
         }
-        #endregion
-        #region
+
         public async Task<ServicesResult<ProjectMember>> GetDetailMember(string memberId)
         {
+            _logger.LogInformation("[Service] Fetching ProjectMember details: Id={MemberId}", memberId);
             var response = await _unitOfWork.ProjectMemberQueryRepository.GetOneByKeyAndValue("Id", memberId);
-            if (response.Status == false)
+            if (!response.Status)
             {
-                _logger.LogError("");
-                return ServicesResult<ProjectMember>.Failure("");
+                _logger.LogError("[Service] GetDetailMember failed: {Message}", response.Message);
+                return ServicesResult<ProjectMember>.Failure(response.Message);
             }
-            _logger.LogInformation("");
+            _logger.LogInformation("[Service] Successfully fetched ProjectMember: Id={MemberId}", memberId);
             return ServicesResult<ProjectMember>.Success(response.Data!);
         }
         #endregion
-        #region
+
+        #region CREATE/UPDATE Methods
         public async Task<ServicesResult<bool>> AddMember(ProjectMember member)
         {
-            var membersResponse = await GetMembersInProject(projectId: member.ProjectId);
-            if (membersResponse.Status == false)
+            _logger.LogInformation("[Service] Adding ProjectMember: UserId={UserId}, ProjectId={ProjectId}", member.UserId, member.ProjectId);
+            var membersResponse = await GetMembersInProject(member.ProjectId);
+            if (!membersResponse.Status)
             {
-                _logger.LogError("");
-                return ServicesResult<bool>.Failure("");
+                return ServicesResult<bool>.Failure(membersResponse.Message);
             }
-            var response = await _unitOfWork.ExecuteTransactionAsync(async() => await _unitOfWork.ProjectMemberCommandRepository.AddAsync(membersResponse.Data!.ToList(),member));
-            if (response.Status == false)
-            {
-                _logger.LogError("");
-                return ServicesResult<bool>.Failure("");
-            }
-            _logger.LogInformation("");
-            return ServicesResult<bool>.Success(response.Data);
+            var response = await _unitOfWork.ExecuteTransactionAsync(async () => await _unitOfWork.ProjectMemberCommandRepository.AddAsync(membersResponse.Data!.ToList(), member));
+            return response.Status ? ServicesResult<bool>.Success(true) : ServicesResult<bool>.Failure(response.Message);
         }
-        #endregion
-        #region
 
         public async Task<ServicesResult<bool>> UpdateMember(ProjectMember member)
         {
-            var membersResponse = await GetMembersInProject(projectId: member.ProjectId);
-            if (membersResponse.Status == false)
+            _logger.LogInformation("[Service] Updating ProjectMember: Id={MemberId}", member.Id);
+            var membersResponse = await GetMembersInProject(member.ProjectId);
+            if (!membersResponse.Status)
             {
-                _logger.LogError("");
-                return ServicesResult<bool>.Failure("");
+                return ServicesResult<bool>.Failure(membersResponse.Message);
             }
             var response = await _unitOfWork.ExecuteTransactionAsync(async () => await _unitOfWork.ProjectMemberCommandRepository.UpdateAsync(membersResponse.Data!.ToList(), member));
-            if (response.Status == false)
-            {
-                _logger.LogError("");
-                return ServicesResult<bool>.Failure("");
-            }
-            _logger.LogInformation("");
-            return ServicesResult<bool>.Success(response.Data);
+            return response.Status ? ServicesResult<bool>.Success(true) : ServicesResult<bool>.Failure(response.Message);
         }
-        #endregion
-        #region
+
         public async Task<ServicesResult<bool>> PatchMember(string memberId, ProjectMember member)
         {
-            var membersResponse = await GetMembersInProject(projectId: member.ProjectId);
-            if (membersResponse.Status == false)
+            _logger.LogInformation("[Service] Patching ProjectMember: Id={MemberId}", memberId);
+            var membersResponse = await GetMembersInProject(member.ProjectId);
+            if (!membersResponse.Status)
             {
-                _logger.LogError("");
-                return ServicesResult<bool>.Failure("");
+                return ServicesResult<bool>.Failure(membersResponse.Message);
             }
-            Dictionary<string, object> keyValuePairs = new Dictionary<string, object>()
+            Dictionary<string, object> keyValuePairs = new()
             {
-                {"ProjectId",member.ProjectId },
+                {"ProjectId", member.ProjectId},
                 {"UserId", member.UserId},
                 {"RoleId", member.RoleId},
-                {"PositionWork",member.PositionWork},
-                {"RoleInProject", member.RoleInProject }
+                {"PositionWork", member.PositionWork},
+                {"RoleInProject", member.RoleInProject}
             };
-            var response = await _unitOfWork.ExecuteTransactionAsync(async () => await _unitOfWork.ProjectMemberCommandRepository.PatchAsync(membersResponse.Data!.ToList(), memberId,keyValuePairs));
-            if (response.Status == false)
-            {
-                _logger.LogError("");
-                return ServicesResult<bool>.Failure("");
-            }
-            _logger.LogInformation("");
-            return ServicesResult<bool>.Success(response.Data);
+            var response = await _unitOfWork.ExecuteTransactionAsync(async () => await _unitOfWork.ProjectMemberCommandRepository.PatchAsync(membersResponse.Data!.ToList(), memberId, keyValuePairs));
+            return response.Status ? ServicesResult<bool>.Success(true) : ServicesResult<bool>.Failure(response.Message);
         }
         #endregion
-        #region
+
+        #region DELETE Methods
         public async Task<ServicesResult<bool>> DeleteMember(string memberId)
         {
+            _logger.LogInformation("[Service] Deleting ProjectMember: Id={MemberId}", memberId);
             var response = await _unitOfWork.ExecuteTransactionAsync(async () => await _unitOfWork.ProjectMemberCommandRepository.DeleteAsync(memberId));
-            if (response.Status == false)
-            {
-                _logger.LogError("");
-                return ServicesResult<bool>.Failure("");
-            }
-            _logger.LogInformation("");
-            return ServicesResult<bool>.Success(response.Data);
+            return response.Status ? ServicesResult<bool>.Success(true) : ServicesResult<bool>.Failure(response.Message);
         }
-        #endregion
-        #region
+
         public async Task<ServicesResult<bool>> DeteleMembersInProject(string projectId)
         {
-            
+            _logger.LogInformation("[Service] Deleting all ProjectMembers in ProjectId={ProjectId}", projectId);
             var response = await _unitOfWork.ExecuteTransactionAsync(async () => await _unitOfWork.ProjectMemberCommandRepository.DeleteManyAsync("ProjectId", projectId));
-            if (response.Status == false)
-            {
-                _logger.LogError("");
-                return ServicesResult<bool>.Failure("");
-            }
-            _logger.LogInformation("");
-            return ServicesResult<bool>.Success(response.Data);
+            return response.Status ? ServicesResult<bool>.Success(true) : ServicesResult<bool>.Failure(response.Message);
         }
         #endregion
     }
