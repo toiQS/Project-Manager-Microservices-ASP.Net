@@ -19,9 +19,9 @@ namespace PM.Domain.Entities
 
         public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
 
-        public DateTime? StartDate { get; set; }
+        public DateTime StartDate { get; set; }
 
-        public DateTime? EndDate { get; set; }
+        public DateTime EndDate { get; set; }
 
         public bool IsDeleted { get; set; } = false;
 
