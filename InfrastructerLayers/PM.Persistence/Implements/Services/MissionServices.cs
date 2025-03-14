@@ -138,5 +138,35 @@ namespace PM.Persistence.Implements.Services
             return ServicesResult<bool>.Success(true);
         }
         #endregion
+
+        #region Delete Mission Assignment In Mission
+        /// <summary>
+        /// Deletes all mission assignments associated with a given mission ID.
+        /// </summary>
+        /// <param name="missionId">The ID of the mission.</param>
+        /// <returns>A ServicesResult indicating success or failure.</returns>
+        public async Task<ServicesResult<bool>> DeleteMissionAssignmentInMission(string missionId)
+        {
+            if (string.IsNullOrWhiteSpace(missionId))
+            {
+                _logger.LogError("[Service] DeleteMissionAssignmentInMission failed: Invalid missionId.");
+                return ServicesResult<bool>.Failure("Invalid mission ID.");
+            }
+
+            var response = await _unitOfWork.ExecuteTransactionAsync(
+                async () => await _unitOfWork.MissionAssignmentCommandRepository.DeleteManyAsync("MissionId", missionId)
+            );
+
+            if (!response.Status)
+            {
+                _logger.LogError("[Service] DeleteMissionAssignmentInMission failed: {ErrorMessage}", response.Message);
+                return ServicesResult<bool>.Failure(response.Message ?? "Database error.");
+            }
+
+            _logger.LogInformation("[Service] Successfully deleted MissionAssignments for MissionId={MissionId}", missionId);
+            return ServicesResult<bool>.Success(response.Data!);
+        }
+        #endregion
+
     }
 }
