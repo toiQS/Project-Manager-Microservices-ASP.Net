@@ -1,5 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Azure.Core.GeoJson;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Identity.Client;
+using Microsoft.Win32;
 using PM.Domain;
 using PM.Domain.Interfaces;
 using System;
@@ -7,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace PM.Persistence.Implements
@@ -270,6 +274,53 @@ namespace PM.Persistence.Implements
             {
                 _logger.LogError(ex, "[Repository] DeleteAsync - Error occurred while deleting entity with Id={PrimaryKey}.", primaryKey);
                 return ServicesResult<bool>.Failure("An error occurred while deleting data.");
+            }
+        }
+        #endregion
+
+
+        #region Delete Many
+        /// <summary>
+        /// Deletes multiple entities based on a specific key and value.
+        /// </summary>
+        /// <param name="key">The property name to filter entities.</param>
+        /// <param name="valueKey">The value to match for deletion.</param>
+        /// <returns>A ServicesResult indicating success or failure.</returns>
+        public async Task<ServicesResult<bool>> DeleteManyAsync(string key, TKey valueKey)
+        {
+            if (string.IsNullOrEmpty(key) || valueKey == null)
+            {
+                _logger.LogError("[Repository] DeleteManyAsync failed: Invalid key or value.");
+                return ServicesResult<bool>.Failure("Invalid key or value.");
+            }
+
+            try
+            {
+                var property = typeof(T).GetProperty(key);
+                if (property == null)
+                {
+                    _logger.LogError("[Repository] DeleteManyAsync failed: Property '{Key}' not found.", key);
+                    return ServicesResult<bool>.Failure($"Property '{key}' not found.");
+                }
+
+                var entities = await _dbSet
+                    .Where(x => EF.Property<object>(x, key).Equals(valueKey))
+                    .ToListAsync();
+
+                if (!entities.Any())
+                {
+                    _logger.LogInformation("[Repository] No entities found for deletion with key '{Key}' and value '{ValueKey}'.", key, valueKey);
+                    return ServicesResult<bool>.Success(true);
+                }
+
+                _dbSet.RemoveRange(entities);
+                _logger.LogInformation("[Repository] Successfully deleted {Count} entities with key '{Key}' and value '{ValueKey}'.", entities.Count, key, valueKey);
+                return ServicesResult<bool>.Success(true);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[Repository] DeleteManyAsync encountered an error for key '{Key}' and value '{ValueKey}'.", key, valueKey);
+                return ServicesResult<bool>.Failure("An unexpected error occurred.");
             }
         }
         #endregion
