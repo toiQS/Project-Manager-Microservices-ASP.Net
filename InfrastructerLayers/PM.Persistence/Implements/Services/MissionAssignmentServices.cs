@@ -2,10 +2,11 @@
 using PM.Domain.Entities;
 using PM.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
+using PM.Domain.Interfaces.Services;
 
 namespace PM.Persistence.Implements.Services
 {
-    public class MissionAssignmentServices
+    public class MissionAssignmentServices : IMissionAssignmentServices
     {
         private readonly ILogger<MissionAssignmentServices> _logger;
         private readonly IUnitOfWork _unitOfWork;
