@@ -124,7 +124,7 @@ namespace PM.Persistence.Implements
         /// <param name="useAndOperator">Indicates whether conditions should be combined using AND or OR.</param>
         /// <param name="cancellationToken">Token to monitor for cancellation requests.</param>
         /// <returns>A service result containing the entity or an error message.</returns>
-        public async Task<ServicesResult<T>> GetOneByKeyAndValue(Dictionary<string, TKey> value, bool useAndOperator, CancellationToken cancellationToken = default)
+        public async Task<ServicesResult<T>> GetOneByKeyAndValue(Dictionary<string, string> value, bool useAndOperator, CancellationToken cancellationToken = default)
         {
             // Validate input parameters
             if (value == null || value.Count == 0)
@@ -271,7 +271,7 @@ namespace PM.Persistence.Implements
         /// <param name="cancellationToken">Token to monitor for cancellation requests.</param>
         /// <returns>A service result containing a list of entities or an error message.</returns>
         public async Task<ServicesResult<IEnumerable<T>>> GetManyByKeyAndValue(
-            Dictionary<string, TKey> value,
+            Dictionary<string, string> value,
             bool useAndOperator,
             int pageNumber,
             int pageSize,
