@@ -51,13 +51,16 @@ namespace PM.Persistence.Implements
                 }
                 else
                 {
-                    var isCheckName = arr.Any(x => EF.Property<TKey>(x, "Name").Equals(EF.Property<TKey>(entity, "Name")));
-                    if (isCheckName)
+                    var isCheckPropertyName = typeof(T).GetProperty("Name");
+                    if (isCheckPropertyName != null)
                     {
-                        _logger.LogWarning("[Repository] AddAsync - Duplicate entity detected: {EntityName}.", typeof(T).Name);
-                        return ServicesResult<bool>.Failure("Name already exists.");
+                        var isCheckName = arr.Any(x => EF.Property<TKey>(x, "Name").Equals(EF.Property<TKey>(entity, "Name")));
+                        if (isCheckName)
+                        {
+                            _logger.LogWarning("[Repository] AddAsync - Duplicate entity detected: {EntityName}.", typeof(T).Name);
+                            return ServicesResult<bool>.Failure("Name already exists.");
+                        }   
                     }
-
                     await _dbSet.AddAsync(entity, cancellationToken);
                     _logger.LogInformation("[Repository] AddAsync - Entity added successfully: {EntityName}.", typeof(T).Name);
                     return ServicesResult<bool>.Success(true);
