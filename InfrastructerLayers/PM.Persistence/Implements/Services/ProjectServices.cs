@@ -8,9 +8,9 @@ namespace PM.Persistence.Implements.Services
 {
     public class ProjectServices : IProjectServices
     {
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly IProjectManagerUnitOfWork _unitOfWork;
         private readonly ILogger<ProjectServices> _logger;
-        public ProjectServices(IUnitOfWork unitOfWork, ILogger<ProjectServices> logger)
+        public ProjectServices(IProjectManagerUnitOfWork unitOfWork, ILogger<ProjectServices> logger)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
