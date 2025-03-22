@@ -8,10 +8,10 @@ namespace PM.Persistence.Implements.Services
 {
     public class ProgressReportServices : IProgressReportServices
     {
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly IProjectManagerUnitOfWork _unitOfWork;
         private readonly ILogger<ProgressReportServices> _logger;
 
-        public ProgressReportServices(IUnitOfWork unitOfWork, ILogger<ProgressReportServices> logger)
+        public ProgressReportServices(IProjectManagerUnitOfWork unitOfWork, ILogger<ProgressReportServices> logger)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
