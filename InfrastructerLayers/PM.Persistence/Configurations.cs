@@ -1,6 +1,4 @@
-﻿using EasyNetQ;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -23,9 +21,9 @@ namespace PM.Persistence
         }
         private static void RegisterServices(this IServiceCollection services, IConfiguration configuration)
         {
-            services.AddScoped<IMemoryCache, MemoryCache>();
-            services.AddScoped<IEventBus, EventBus>();
-            //services.AddScoped<IPubSub>();
+            //services.AddScoped<IMemoryCache, MemoryCache>();
+            //services.AddScoped<IEventBus, EventBus>();
+           
         }
     }
 }
