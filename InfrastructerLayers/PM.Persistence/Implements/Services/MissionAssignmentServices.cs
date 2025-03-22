@@ -9,9 +9,9 @@ namespace PM.Persistence.Implements.Services
     public class MissionAssignmentServices : IMissionAssignmentServices
     {
         private readonly ILogger<MissionAssignmentServices> _logger;
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly IProjectManagerUnitOfWork _unitOfWork;
 
-        public MissionAssignmentServices(ILogger<MissionAssignmentServices> logger, IUnitOfWork unitOfWork)
+        public MissionAssignmentServices(ILogger<MissionAssignmentServices> logger, IProjectManagerUnitOfWork unitOfWork)
         {
             _logger = logger;
             _unitOfWork = unitOfWork;
