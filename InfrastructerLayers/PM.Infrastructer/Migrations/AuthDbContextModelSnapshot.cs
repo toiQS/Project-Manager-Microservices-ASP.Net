@@ -236,7 +236,8 @@ namespace PM.Infrastructer.Migrations
 
                     b.Property<string>("Action")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<DateTime>("ActionDate")
                         .HasColumnType("datetime2");
@@ -263,9 +264,6 @@ namespace PM.Infrastructer.Migrations
                     b.Property<DateTime>("Expires")
                         .HasColumnType("datetime2");
 
-                    b.Property<bool>("IsExpired")
-                        .HasColumnType("bit");
-
                     b.Property<bool>("IsRevoke")
                         .HasColumnType("bit");
 
@@ -290,19 +288,23 @@ namespace PM.Infrastructer.Migrations
 
                     b.Property<string>("AvatarPath")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("FirstName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("FullName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("LastName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.HasDiscriminator().HasValue("User");
                 });
