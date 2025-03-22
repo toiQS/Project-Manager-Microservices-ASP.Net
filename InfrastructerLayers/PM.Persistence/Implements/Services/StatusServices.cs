@@ -8,9 +8,9 @@ namespace PM.Persistence.Implements.Services
 {
     public class StatusServices : IStatusServices
     {
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly IProjectManagerUnitOfWork _unitOfWork;
         private readonly ILogger<StatusServices> _logger;
-        public StatusServices(IUnitOfWork unitOfWork, ILogger<StatusServices> logger)
+        public StatusServices(IProjectManagerUnitOfWork unitOfWork, ILogger<StatusServices> logger)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
