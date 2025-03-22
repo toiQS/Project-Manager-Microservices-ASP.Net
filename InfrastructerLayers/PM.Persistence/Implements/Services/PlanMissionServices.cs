@@ -8,10 +8,10 @@ namespace PM.Persistence.Implements.Services
 {
     public class PlanMissionServices : IPlanServices
     {
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly IProjectManagerUnitOfWork _unitOfWork;
         private readonly ILogger<PlanMissionServices> _logger;
 
-        public PlanMissionServices(IUnitOfWork unitOfWork, ILogger<PlanMissionServices> logger)
+        public PlanMissionServices(IProjectManagerUnitOfWork unitOfWork, ILogger<PlanMissionServices> logger)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
