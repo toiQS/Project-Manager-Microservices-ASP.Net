@@ -13,18 +13,14 @@ namespace PM.Infrastructer.Implements
         private readonly AuthDbContext _context;
         private readonly DbSet<T> _dbSet;
         private readonly ILogger<QueryRepository<T, TKey>> _logger;
-        private readonly UserManager<User> _userManager;
-        private readonly SignInManager<User> _signInManager;
-        private readonly RoleManager<IdentityRole> _roleManager;
+        
 
-        public QueryRepository(AuthDbContext context, ILogger<QueryRepository<T, TKey>> logger, SignInManager<User> signInManager, RoleManager<IdentityRole> roleManager, UserManager<User> userManager)
+        public QueryRepository(AuthDbContext context, ILogger<QueryRepository<T, TKey>> logger)
         {
             _context = context;
             _logger = logger;
             _dbSet = _context.Set<T>();
-            _signInManager = signInManager;
-            _roleManager = roleManager;
-            _userManager = userManager;
+            
         }
         #region Data Retrieval - GetAllAsync
         /// <summary>
