@@ -29,6 +29,8 @@ namespace PM.Persistence
             //services.AddScoped<IMemoryCache, MemoryCache>();
             //services.AddScoped<IEventBus, EventBus>();
 
+            
+
             services.AddScoped<IQueryRepository<Document, string>, QueryRepository<Document, string>>();
             services.AddScoped<IQueryRepository<Mission, string>, QueryRepository<Mission, string>>();
             services.AddScoped<IQueryRepository<MissionAssignment, string>, QueryRepository<MissionAssignment, string>>();
@@ -47,6 +49,7 @@ namespace PM.Persistence
             services.AddScoped<ICommandRepository<RoleInProject, string>, CommandRepository<RoleInProject, string>>();
             services.AddScoped<ICommandRepository<Status, string>, CommandRepository<Status, string>>();
 
+            services.AddScoped<IProjectManagerUnitOfWork, ProjectManagerUnitOfWork>();
 
             services.AddScoped<IDocumentServices, DocumentServices>();
             services.AddScoped<IMissionServices, MissionServices>();
