@@ -2,10 +2,11 @@
 using PM.Domain.Entities;
 using PM.Domain;
 using PM.Domain.Interfaces;
+using PM.Domain.Interfaces.Services;
 
 namespace PM.Infrastructure.Implements.Services
 {
-    public class ActivityLogServices
+    public class ActivityLogServices : IActivityLogServices
     {
         private readonly IAuthUnitOfWork _authUnitOfWork;
         private readonly ILogger<ActivityLogServices> _logger;
