@@ -36,6 +36,9 @@ namespace PM.Infrastructer
             services.AddScoped<IQueryRepository<ActivityLog, string>, QueryRepository<ActivityLog, string>>();
             services.AddScoped<IQueryRepository<RefreshToken, string>, QueryRepository<RefreshToken, string>>();
 
+            services.AddScoped<IAuthServices, AuthServices>();
+            services.AddScoped<IAuthUnitOfWork, AuthUnitOfWork>();
+
             services.AddScoped<IActivityLogServices, ActivityLogServices>();
             services.AddScoped<IUserServices, UserServices>();
             services.AddScoped<IRefreshTokenServices, RefreshTokenServices>();
