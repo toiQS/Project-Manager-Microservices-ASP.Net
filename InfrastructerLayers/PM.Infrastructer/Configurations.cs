@@ -3,6 +3,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using PM.Domain.Entities;
+using PM.Domain.Interfaces;
+using PM.Domain.Interfaces.Services;
+using PM.Infrastructer.Implements;
+using PM.Infrastructure.Implements.Services;
 
 namespace PM.Infrastructer
 {
@@ -12,6 +16,7 @@ namespace PM.Infrastructer
         {
             services.RegisterDatabase(configuration);
             services.RegisterServices(configuration);
+            services.RegisterCustom(configuration);
         }
         private static void RegisterDatabase(this IServiceCollection services, IConfiguration configuration)
         {
@@ -22,6 +27,20 @@ namespace PM.Infrastructer
             });
         }
         private static void RegisterServices(this IServiceCollection services, IConfiguration configuration)
+        {
+            services.AddScoped<ICommandRepository<User, string>, CommandRepository<User, string>>();
+            services.AddScoped<ICommandRepository<ActivityLog, string>, CommandRepository<ActivityLog, string>>();
+            services.AddScoped<ICommandRepository<RefreshToken, string>, CommandRepository<RefreshToken, string>>();
+
+            services.AddScoped<IQueryRepository<User, string>, QueryRepository<User, string>>();
+            services.AddScoped<IQueryRepository<ActivityLog, string>, QueryRepository<ActivityLog, string>>();
+            services.AddScoped<IQueryRepository<RefreshToken, string>, QueryRepository<RefreshToken, string>>();
+
+            services.AddScoped<IActivityLogServices, ActivityLogServices>();
+            services.AddScoped<IUserServices, UserServices>();
+            services.AddScoped<IRefreshTokenServices, RefreshTokenServices>();
+        }
+        private static void RegisterCustom(this IServiceCollection services, IConfiguration configuration)
         {
             //services.AddIdentity<User, IdentityRole>()
             //    .AddEntityFrameworkStores<ApplicationDbContext>()
