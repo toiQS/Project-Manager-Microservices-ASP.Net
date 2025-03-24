@@ -1,5 +1,3 @@
-using PM.AuthAPIs.SeedData;
-
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -18,23 +16,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-using (var scope = app.Services.CreateScope())
-{
-    var services = scope.ServiceProvider;
-    await RoleSeeding.Initialize(services);
-}
 
-using (var scope = app.Services.CreateScope())
-{
-    var services = scope.ServiceProvider;
-    await StatusSeeding.Initialize(services);
-}
-
-using (var scope = app.Services.CreateScope())
-{
-    var services = scope.ServiceProvider;
-    await RoleInProjectSeeding.Initialize(services);
-}
 
 app.UseHttpsRedirection();
 
