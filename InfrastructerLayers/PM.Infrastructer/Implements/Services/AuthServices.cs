@@ -123,5 +123,40 @@ namespace PM.Infrastructure.Implements.Services
             }
         }
         #endregion
+        #region AddRoleCustomer
+        public async Task<ServicesResult<bool>> AddRoleCustomer(User user)
+        {
+            if (user == null)
+            {
+                _logger.LogWarning("[Service] AddRoleCustomer failed: User object is null.");
+                return ServicesResult<bool>.Failure("User cannot be null.");
+            }
+
+            try
+            {
+                var roleExists = await _roleManager.RoleExistsAsync("Customer");
+                if (!roleExists)
+                {
+                    _logger.LogWarning("[Service] AddRoleCustomer failed: Role 'Customer' does not exist.");
+                    return ServicesResult<bool>.Failure("Role 'Customer' does not exist.");
+                }
+
+                var result = await _userManager.AddToRoleAsync(user, "Customer");
+                if (!result.Succeeded)
+                {
+                    _logger.LogError("[Service] AddRoleCustomer failed: Unable to assign 'Customer' role to user {UserId}. Errors: {Errors}", user.Id, string.Join(", ", result.Errors.Select(e => e.Description)));
+                    return ServicesResult<bool>.Failure("Failed to assign role.");
+                }
+
+                _logger.LogInformation("[Service] Successfully assigned 'Customer' role to user {UserId}", user.Id);
+                return ServicesResult<bool>.Success(true);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[Service] AddRoleCustomer failed: Unexpected error for user {UserId}", user.Id);
+                return ServicesResult<bool>.Failure("An unexpected error occurred.");
+            }
+        }
+        #endregion
     }
 }
