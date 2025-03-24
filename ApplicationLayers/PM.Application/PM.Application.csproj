@@ -16,8 +16,4 @@
     <ProjectReference Include="..\..\InfrastructerLayers\PM.Persistence\PM.Persistence.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Features\Users\Commands\" />
-  </ItemGroup>
-
 </Project>
