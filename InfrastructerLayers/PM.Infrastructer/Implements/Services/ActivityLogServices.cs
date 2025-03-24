@@ -2,48 +2,49 @@
 using PM.Domain.Entities;
 using PM.Domain;
 using PM.Domain.Interfaces;
-using System.Data.Entity.Core.Metadata.Edm;
 
-namespace PM.Infrastructer.Implements.Services
+namespace PM.Infrastructure.Implements.Services
 {
     public class ActivityLogServices
     {
         private readonly IAuthUnitOfWork _authUnitOfWork;
         private readonly ILogger<ActivityLogServices> _logger;
+
         public ActivityLogServices(IAuthUnitOfWork authUnitOfWork, ILogger<ActivityLogServices> logger)
         {
             _authUnitOfWork = authUnitOfWork;
             _logger = logger;
         }
+
+        #region Add Activity Log
         public async Task<ServicesResult<bool>> AddAsync(ActivityLog log)
         {
             if (log == null)
             {
-                _logger.LogWarning("");
-                return ServicesResult<bool>.Failure("");
+                _logger.LogWarning("[Service] AddAsync failed: ActivityLog object is null.");
+                return ServicesResult<bool>.Failure("ActivityLog cannot be null.");
             }
-            try
+
+            _logger.LogInformation("[Service] Adding ActivityLog for UserId={UserId}", log.UserId);
+            var logs = await _authUnitOfWork.ActivityLogQueryRepository.GetManyByKeyAndValue("UserId", log.UserId);
+
+            if (!logs.Status)
             {
-                var logs = await _authUnitOfWork.ActivityLogQueryRepository.GetManyByKeyAndValue("UserId", log.UserId);
-                if (logs.Status == false)
-                {
-                    _logger.LogError("");
-                    return ServicesResult<bool>.Failure("");
-                }
-                var addResponse = await _authUnitOfWork.ActivityLogCommandRepository.AddAsync(logs.Data!.ToList(), log);
-                if (addResponse.Status == false)
-                {
-                    _logger.LogError("");
-                    return ServicesResult<bool>.Failure("");
-                }
-                _logger.LogInformation("");
-                return ServicesResult<bool>.Success(true);
+                _logger.LogError("[Service] AddAsync failed: Database error while fetching logs for UserId={UserId}", log.UserId);
+                return ServicesResult<bool>.Failure("Database error while fetching logs.");
             }
-            catch (Exception ex)
+
+            var addResponse = await _authUnitOfWork.ActivityLogCommandRepository.AddAsync(logs.Data?.ToList() ?? new List<ActivityLog>(), log);
+
+            if (!addResponse.Status)
             {
-                _logger.LogError("");
-                return ServicesResult<bool>.Failure("");
+                _logger.LogError("[Service] AddAsync failed: Database error while adding ActivityLog for UserId={UserId}", log.UserId);
+                return ServicesResult<bool>.Failure("Database error while adding log.");
             }
+
+            _logger.LogInformation("[Service] Successfully added ActivityLog for UserId={UserId}", log.UserId);
+            return ServicesResult<bool>.Success(true);
         }
+        #endregion
     }
 }
