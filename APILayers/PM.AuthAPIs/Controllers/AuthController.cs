@@ -1,0 +1,28 @@
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using PM.Application.Features.Auth.Commands;
+using PM.Application.Interfaces;
+
+namespace PM.AuthAPIs.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class AuthController : ControllerBase
+    {
+        private readonly IAuthFlowLogic _flowLogic;
+        public AuthController(IAuthFlowLogic flowLogic)
+        {
+            _flowLogic = flowLogic;
+        }
+        [HttpPost("login")]
+        public async Task<IActionResult> Login(LoginCommand loginCommand)
+        {
+            return await _flowLogic.Login(loginCommand);
+        }
+        [HttpPost("register")]
+        public async Task<IActionResult> Register(RegisterCommand loginCommand)
+        {
+            return await _flowLogic.Register(loginCommand);
+        }
+    }
+}
