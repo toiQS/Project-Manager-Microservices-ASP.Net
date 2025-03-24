@@ -1,3 +1,4 @@
+using PM.AuthAPIs.SeedData;
 using PM.Infrastructer;
 using PM.Persistence;
 
@@ -19,6 +20,24 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+}
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    await RoleSeeding.Initialize(services);
+}
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    await StatusSeeding.Initialize(services);
+}
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    await RoleInProjectSeeding.Initialize(services);
 }
 
 app.UseHttpsRedirection();
