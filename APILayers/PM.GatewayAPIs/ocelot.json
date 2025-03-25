@@ -1,0 +1,9 @@
+{
+  "GlobalConfiguration": {
+    "BaseUrl": "https://localhost:7200"
+  },
+  "Routes": [
+     {}
+  ]
+
+}
