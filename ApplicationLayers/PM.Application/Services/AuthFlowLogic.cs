@@ -18,15 +18,14 @@ namespace PM.Application.Services
     {
         private readonly IAuthServices _authServices;
         private readonly ILogger<AuthFlowLogic> _logger;
-        private readonly IUserServices _userServices;
+        
         private readonly IConfiguration _configuration;
         private readonly IRefreshTokenServices _refreshTokenServices;
 
-        public AuthFlowLogic(IAuthServices authServices, ILogger<AuthFlowLogic> logger, IUserServices userServices, IConfiguration configuration, IRefreshTokenServices refreshTokenServices)
+        public AuthFlowLogic(IAuthServices authServices, ILogger<AuthFlowLogic> logger, IConfiguration configuration, IRefreshTokenServices refreshTokenServices)
         {
             _authServices = authServices;
             _logger = logger;
-            _userServices = userServices;
             _configuration = configuration;
             _refreshTokenServices = refreshTokenServices;
         }
