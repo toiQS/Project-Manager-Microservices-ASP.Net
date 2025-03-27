@@ -3,7 +3,33 @@
     "BaseUrl": "https://localhost:7200"
   },
   "Routes": [
-     {}
+    /****Auth APIs****/
+    //login
+    {
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7202
+        }
+      ],
+      "DownstreamPathTemplate": "https",
+      "DownstreamScheme": "/api/auth/login",
+      "UpstreamHttpMethod": [ "Post" ],
+      "UpstreamPathTemplate": "/auth/login"
+    },
+    //register
+    {
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7202
+        }
+      ],
+      "DownstreamPathTemplate": "https",
+      "DownstreamScheme": "/api/auth/register",
+      "UpstreamHttpMethod": [ "Post" ],
+      "UpstreamPathTemplate": "/auth/register"
+    }
   ]
 
 }
