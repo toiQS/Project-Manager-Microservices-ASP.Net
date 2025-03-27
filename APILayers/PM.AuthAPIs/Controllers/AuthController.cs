@@ -5,7 +5,7 @@ using PM.Application.Interfaces;
 
 namespace PM.AuthAPIs.Controllers
 {
-    [Route("/auth")]
+    [Route("api/auth")]
     [ApiController]
     public class AuthController : ControllerBase
     {
