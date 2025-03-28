@@ -1,4 +1,4 @@
-@PM.GatewayAPIs_HostAddress = http://localhost:5069
+@PM.GatewayAPIs_HostAddress = http://localhost:5018
 
 GET {{PM.GatewayAPIs_HostAddress}}/weatherforecast/
 Accept: application/json

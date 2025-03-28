@@ -14,6 +14,8 @@ namespace PM.EndPointAPIs.Controllers
         public AuthController(IHttpContextAccessor httpContextAccessor, ILogger<AuthController> logger)
         {
             _httpClient = new HttpClient();
+            _logger = logger;
+            _contextAccessor = httpContextAccessor;
         }
         [HttpPost("/login")]
         public async Task<IActionResult> Login(LoginCommand model)

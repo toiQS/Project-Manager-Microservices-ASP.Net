@@ -5,6 +5,8 @@ using PM.Persistence;
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.InitializePersistence(builder.Configuration);
 builder.Services.InitializeInfrastructer(builder.Configuration);
+//builder.WebHost.UseUrls("https://127.0.0.1:7300");
+
 // Add services to the container.
 
 //builder.Services.InitializePersistence(builder.Configuration);
