@@ -6,7 +6,7 @@ using PM.Domain.Entities;
 using PM.Domain.Interfaces;
 using PM.Domain.Interfaces.Services;
 using PM.Infrastructer.Implements;
-using PM.Infrastructure.Implements.Services;
+using PM.Infrastructer.Implements.Services;
 
 namespace PM.Infrastructer
 {

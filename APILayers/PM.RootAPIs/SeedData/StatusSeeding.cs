@@ -1,7 +1,7 @@
 ﻿using PM.Domain.Entities;
 using PM.Persistence;
 
-namespace PM.AuthAPIs.SeedData
+namespace PM.RootAPIs.SeedData
 {
     public static class StatusSeeding
     {

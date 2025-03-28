@@ -5,7 +5,7 @@ using PM.Domain.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using PM.Domain.Interfaces.Services;
 
-namespace PM.Infrastructure.Implements.Services
+namespace PM.Infrastructer.Implements.Services
 {
     public class AuthServices : IAuthServices
     {

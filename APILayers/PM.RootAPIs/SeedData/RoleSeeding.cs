@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 
-namespace PM.AuthAPIs.SeedData
+namespace PM.RootAPIs.SeedData
 {
     public static class RoleSeeding
     {

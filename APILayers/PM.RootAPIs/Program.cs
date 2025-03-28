@@ -1,6 +1,6 @@
-using PM.AuthAPIs.SeedData;
 using PM.Infrastructer;
 using PM.Persistence;
+using PM.RootAPIs.SeedData;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.InitializePersistence(builder.Configuration);

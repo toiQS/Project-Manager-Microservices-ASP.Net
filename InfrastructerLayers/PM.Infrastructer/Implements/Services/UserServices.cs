@@ -4,7 +4,7 @@ using PM.Domain.Entities;
 using PM.Domain.Interfaces;
 using PM.Domain.Interfaces.Services;
 
-namespace PM.Infrastructure.Implements.Services
+namespace PM.Infrastructer.Implements.Services
 {
     public class UserServices : IUserServices
     {
