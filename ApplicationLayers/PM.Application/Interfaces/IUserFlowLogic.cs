@@ -1,12 +1,14 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using PM.Application.DTOs.Users;
 using PM.Application.Features.Users.Commands;
+using PM.Domain;
 
 namespace PM.Application.Interfaces
 {
     public interface IUserFlowLogic
     {
-        public Task<IActionResult> PatchUserAsync(PacthUserCommand command);
-        public Task<IActionResult> DetailUser(string userId);
-        public Task<IActionResult> UpdateUserAsync(PacthUserCommand command);
+        public Task<ServicesResult<bool>> PatchUserAsync(PacthUserCommand command);
+        public Task<ServicesResult<UserDetailDTO>> DetailUser(string userId);
+        public Task<ServicesResult<bool>> UpdateUserAsync(PacthUserCommand command);
     }
 }
