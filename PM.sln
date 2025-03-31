@@ -27,6 +27,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "PresentationLayers", "Prese
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PM.EndPointAPIs", "PresentationLayers\PM.EndPointAPIs\PM.EndPointAPIs.csproj", "{5E9E8F85-960A-400F-953F-C4FA73B2848F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PM.ProjectManagementAPIs", "APILayers\PM.ProjectManagementAPIs\PM.ProjectManagementAPIs.csproj", "{31613A20-49E8-4876-A6AA-2D1E77DAEAF0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -61,6 +63,10 @@ Global
 		{5E9E8F85-960A-400F-953F-C4FA73B2848F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5E9E8F85-960A-400F-953F-C4FA73B2848F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5E9E8F85-960A-400F-953F-C4FA73B2848F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{31613A20-49E8-4876-A6AA-2D1E77DAEAF0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{31613A20-49E8-4876-A6AA-2D1E77DAEAF0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{31613A20-49E8-4876-A6AA-2D1E77DAEAF0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{31613A20-49E8-4876-A6AA-2D1E77DAEAF0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -73,6 +79,7 @@ Global
 		{8457ABF1-A452-4516-B6FA-F0E839C8FA14} = {3F345525-B798-40C5-A518-DF97743811C3}
 		{B36D78BE-3724-415C-9335-46D173FFA2AF} = {E49ADED4-B302-4642-805F-583C135C41A1}
 		{5E9E8F85-960A-400F-953F-C4FA73B2848F} = {8CB4C359-098F-474F-A2FB-A2239022AD43}
+		{31613A20-49E8-4876-A6AA-2D1E77DAEAF0} = {E49ADED4-B302-4642-805F-583C135C41A1}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C895F6A9-DBC0-4EDF-A441-7CB6B92CB0BD}
