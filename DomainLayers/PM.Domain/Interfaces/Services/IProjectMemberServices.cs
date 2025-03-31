@@ -42,7 +42,7 @@ namespace PM.Domain.Interfaces.Services
         /// <param name="roleId">The role ID representing the owner role.</param>
         /// <returns>The owner of the project.</returns>
         public Task<ServicesResult<ProjectMember>> GetOwnerProject(string projectId, string roleId);
-
+        public Task<ServicesResult<IEnumerable<ProjectMember>>> GetProjectsByUserId(string userId);
         /// <summary>
         /// Adds a new member to the project.
         /// </summary>
