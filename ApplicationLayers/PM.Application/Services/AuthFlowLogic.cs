@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using PM.Application.DTOs.Users;
@@ -14,11 +13,10 @@ using System.Text;
 
 namespace PM.Application.Services
 {
-    public class AuthFlowLogic : ControllerBase, IAuthFlowLogic
+    public class AuthFlowLogic : IAuthFlowLogic
     {
         private readonly IAuthServices _authServices;
         private readonly ILogger<AuthFlowLogic> _logger;
-        
         private readonly IConfiguration _configuration;
         private readonly IRefreshTokenServices _refreshTokenServices;
 
@@ -30,26 +28,20 @@ namespace PM.Application.Services
             _refreshTokenServices = refreshTokenServices;
         }
 
-        public async Task<IActionResult> Login(LoginCommand loginCommand)
+        public async Task<ServicesResult<string>> Login(LoginCommand loginCommand)
         {
-            if (!ModelState.IsValid)
-            {
-                _logger.LogWarning("[Login] Invalid model state.");
-                return BadRequest("Invalid request data.");
-            }
-
             var login = await _authServices.Login(loginCommand.Email, loginCommand.Password);
             if (!login.Status)
             {
                 _logger.LogWarning("[Login] Authentication failed for Email={Email}", loginCommand.Email);
-                return BadRequest(login.Message);
+                return ServicesResult<string>.Failure(login.Message);
             }
 
             var user = await _authServices.GetUserByEmail(loginCommand.Email);
             if (!user.Status)
             {
                 _logger.LogWarning("[Login] User not found for Email={Email}", loginCommand.Email);
-                return BadRequest(user.Message);
+                return ServicesResult<string>.Failure(user.Message);
             }
 
             var userDetailDTO = new UserDetailDTO
@@ -66,7 +58,7 @@ namespace PM.Application.Services
             if (!token.Status)
             {
                 _logger.LogError("[Login] Token generation failed for UserId={UserId}", user.Data.Id);
-                return BadRequest(token.Message);
+                return ServicesResult<string>.Failure(token.Message);
             }
 
             var refreshToken = new RefreshToken
@@ -82,44 +74,38 @@ namespace PM.Application.Services
             if (!addToken.Status)
             {
                 _logger.LogError("[Login] Failed to store refresh token for UserId={UserId}", user.Data.Id);
-                return BadRequest("Failed to store refresh token.");
+                return ServicesResult<string>.Failure("Failed to store refresh token.");
             }
 
             _logger.LogInformation("[Login] User logged in successfully: UserId={UserId}", user.Data.Id);
-            return Ok(new { Token = token.Data, RefreshToken = refreshToken.Token });
+            return ServicesResult<string>.Success(token.Data!);
         }
 
-        public async Task<IActionResult> Register(RegisterCommand command)
+        public async Task<ServicesResult<bool>> Register(RegisterCommand command)
         {
-            if (!ModelState.IsValid)
-            {
-                _logger.LogWarning("[Register] Invalid model state.");
-                return BadRequest("Invalid request data.");
-            }
-
             var register = await _authServices.Register(command.Email, command.Username, command.Password);
             if (!register.Status)
             {
                 _logger.LogError("[Register] Registration failed for Email={Email}", command.Email);
-                return BadRequest(register.Message);
+                return ServicesResult<bool>.Failure(register.Message);
             }
 
             var user = await _authServices.GetUserByEmail(command.Email);
             if (!user.Status)
             {
                 _logger.LogWarning("[Register] User retrieval failed for Email={Email}", command.Email);
-                return BadRequest(user.Message);
+                return ServicesResult<bool>.Failure(user.Message);
             }
 
             var addToRoleCustom = await _authServices.AddRoleCustomer(user.Data!);
             if (!addToRoleCustom.Status)
             {
                 _logger.LogError("[Register] Failed to assign role for UserId={UserId}", user.Data!.Id);
-                return BadRequest("Failed to assign user role.");
+                return ServicesResult<bool>.Failure("Failed to assign user role.");
             }
 
             _logger.LogInformation("[Register] User registered successfully: UserId={UserId}", user.Data!.Id);
-            return Ok("Registration successful.");
+            return ServicesResult<bool>.Success(true);
         }
 
         public ServicesResult<string> GenerateToken(UserDetailDTO user)
