@@ -18,6 +18,7 @@ namespace PM.Application
         private static void RegisterFlowLogic(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddScoped<IAuthFlowLogic, AuthFlowLogic>();
+            services.AddScoped<IUserFlowLogic, UserFlowLogic>();
         }
     }
 }
