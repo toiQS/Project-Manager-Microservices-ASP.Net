@@ -1,7 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
+using PM.Application.DTOs.Users;
 using PM.Application.Features.Users.Commands;
 using PM.Application.Interfaces;
+using PM.Domain;
 using PM.Domain.Entities;
 using PM.Domain.Interfaces.Services;
 using System;
@@ -9,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace PM.Application.Services
 {
-    public class UserFlowLogic : ControllerBase, IUserFlowLogic
+    public class UserFlowLogic : IUserFlowLogic
     {
         private readonly IUserServices _userServices;
         private readonly IActivityLogServices _activityLogServices;
@@ -22,15 +23,9 @@ namespace PM.Application.Services
             _logger = logger;
         }
 
-        public async Task<IActionResult> PatchUserAsync(PacthUserCommand command)
+        public async Task<ServicesResult<bool>> PatchUserAsync(PacthUserCommand command)
         {
-            if (!ModelState.IsValid)
-            {
-                _logger.LogWarning("[PatchUser] Invalid model state.");
-                return BadRequest("Invalid request data.");
-            }
-
-            var user = new User
+            var result = await _userServices.PatchUserAsync(command.UserId, new User
             {
                 FirstName = command.FirstName,
                 LastName = command.LastName,
@@ -39,51 +34,44 @@ namespace PM.Application.Services
                 FullName = string.Concat(command.FirstName, " ", command.LastName),
                 UserName = command.UserName,
                 AvatarPath = command.AvatarUrl
-            };
+            });
 
-            var patchUser = await _userServices.PatchUserAsync(command.UserId, user);
-            if (!patchUser.Status)
+            if (!result.Status)
             {
                 _logger.LogError("[PatchUser] Failed to patch user. UserId={UserId}", command.UserId);
-                return BadRequest(patchUser.Message);
+                return ServicesResult<bool>.Failure(result.Message);
             }
 
             await LogUserAction(command.UserId, "Patch User");
-
-            var detailUser = await _userServices.GetDetailUserAsync(command.UserId);
-            if (!detailUser.Status)
-            {
-                _logger.LogError("[PatchUser] Failed to retrieve user details. UserId={UserId}", command.UserId);
-                return BadRequest(detailUser.Message);
-            }
-
             _logger.LogInformation("[PatchUser] User patched successfully. UserId={UserId}", command.UserId);
-            return Ok(detailUser.Data);
+            return ServicesResult<bool>.Success(true);
         }
 
-        public async Task<IActionResult> DetailUser(string userId)
+        public async Task<ServicesResult<UserDetailDTO>> DetailUser(string userId)
         {
             var detailUser = await _userServices.GetDetailUserAsync(userId);
 
             if (!detailUser.Status)
             {
                 _logger.LogWarning("[DetailUser] User not found. UserId={UserId}", userId);
-                return BadRequest(detailUser.Message);
+                return ServicesResult<UserDetailDTO>.Failure(detailUser.Message);
             }
-
+            var response = new UserDetailDTO()
+            {
+                UserId = userId,
+                FullName = detailUser.Data!.FullName,
+                Avata =  detailUser.Data.AvatarPath,
+                Email = detailUser.Data!.Email   ?? "empty",
+                UserName = detailUser.Data!.UserName ?? "emtpy",
+                Phone = detailUser.Data!.PhoneNumber ?? "empty"
+            };
             _logger.LogInformation("[DetailUser] Retrieved user details successfully. UserId={UserId}", userId);
-            return Ok(detailUser.Data);
+            return ServicesResult<UserDetailDTO>.Success(response);
         }
 
-        public async Task<IActionResult> UpdateUserAsync(PacthUserCommand command)
+        public async Task<ServicesResult<bool>> UpdateUserAsync(PacthUserCommand command)
         {
-            if (!ModelState.IsValid)
-            {
-                _logger.LogWarning("[UpdateUser] Invalid model state.");
-                return BadRequest("Invalid request data.");
-            }
-
-            var user = new User
+            var result = await _userServices.UpdateUserAsync(new User
             {
                 Id = command.UserId,
                 FirstName = command.FirstName,
@@ -93,26 +81,17 @@ namespace PM.Application.Services
                 FullName = string.Concat(command.FirstName, " ", command.LastName),
                 UserName = command.UserName,
                 AvatarPath = command.AvatarUrl
-            };
+            });
 
-            var updateUser = await _userServices.UpdateUserAsync(user);
-            if (!updateUser.Status)
+            if (!result.Status)
             {
                 _logger.LogError("[UpdateUser] Failed to update user. UserId={UserId}", command.UserId);
-                return BadRequest(updateUser.Message);
+                return ServicesResult<bool>.Failure(result.Message);
             }
 
             await LogUserAction(command.UserId, "Update User");
-
-            var detailUser = await _userServices.GetDetailUserAsync(command.UserId);
-            if (!detailUser.Status)
-            {
-                _logger.LogError("[UpdateUser] Failed to retrieve updated user details. UserId={UserId}", command.UserId);
-                return BadRequest(detailUser.Message);
-            }
-
             _logger.LogInformation("[UpdateUser] User updated successfully. UserId={UserId}", command.UserId);
-            return Ok(detailUser.Data);
+            return ServicesResult<bool>.Success(true);
         }
 
         private async Task LogUserAction(string userId, string action)
