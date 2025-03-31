@@ -93,6 +93,20 @@ namespace PM.Persistence.Implements.Services
             _logger.LogInformation("[Service] Successfully fetched ProjectMember: Id={MemberId}", memberId);
             return ServicesResult<ProjectMember>.Success(response.Data!);
         }
+        public async Task<ServicesResult<IEnumerable<ProjectMember>>> GetProjectsByUserId(string userId)
+        {
+            _logger.LogInformation("");
+            var projectMembers = await _unitOfWork.ProjectMemberQueryRepository.GetManyByKeyAndValue("UserId", userId);
+            if (!projectMembers.Status)
+            {
+                _logger.LogError("");
+                return ServicesResult<IEnumerable<ProjectMember>>.Failure("");
+
+            }
+            _logger.LogInformation("");
+            return ServicesResult<IEnumerable<ProjectMember>>.Success(projectMembers.Data!);
+
+        }
         #endregion
 
         #region CREATE/UPDATE Methods
