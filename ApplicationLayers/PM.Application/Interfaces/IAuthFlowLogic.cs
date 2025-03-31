@@ -1,12 +1,13 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using PM.Application.Features.Auth.Commands;
+using PM.Domain;
 
 namespace PM.Application.Interfaces
 {
     public interface IAuthFlowLogic
     {
-        public Task<IActionResult> Login(LoginCommand loginCommand);
+        public Task<ServicesResult<string>> Login(LoginCommand loginCommand);
 
-        public Task<IActionResult> Register(RegisterCommand command);
+        public Task<ServicesResult<bool>> Register(RegisterCommand command);
     }
 }
