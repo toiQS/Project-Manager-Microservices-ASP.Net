@@ -1,6 +1,0 @@
-@PM.Ocelots_HostAddress = http://localhost:5102
-
-GET {{PM.Ocelots_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
