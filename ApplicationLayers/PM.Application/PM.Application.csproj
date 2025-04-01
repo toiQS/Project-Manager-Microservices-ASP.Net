@@ -16,4 +16,16 @@
     <ProjectReference Include="..\..\InfrastructerLayers\PM.Persistence\PM.Persistence.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Features\User\Dtos\" />
+    <Folder Include="Features\User\Handlers\" />
+    <Folder Include="Features\User\Services\" />
+    <Folder Include="Features\Auth\Dtos\" />
+    <Folder Include="Features\Auth\Handlers\" />
+    <Folder Include="Features\Auth\Services\" />
+    <Folder Include="Features\base\Dtos\" />
+    <Folder Include="Features\base\Handlers\" />
+    <Folder Include="Features\base\Services\" />
+  </ItemGroup>
+
 </Project>

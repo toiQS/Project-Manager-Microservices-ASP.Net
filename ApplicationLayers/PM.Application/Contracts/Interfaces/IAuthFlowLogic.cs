@@ -2,7 +2,7 @@
 using PM.Application.Features.Auth.Commands;
 using PM.Domain;
 
-namespace PM.Application.Interfaces
+namespace PM.Application.Contracts.Interfaces
 {
     public interface IAuthFlowLogic
     {

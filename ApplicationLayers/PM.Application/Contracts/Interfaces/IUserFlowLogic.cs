@@ -3,7 +3,7 @@ using PM.Application.DTOs.Users;
 using PM.Application.Features.Users.Commands;
 using PM.Domain;
 
-namespace PM.Application.Interfaces
+namespace PM.Application.Contracts.Interfaces
 {
     public interface IUserFlowLogic
     {

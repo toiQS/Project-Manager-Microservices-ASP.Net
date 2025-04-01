@@ -1,11 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using PM.Application.Contracts.Interfaces;
 using PM.Application.DTOs.Project;
 using PM.Application.Features.Projects.Command;
-using PM.Application.Interfaces;
 using PM.Domain;
 using PM.Domain.Entities;
 using PM.Domain.Interfaces.Services;
+using System.Data.Entity.Migrations.Design;
 
 namespace PM.Application.Services
 {
@@ -291,5 +292,48 @@ namespace PM.Application.Services
             return await GetDetailProject(command.ProjectId);
         }
         #endregion
+        //#region
+        //public async Task<ServicesResult<IEnumerable<ProjectIndexDTO>>> DeleteProject(DeleteProjectCommand command)
+        //{
+        //    var ownerRole = await _roleInProjectServices.GetOwnerRole();
+        //    if (!ownerRole.Status)
+        //    {
+        //        _logger.LogError("Failed to retrieve owner role");
+        //        return ServicesResult<IEnumerable<ProjectIndexDTO>>.Failure("Failed to retrieve owner role");
+        //    }
+
+        //    var userResponse = await _userServices.GetDetailUserAsync(command.UserId);
+        //    if (!userResponse.Status)
+        //    {
+        //        _logger.LogError("User not found: {UserId}", command.UserId);
+        //        return ServicesResult<IEnumerable<ProjectIndexDTO>>.Failure("User not found");
+        //    }
+
+        //    var isOwner = await _projectMemberServices.GetOwnerProject(command.ProjectId, ownerRole.Data!.Id);
+        //    if (!isOwner.Status)
+        //    {
+        //        _logger.LogError("Failed to retrieve owner information for project: {ProjectId}", command.ProjectId);
+        //        return ServicesResult<IEnumerable<ProjectIndexDTO>>.Failure("Failed to retrieve owner information");
+        //    }
+        //    var plans = await _planServices.GetPlansInProject(command.ProjectId);
+        //    if (!plans.Status)
+        //    {
+        //        _logger.LogError("User not found: {UserId}", command.UserId);
+        //        return ServicesResult<IEnumerable<ProjectIndexDTO>>.Failure("User not found");
+        //    }
+        //    foreach (var plan in plans.Data!.Select(x => x.Id))
+        //    {
+        //       var deletePlanResponse = await _planServices.DeleteAsync(plan);
+        //        if (!deletePlanResponse.Status)
+        //        {
+        //            _logger.LogError("User not found: {UserId}", command.UserId);
+        //            return ServicesResult<IEnumerable<ProjectIndexDTO>>.Failure("User not found");
+        //        }
+        //    }
+
+
+
+        //}
+        //#endregion
     }
 }

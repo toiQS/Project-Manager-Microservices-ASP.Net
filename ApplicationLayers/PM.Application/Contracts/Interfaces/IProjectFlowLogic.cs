@@ -3,7 +3,7 @@ using PM.Application.DTOs.Project;
 using PM.Application.Features.Projects.Command;
 using PM.Domain;
 
-namespace PM.Application.Interfaces
+namespace PM.Application.Contracts.Interfaces
 {
     public interface IProjectFlowLogic
     {

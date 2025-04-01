@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
+using PM.Application.Contracts.Interfaces;
 using PM.Application.DTOs.Users;
 using PM.Application.Features.Users.Commands;
-using PM.Application.Interfaces;
 using PM.Domain;
 using PM.Domain.Entities;
 using PM.Domain.Interfaces.Services;

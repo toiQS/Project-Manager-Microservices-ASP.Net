@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using PM.Application.Contracts.Interfaces;
 using PM.Application.Features.Auth.Commands;
-using PM.Application.Interfaces;
 
 namespace PM.AuthAPIs.Controllers
 {

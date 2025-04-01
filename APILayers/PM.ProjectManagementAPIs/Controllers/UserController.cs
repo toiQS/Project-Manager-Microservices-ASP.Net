@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using PM.Application.Contracts.Interfaces;
 using PM.Application.Features.Users.Commands;
-using PM.Application.Interfaces;
 
 namespace PM.ProjectManagementAPIs.Controllers
 {

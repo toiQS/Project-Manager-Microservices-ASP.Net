@@ -1,9 +1,9 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
+using PM.Application.Contracts.Interfaces;
 using PM.Application.DTOs.Users;
 using PM.Application.Features.Auth.Commands;
-using PM.Application.Interfaces;
 using PM.Domain;
 using PM.Domain.Entities;
 using PM.Domain.Interfaces.Services;

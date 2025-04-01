@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using PM.Application.Interfaces;
+using PM.Application.Contracts.Interfaces;
 using PM.Application.Services;
 using PM.Infrastructer;
 using PM.Persistence;
