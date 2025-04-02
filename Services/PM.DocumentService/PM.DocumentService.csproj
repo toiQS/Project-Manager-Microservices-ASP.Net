@@ -6,4 +6,27 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Folder Include="API\Controllers\" />
+    <Folder Include="API\Middleware\" />
+    <Folder Include="API\Filters\" />
+    <Folder Include="API\Routes\" />
+    <Folder Include="Application\Handlers\" />
+    <Folder Include="Application\Dtos\" />
+    <Folder Include="Application\Commands\" />
+    <Folder Include="Application\Queries\" />
+    <Folder Include="Application\Services\" />
+    <Folder Include="Domain\Entities\" />
+    <Folder Include="Domain\Events\" />
+    <Folder Include="Domain\Aggregates\" />
+    <Folder Include="Domain\ValueObjects\" />
+    <Folder Include="Infrastructure\Database\" />
+    <Folder Include="Infrastructure\EventBus\" />
+    <Folder Include="Infrastructure\Configuration\" />
+    <Folder Include="Infrastructure\Messaging\" />
+    <Folder Include="Infrastructure\Identity\" />
+    <Folder Include="Infrastructure\Repositories\" />
+    <Folder Include="Tests\" />
+  </ItemGroup>
+
 </Project>
