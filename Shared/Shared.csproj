@@ -6,4 +6,25 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Folder Include="Core\Dtos\" />
+    <Folder Include="Core\Enums\" />
+    <Folder Include="Core\Validation\" />
+    <Folder Include="Core\ValueObjects\" />
+    <Folder Include="Infrastructure\Caching\" />
+    <Folder Include="Infrastructure\Configuration\" />
+    <Folder Include="Infrastructure\Database\" />
+    <Folder Include="Infrastructure\EventBus\" />
+    <Folder Include="Infrastructure\Logging\" />
+    <Folder Include="Infrastructure\Messaging\" />
+    <Folder Include="Infrastructure\Resilience\" />
+    <Folder Include="Infrastructure\Security\" />
+    <Folder Include="Contracts\" />
+    <Folder Include="Tests\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.3" />
+  </ItemGroup>
+
 </Project>
