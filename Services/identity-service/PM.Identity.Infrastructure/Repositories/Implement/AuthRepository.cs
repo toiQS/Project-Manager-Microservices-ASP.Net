@@ -1,11 +1,12 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using PM.Identity.Domain.Entities;
+using PM.Identity.Infrastructure.Repositories.Interface;
 using PM.Shared.Dtos;
 
 namespace PM.Identity.Infrastructure.Repositories.Implement
 {
-    public class AuthRepository
+    public class AuthRepository : IAuthRepository
     {
         private readonly UserManager<User> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
@@ -96,5 +97,32 @@ namespace PM.Identity.Infrastructure.Repositories.Implement
                 return ServiceResult<bool>.Failure(ex);
             }
         }
+
+        public async Task<ServiceResult<bool>> ChangePassword(string email, string oldPassword, string newPassword)
+        {
+            try
+            {
+                var user = await _userManager.FindByEmailAsync(email);
+                if(user == null)
+                {
+                    _logger.LogWarning("User not found");
+                    return ServiceResult<bool>.Failure("User not found");
+                }
+                var result = await _userManager.ChangePasswordAsync(user, oldPassword, newPassword);
+                if (!result.Succeeded)
+                {
+                    _logger.LogWarning("Password change failed");
+                    return ServiceResult<bool>.Failure("Password change failed");
+                }
+                _logger.LogInformation("Password changed successfully for user: {email}", email);
+                return ServiceResult<bool>.Success(true);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred during password change");
+                return ServiceResult<bool>.Failure(ex);
+            }
+        }
+        
     }
 }
