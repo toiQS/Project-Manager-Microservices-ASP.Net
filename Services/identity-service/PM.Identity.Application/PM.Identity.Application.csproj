@@ -7,7 +7,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\Shared\PM.Shared.Persistence\PM.Shared.Persistence.csproj" />
     <ProjectReference Include="..\PM.Identity.Infrastructure\PM.Identity.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Implements\Flows\" />
+    <Folder Include="Interfaces\Flows\" />
+    <Folder Include="Interfaces\Services\" />
   </ItemGroup>
 
 </Project>
