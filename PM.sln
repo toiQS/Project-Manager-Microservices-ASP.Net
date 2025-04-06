@@ -41,6 +41,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PM.Tracking.Domain", "Servi
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PM.Shared.Persistence", "Shared\PM.Shared.Persistence\PM.Shared.Persistence.csproj", "{B26B38BD-7EB9-4484-BBD2-0B1D2A5AB8B7}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "gateway", "gateway", "{CE72BDCC-C890-4342-AEE0-20DD980618D2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
