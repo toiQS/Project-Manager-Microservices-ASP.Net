@@ -23,5 +23,6 @@ namespace PM.Identity.Domain.Entities
         public bool IsExpired => DateTime.UtcNow >= Expires;
 
         public bool IsRevoke { get; set; } = false;
+        public DateTime CreateAt { get; set; } = DateTime.UtcNow;
     }
 }
