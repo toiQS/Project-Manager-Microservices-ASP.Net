@@ -6,9 +6,9 @@ namespace PM.Identity.Application.Interfaces.Flows
 {
     public interface IAuthFlow
     {
-        public Task<ServiceResult<string>> Login(LoginModel loginModel);
-        public Task<ServiceResult<string>> Register(RegisterModel model);
-        public Task<ServiceResult<string>> LogOut(string token);
-        public Task<ServiceResult<string>> ChangePassword(ChangePassword changePassword);
+        public Task<ServiceResult<string>> HandleSignInAsync(LoginModel loginModel);
+        public Task<ServiceResult<string>> HandleRegisterUserAsync(RegisterModel model);
+        public Task<ServiceResult<string>> HandleSignOutAsync(string token);
+        public Task<ServiceResult<string>> HandleChangePasswordAsync(ChangePassword changePassword);
     }
 }
