@@ -22,6 +22,7 @@ namespace PM.Identity.Application
             services.InitializeRepository(configuration);
             services.InitializeServices(configuration);
             services.InitializeFlow(configuration);
+            //services.InitializeIdentity();
         }
         private static void InitializeRepository(this IServiceCollection serviceDescriptors, IConfiguration configuration)
         {
@@ -41,5 +42,6 @@ namespace PM.Identity.Application
         {
             serviceDescriptors.AddScoped<IAuthFlow, AuthFlow>();
         }
+        
     }
 }
