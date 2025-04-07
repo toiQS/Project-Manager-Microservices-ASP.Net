@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using PM.Identity.Application.Implements.Flows;
+using PM.Identity.Application.Interfaces.Flows;
 using PM.Shared.Dtos.Auths;
 
 namespace PM.Identity.API.Controllers
