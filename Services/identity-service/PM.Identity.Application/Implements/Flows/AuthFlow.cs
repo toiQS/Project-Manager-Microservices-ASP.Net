@@ -1,90 +1,86 @@
-﻿using Microsoft.IdentityModel.Abstractions;
-using PM.Identity.Application.Interfaces.Flows;
+﻿using PM.Identity.Application.Interfaces.Flows;
 using PM.Identity.Application.Interfaces.Services;
 using PM.Identity.Domain.Entities;
-using PM.Shared.Dtos;
 using PM.Shared.Dtos.Auths;
+using PM.Shared.Dtos;
 
-namespace PM.Identity.Application.Implements.Flows
+public class AuthFlow : IAuthFlow
 {
-    public class AuthFlow : IAuthFlow
+    private readonly IAuthService _authService;
+    private readonly IUserService _userService;
+    private readonly ITokenService _tokenService;
+    private readonly IRefreshTokenService _refreshTokenService;
+
+    public AuthFlow(
+        IAuthService authService,
+        IUserService userService,
+        ITokenService tokenService,
+        IRefreshTokenService refreshTokenService)
     {
-        private readonly IAuthService _authService;
-        private readonly IUserService _userService;
-        private readonly ITokenService _tokenService;
-        private readonly IRefreshTokenService _refreshTokenService;
-        public AuthFlow(IAuthService authService, IUserService userService, ITokenService tokenService, IRefreshTokenService refreshTokenService)
-        {
-            _authService = authService;
-            _userService = userService;
-            _tokenService = tokenService;
-            _refreshTokenService = refreshTokenService;
-        }
-        public async Task<ServiceResult<string>> Login(LoginModel loginModel)
-        {
-            var auth = await _authService.Login(loginModel.Email, loginModel.Password);
-            if (!auth.Status)
-            {
-                return ServiceResult<string>.Failure(auth.Message);
-            }
-            var user = await _userService.GetUserByEmail(loginModel.Email);
-            var token = _tokenService.GenerateAccessToken(user.Data!);
-            var checkToken = await _refreshTokenService.FindTokensUserIsNotRevokeThenPactchIsRevoke(user.Data!.Id);
-            if(!checkToken.Status)
-            {
-                return ServiceResult<string>.Failure(checkToken.Message);
-            }
-            var refreshToken = new RefreshToken
-            {
-                UserId = user.Data.Id,
-                Token = token,
-                IsRevoke = false,
-                CreateAt = DateTime.UtcNow,
-                Expires = DateTime.UtcNow.AddMinutes(30)
-            };
-            var addRefreshToken = await _refreshTokenService.AddRefreshTokenAsync(refreshToken);
-            if (!addRefreshToken.Status)
-            {
-                return ServiceResult<string>.Failure(addRefreshToken.Message);
-            }
-            return ServiceResult<string>.Success(token);
-        }
-        public async Task<ServiceResult<string>> Register(RegisterModel model)
-        {
-            var register = await _authService.Register(model.Email, model.UserName, model.Password);
-            if(!register.Status)
-            {
-                return ServiceResult<string>.Failure(register.Message);
-            }
+        _authService = authService;
+        _userService = userService;
+        _tokenService = tokenService;
+        _refreshTokenService = refreshTokenService;
+    }
 
-            return ServiceResult<string>.Success("User registered successfully.");
-        }
-        public async Task<ServiceResult<string>> LogOut(string token)
-        {
-            var refreshToken = await _refreshTokenService.GetRefreshTokenByToken(token);
-            if(!refreshToken.Status)
-            {
-                return ServiceResult<string>.Failure(refreshToken.Message);
-            }
-            var pacthRefreshToken = await _refreshTokenService.PacthAsync(refreshToken.Data!, new Dictionary<string, object>()
-            {
-                {"IsRevoke", true}
-            });
-            if (!pacthRefreshToken.Status)
-            {
-                return ServiceResult<string>.Failure(pacthRefreshToken.Message);
-            }
-            return ServiceResult<string>.Success("Log out is success");
-        }
-        public async Task<ServiceResult<string>> ChangePassword(ChangePassword model)
-        {
-            var changePassword = await _authService.ChangePassword(model.Email,model.OldPassword, model.NewPassword);
-            if (changePassword.Status == false)
-            {
-                return ServiceResult<string>.Failure(changePassword.Message);
+    public async Task<ServiceResult<string>> HandleSignInAsync(LoginModel loginModel)
+    {
+        var auth = await _authService.SignInAsync(loginModel.Email, loginModel.Password);
+        if (!auth.Status)
+            return ServiceResult<string>.Failure(auth.Message);
 
-            }
-            return ServiceResult<string>.Success("Change password is success");
-        }
+        var user = await _userService.GetUserByEmail(loginModel.Email);
+        var token = _tokenService.GenerateAccessToken(user.Data!);
+
+        var revokeOldTokens = await _refreshTokenService.RevokeAllActiveTokensByUserIdAsync(user.Data!.Id);
+        if (!revokeOldTokens.Status)
+            return ServiceResult<string>.Failure(revokeOldTokens.Message);
+
+        var refreshToken = new RefreshToken
+        {
+            UserId = user.Data.Id,
+            Token = token,
+            IsRevoke = false,
+            CreateAt = DateTime.UtcNow,
+            Expires = DateTime.UtcNow.AddMinutes(30)
+        };
+
+        var addToken = await _refreshTokenService.CreateRefreshTokenAsync(refreshToken);
+        if (!addToken.Status)
+            return ServiceResult<string>.Failure(addToken.Message);
+
+        return ServiceResult<string>.Success(token);
+    }
+
+    public async Task<ServiceResult<string>> HandleRegisterUserAsync(RegisterModel model)
+    {
+        var result = await _authService.RegisterUserAsync(model.Email, model.UserName, model.Password);
+        return result.Status
+            ? ServiceResult<string>.Success("User registered successfully.")
+            : ServiceResult<string>.Failure(result.Message);
+    }
+
+    public async Task<ServiceResult<string>> HandleSignOutAsync(string token)
+    {
+        var refreshToken = await _refreshTokenService.GetRefreshTokenByToken(token);
+        if (!refreshToken.Status)
+            return ServiceResult<string>.Failure(refreshToken.Message);
+
+        var revoke = await _refreshTokenService.UpdateTokenFieldsAsync(refreshToken.Data!, new Dictionary<string, object>
+        {
+            { "IsRevoke", true }
+        });
+
+        return revoke.Status
+            ? ServiceResult<string>.Success("Sign out successful.")
+            : ServiceResult<string>.Failure(revoke.Message);
+    }
+
+    public async Task<ServiceResult<string>> HandleChangePasswordAsync(ChangePassword model)
+    {
+        var result = await _authService.ChangeUserPasswordAsync(model.Email, model.OldPassword, model.NewPassword);
+        return result.Status
+            ? ServiceResult<string>.Success("Password changed successfully.")
+            : ServiceResult<string>.Failure(result.Message);
     }
 }
