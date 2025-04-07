@@ -26,7 +26,7 @@ namespace PM.Identity.Infrastructure.Config
                 options.User.RequireUniqueEmail = true;
             });
 
-
+            
 
             services.AddIdentity<User, IdentityRole>(options =>
             {
