@@ -22,7 +22,7 @@ namespace PM.Identity.Application
             services.InitializeRepository(configuration);
             services.InitializeServices(configuration);
             services.InitializeFlow(configuration);
-            //services.InitializeIdentity();
+            services.SeedingData(configuration).GetAwaiter().GetResult();
         }
         private static void InitializeRepository(this IServiceCollection serviceDescriptors, IConfiguration configuration)
         {
@@ -41,6 +41,15 @@ namespace PM.Identity.Application
         private static void InitializeFlow(this IServiceCollection serviceDescriptors, IConfiguration configuration)
         {
             serviceDescriptors.AddScoped<IAuthFlow, AuthFlow>();
+        }
+        private static async Task SeedingData(this IServiceCollection serviceDescriptors, IConfiguration configuration)
+        {
+            var app = serviceDescriptors.BuildServiceProvider();
+            using (var scope = app.CreateScope())
+            {
+               var services = scope.ServiceProvider;
+                await RoleSeeding.Initialize(services);
+            }
         }
         
     }
