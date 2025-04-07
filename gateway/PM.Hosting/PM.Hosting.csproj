@@ -16,6 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\EndPoints\PM.EndPoint.API\PM.EndPoint.API.csproj" />
     <ProjectReference Include="..\..\Services\identity-service\PM.Identity.API\PM.Identity.API.csproj" />
     <ProjectReference Include="..\..\Services\project-service\PM.Project.API\PM.Project.API.csproj" />
   </ItemGroup>
