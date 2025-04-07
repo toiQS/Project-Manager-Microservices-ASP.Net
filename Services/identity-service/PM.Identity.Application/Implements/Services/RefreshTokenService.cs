@@ -15,7 +15,7 @@ namespace PM.Identity.Application.Implements.Services
             _context = context;
             _unitOfWork = unitOfWork;
         }
-        public async Task<ServiceResult<bool>> FindTokensUserIsNotRevokeThenPactchIsRevoke(string userId)
+        public async Task<ServiceResult<bool>> RevokeAllActiveTokensByUserIdAsync(string userId)
         {
             var tokens = await _unitOfWork.RefreshTokenRepository.GetManyAsync("UserId", userId);
             if (!tokens.Data!.Any())
@@ -30,11 +30,11 @@ namespace PM.Identity.Application.Implements.Services
                 {
                     {"IsRevoke", true}
                 };
-                return await PacthAsync(token, keyValuePairs);
+                return await UpdateTokenFieldsAsync(token, keyValuePairs);
             }
             return ServiceResult<bool>.Success(true);
         }
-        public async Task<ServiceResult<bool>> AddRefreshTokenAsync(RefreshToken refreshToken)
+        public async Task<ServiceResult<bool>> CreateRefreshTokenAsync(RefreshToken refreshToken)
         {
             var addResponse = await _unitOfWork.ExecuteTransactionAsync(async () =>
             {
@@ -49,7 +49,7 @@ namespace PM.Identity.Application.Implements.Services
                 return ServiceResult<bool>.Failure("Failed to add refresh token.");
             }
         }
-        public async Task<ServiceResult<bool>> PacthAsync(RefreshToken refreshToken, Dictionary<string, object> keyValuePairs)
+        public async Task<ServiceResult<bool>> UpdateTokenFieldsAsync(RefreshToken refreshToken, Dictionary<string, object> keyValuePairs)
         {
             var updateResponse = await _unitOfWork.ExecuteTransactionAsync(async () =>
             {
