@@ -5,9 +5,9 @@ namespace PM.Identity.Application.Interfaces.Services
 {
     public interface IRefreshTokenService
     {
-        public Task<ServiceResult<bool>> FindTokensUserIsNotRevokeThenPactchIsRevoke(string userId);
-        public Task<ServiceResult<bool>> AddRefreshTokenAsync(RefreshToken refreshToken);
-        public Task<ServiceResult<bool>> PacthAsync(RefreshToken refreshToken, Dictionary<string, object> keyValuePairs);
+        public Task<ServiceResult<bool>> RevokeAllActiveTokensByUserIdAsync(string userId);
+        public Task<ServiceResult<bool>> CreateRefreshTokenAsync(RefreshToken refreshToken);
+        public Task<ServiceResult<bool>> UpdateTokenFieldsAsync(RefreshToken refreshToken, Dictionary<string, object> keyValuePairs);
         public Task<ServiceResult<RefreshToken>> GetRefreshTokenByToken(string token);
     }
 }
