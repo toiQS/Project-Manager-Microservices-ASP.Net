@@ -12,8 +12,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Implements\Flows\" />
-    <Folder Include="Interfaces\Flows\" />
     <Folder Include="Interfaces\Services\" />
   </ItemGroup>
 
