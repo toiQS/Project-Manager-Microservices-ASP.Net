@@ -55,6 +55,7 @@ namespace PM.Identity.Application.Interfaces.Flows
             {
                 return ServiceResult<string>.Failure(register.Message);
             }
+
             return ServiceResult<string>.Success("User registered successfully.");
         }
         public async Task<ServiceResult<string>> LogOut(string token)
