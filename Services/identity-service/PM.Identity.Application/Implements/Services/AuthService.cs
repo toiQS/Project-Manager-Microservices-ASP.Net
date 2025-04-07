@@ -16,7 +16,7 @@ namespace PM.Identity.Application.Implements.Services
             _signInManager = signInManager;
             _roleManager = roleManager;
         }
-        public async Task<ServiceResult<bool>> Login(string email, string password)
+        public async Task<ServiceResult<bool>> SignInAsync(string email, string password)
         {
             try
             {
@@ -34,7 +34,7 @@ namespace PM.Identity.Application.Implements.Services
                 return ServiceResult<bool>.Failure(ex);
             }
         }
-        public async Task<ServiceResult<bool>> Logout()
+        public async Task<ServiceResult<bool>> SignOutAsync()
         {
             try
             {
@@ -46,7 +46,7 @@ namespace PM.Identity.Application.Implements.Services
                 return ServiceResult<bool>.Failure(ex);
             }
         }
-        public async Task<ServiceResult<bool>> Register(string email, string username, string password)
+        public async Task<ServiceResult<bool>> RegisterUserAsync(string email, string username, string password)
         {
             try
             {
@@ -80,7 +80,7 @@ namespace PM.Identity.Application.Implements.Services
                 return ServiceResult<bool>.Failure(ex);
             }
         }
-        public async Task<ServiceResult<bool>> ChangePassword(string email, string oldPassword, string newPassword)
+        public async Task<ServiceResult<bool>> ChangeUserPasswordAsync(string email, string oldPassword, string newPassword)
         {
             try
             {
