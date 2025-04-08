@@ -54,4 +54,9 @@ public class AuthController : ControllerBase
             ? Ok(new { message = result.Data })
             : BadRequest(new { error = result.Message });
     }
+    [HttpGet("test")]
+    public IActionResult Test()
+    {
+        return Ok(new { message = "Test successful" });
+    }
 }
