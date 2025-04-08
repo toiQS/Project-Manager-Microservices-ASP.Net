@@ -9,10 +9,12 @@ namespace PM.Shared.Persistence.Implements
     {
         private readonly TData _context;
         public IRepository<TData, RefreshToken> RefreshTokenRepository { get; }
+        public IRepository<TData, User> UserRepository { get; }
         public UnitOfWork(TData context)
         {
             _context = context;
             RefreshTokenRepository = new Repository<TData, RefreshToken>(_context);
+            UserRepository = new Repository<TData, User>(_context);
         }
         public async Task<ServiceResult<bool>> ExecuteTransactionAsync(Func<Task> transactionOperations, CancellationToken cancellationToken = default)
         {
