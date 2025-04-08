@@ -35,13 +35,49 @@ namespace PM.Identity.Application.Implements.Services
             try
             {
                 var user = await _userManager.FindByIdAsync(id);
-                if(user == null)
+                if (user == null)
                     return ServiceResult<User>.Failure("User not found.");
                 return ServiceResult<User>.Success(user);
             }
             catch (Exception ex)
             {
                 return ServiceResult<User>.Failure(ex);
+            }
+        }
+        public async Task<ServiceResult<bool>> UpdateUser(string id, string firstName, string lastName, string username, string avatarPath)
+        {
+            var user = await _unitOfWork.UserRepository.GetOneAsync("Id", id);
+            if (user == null)
+                return ServiceResult<bool>.Failure("User not found.");
+            Dictionary<string, object> updateData = new Dictionary<string, object>()
+            {
+                {
+                    "FirstName", firstName
+                },
+                {
+                    "LastName", lastName
+                },
+                {
+                    "UserName", username
+                },
+                {
+                    "AvatarPath", avatarPath
+                },
+                {
+                    "FullName", $"{firstName} {lastName}"
+                }
+            };
+            var updateResult = await _unitOfWork.ExecuteTransactionAsync(async() =>
+            {
+                await _unitOfWork.UserRepository.PacthAsync(user.Data!, updateData);
+            });
+            if (updateResult.Status)
+            {
+                return ServiceResult<bool>.Success(true);
+            }
+            else
+            {
+                return ServiceResult<bool>.Failure("Failed to update user.");
             }
         }
     }
