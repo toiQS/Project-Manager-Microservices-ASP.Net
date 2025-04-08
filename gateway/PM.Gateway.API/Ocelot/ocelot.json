@@ -1,0 +1,19 @@
+{
+  "GlobalConfiguration": {
+    "BaseUrl": "https://localhost:8000"
+  },
+  "Routes": [
+    {
+      "DownstreamHostAndPorts": [
+        {
+          "Port": 7310,
+          "Host": "localhost"
+        }
+      ],
+      "DownstreamPathTemplate": "/api/Auth/test",
+      "DownstreamScheme": "https",
+      "UpstreamHttpMethod": [ "Get" ],
+      "UpstreamPathTemplate": "/auth/test"
+    }
+  ]
+}
