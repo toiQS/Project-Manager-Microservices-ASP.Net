@@ -1,4 +1,5 @@
-﻿using PM.Identity.Domain.Entities;
+﻿using Microsoft.VisualBasic;
+using PM.Identity.Domain.Entities;
 using PM.Shared.Dtos;
 
 namespace PM.Identity.Application.Interfaces.Services
@@ -8,5 +9,6 @@ namespace PM.Identity.Application.Interfaces.Services
         //public Task<ServiceResult<User>> 
         public Task<ServiceResult<User>> GetUserByEmail(string email);
         public Task<ServiceResult<User>> GetUserById(string id);
+        public Task<ServiceResult<bool>> UpdateUser(string id, string firstName, string lastName, string fullName, string avatarPath);
     }
 }
