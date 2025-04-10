@@ -1,0 +1,67 @@
+{
+  "GlobalConfiguration": {
+    "BaseUrl": "https://localhost:8000"
+  },
+  "Routes": [
+    {
+      "DownstreamHostAndPorts": [
+        {
+          "Port": 7130,
+          "Host": "localhost"
+        }
+      ],
+      "DownstreamPathTemplate": "/api/Auth/test",
+      "DownstreamScheme": "https",
+      "UpstreamHttpMethod": [ "Get" ],
+      "UpstreamPathTemplate": "/api/auth/test"
+    },
+    {
+      "DownstreamHostAndPorts": [
+        {
+          "Port": 7130,
+          "Host": "localhost"
+        }
+      ],
+      "DownstreamPathTemplate": "/api/Auth/login",
+      "DownstreamScheme": "https",
+      "UpstreamHttpMethod": [ "Post" ],
+      "UpstreamPathTemplate": "/api/auth/login"
+    },
+    {
+      "DownstreamHostAndPorts": [
+        {
+          "Port": 7130,
+          "Host": "localhost"
+        }
+      ],
+      "DownstreamPathTemplate": "/api/Auth/register",
+      "DownstreamScheme": "https",
+      "UpstreamHttpMethod": [ "Post" ],
+      "UpstreamPathTemplate": "/api/auth/register"
+    },
+    {
+      "DownstreamHostAndPorts": [
+        {
+          "Port": 7130,
+          "Host": "localhost"
+        }
+      ],
+      "DownstreamPathTemplate": "/api/Auth/change-password",
+      "DownstreamScheme": "https",
+      "UpstreamHttpMethod": [ "Post" ],
+      "UpstreamPathTemplate": "/api/auth/change-password"
+    },
+    {
+      "DownstreamHostAndPorts": [
+        {
+          "Port": 7130,
+          "Host": "localhost"
+        }
+      ],
+      "DownstreamPathTemplate": "/api/Auth/logout",
+      "DownstreamScheme": "https",
+      "UpstreamHttpMethod": [ "Post" ],
+      "UpstreamPathTemplate": "/api/auth/logout"
+    }
+  ]
+}
