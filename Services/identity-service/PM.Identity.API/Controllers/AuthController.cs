@@ -1,62 +1,72 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using PM.Identity.Application.Interfaces.Flows;
+using PM.Identity.Application.Interfaces;
 using PM.Shared.Dtos.Auths;
 
 [Route("api/[controller]")]
 [ApiController]
 public class AuthController : ControllerBase
 {
-    private readonly IAuthFlow _authFlow;
+    private readonly IAuthService _authServices;
     private readonly ILogger<AuthController> _logger;
-
-    public AuthController(IAuthFlow authFlow, ILogger<AuthController> logger)
+    public AuthController(IAuthService authServices, ILogger<AuthController> logger)
     {
-        _authFlow = authFlow;
+        _authServices = authServices;
         _logger = logger;
     }
-
     [HttpPost("login")]
-    public async Task<IActionResult> Login([FromBody] LoginModel model)
+    public async Task<IActionResult> HandleLogin([FromBody] LoginModel request)
     {
-        var result = await _authFlow.HandleSignInAsync(model);
-        return result.Status
-            ? Ok(new { token = result.Data })
-            : BadRequest(new { error = result.Message });
+        _logger.LogInformation("Login request received for email: {Email}", request.Email);
+        var result = await _authServices.SignInAsync(request.Email, request.Password);
+       if(result.Status)
+        {
+            return Ok(result);
+        }
+        else
+        {
+            return BadRequest(result);
+        }
     }
-
     [HttpPost("register")]
-    public async Task<IActionResult> Register([FromBody] RegisterModel model)
+    public async Task<IActionResult> HandleRegister(RegisterModel register)
     {
-        var result = await _authFlow.HandleRegisterUserAsync(model);
-        return result.Status
-            ? Ok(new { message = result.Data })
-            : BadRequest(new { error = result.Message });
+        _logger.LogInformation("Register request received for email: {Email}", register.Email);
+        var result = await _authServices.RegisterUserAsync(register.Email, register.UserName, register.Password);
+        if (result.Status)
+        {
+            return Ok(result);
+        }
+        else
+        {
+            return BadRequest(result);
+        }
     }
-
     [HttpPost("logout")]
-    public async Task<IActionResult> Logout([FromHeader(Name = "Authorization")] string token)
+    public async Task<IActionResult> HandleLogout()
     {
-        if (string.IsNullOrWhiteSpace(token))
-            return BadRequest(new { error = "Token is required" });
-
-        token = token.Replace("Bearer ", "");
-        var result = await _authFlow.HandleSignOutAsync(token);
-        return result.Status
-            ? Ok(new { message = result.Data })
-            : BadRequest(new { error = result.Message });
+        _logger.LogInformation("Logout request received");
+        var result = await _authServices.SignOutAsync();
+        if (result.Status)
+        {
+            return Ok(result);
+        }
+        else
+        {
+            return BadRequest(result);
+        }
     }
-
     [HttpPost("change-password")]
-    public async Task<IActionResult> ChangePassword([FromBody] ChangePassword model)
+    public async Task<IActionResult> HandleChangePassword([FromBody] ChangePasswordModel changePassword)
     {
-        var result = await _authFlow.HandleChangePasswordAsync(model);
-        return result.Status
-            ? Ok(new { message = result.Data })
-            : BadRequest(new { error = result.Message });
-    }
-    [HttpGet("test")]
-    public IActionResult Test()
-    {
-        return Ok(new { message = "Test successful" });
+        _logger.LogInformation($"Change password Email:{changePassword.Email}");
+        var result = await _authServices.ChangeUserPasswordAsync(changePassword.Email, changePassword.OldPassword, changePassword.NewPassword);
+        if (result.Status)
+        {
+            return Ok(result);
+        }
+        else
+        {
+            return BadRequest(result);
+        }
     }
 }
