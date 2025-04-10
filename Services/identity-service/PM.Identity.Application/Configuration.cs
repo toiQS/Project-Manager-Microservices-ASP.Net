@@ -1,8 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using PM.Identity.Application.Implements.Services;
-using PM.Identity.Application.Interfaces.Flows;
-using PM.Identity.Application.Interfaces.Services;
+using PM.Identity.Application.Implements;
+using PM.Identity.Application.Interfaces;
 using PM.Identity.Domain.Entities;
 using PM.Identity.Infrastructure.Config;
 using PM.Identity.Infrastructure.Data;
@@ -17,10 +16,8 @@ namespace PM.Identity.Application
         {
             services.InitializeSQL(configuration);
             services.InitializeIdentity();
-            services.InitializeJwt(configuration);
             services.InitializeRepository(configuration);
             services.InitializeServices(configuration);
-            services.InitializeFlow(configuration);
             services.SeedingData(configuration).GetAwaiter().GetResult();
         }
         private static void InitializeRepository(this IServiceCollection serviceDescriptors, IConfiguration configuration)
@@ -34,12 +31,8 @@ namespace PM.Identity.Application
         {
             serviceDescriptors.AddScoped<IAuthService, AuthService>();
             serviceDescriptors.AddScoped<IUserService, UserService>();
-            serviceDescriptors.AddScoped<ITokenService, TokenService>();
+            
             serviceDescriptors.AddScoped<IRefreshTokenService, RefreshTokenService>();
-        }
-        private static void InitializeFlow(this IServiceCollection serviceDescriptors, IConfiguration configuration)
-        {
-            serviceDescriptors.AddScoped<IAuthFlow, AuthFlow>();
         }
         private static async Task SeedingData(this IServiceCollection serviceDescriptors, IConfiguration configuration)
         {
