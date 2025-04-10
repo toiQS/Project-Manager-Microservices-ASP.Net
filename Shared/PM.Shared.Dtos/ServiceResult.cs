@@ -4,7 +4,7 @@
     {
         public string Message { get; set; } = string.Empty;
         public bool Status { get; set; } = true;
-        public int StatusCode { get; set; }
+       
         public T? Data { get; set; }
         public DateTime ActionAt { get; set; }
         public ServiceResult(T? data)
@@ -12,7 +12,7 @@
             Data = data;
             Status = true;
             Message = "Success";
-            StatusCode = 200;
+            
             ActionAt = DateTime.UtcNow;
         }
         public static ServiceResult<T> Success(T data)
@@ -23,7 +23,7 @@
         {
             Data = default;
             Status = false;
-            StatusCode = 500;
+            
             Message = exception.InnerException != null ? exception.InnerException.Message : exception.Message;
             ActionAt = DateTime.UtcNow;
         }
@@ -36,7 +36,7 @@
         {
             Data = default;
             Status = false;
-            StatusCode = 400;
+            
             Message = message;
             ActionAt = DateTime.UtcNow;
         }
