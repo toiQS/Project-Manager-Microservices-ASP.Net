@@ -1,0 +1,43 @@
+{
+  "GlobalConfiguration": {
+    "BaseUrl": "https://localhost:8000"
+  },
+  "Routes": [
+    {
+      "DownstreamHostAndPorts": [
+        {
+          "Port": 7130,
+          "Host": "localhost"
+        }
+      ],
+      "DownstreamPathTemplate": "/api/User/get-user-by-id",
+      "DownstreamScheme": "https",
+      "UpstreamHttpMethod": [ "Get" ],
+      "UpstreamPathTemplate": "/api/user/get-user-by-id"
+    },
+    {
+      "DownstreamHostAndPorts": [
+        {
+          "Port": 7130,
+          "Host": "localhost"
+        }
+      ],
+      "DownstreamPathTemplate": "/api/User/get-user-by-email",
+      "DownstreamScheme": "https",
+      "UpstreamHttpMethod": [ "Get" ],
+      "UpstreamPathTemplate": "/api/user/get-user-by-email"
+    },
+    {
+      "DownstreamHostAndPorts": [
+        {
+          "Port": 7130,
+          "Host": "localhost"
+        }
+      ],
+      "DownstreamPathTemplate": "/api/User/update-user",
+      "DownstreamScheme": "https",
+      "UpstreamHttpMethod": [ "Get" ],
+      "UpstreamPathTemplate": "/api/user/update-user"
+    }
+  ]
+}
