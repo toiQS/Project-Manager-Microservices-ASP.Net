@@ -1,8 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using PM.EndPoint.API.Flows.Interfaces;
 using PM.Shared.Dtos.Auths;
-using System.Security.Claims;
 
 namespace PM.EndPoint.API.Controllers
 {
@@ -10,67 +9,37 @@ namespace PM.EndPoint.API.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private readonly HttpClient _httpClient;
-        private readonly ILogger<AuthController> _logger;
-        private string _baseUrl = "https://localhost:8000";
-        private readonly IHttpContextAccessor _httpContextAccessor;
-        public AuthController(ILogger<AuthController> logger, IHttpContextAccessor httpContextAccessor)
+        private readonly IAuthFlow _authFlow;
+        public AuthController(IAuthFlow authFlow)
         {
-            _httpClient = new HttpClient();
-            _logger = logger;
-            _httpContextAccessor = httpContextAccessor;
+            _authFlow = authFlow;
         }
         [HttpPost("login")]
-        public async Task<IActionResult> Login(LoginModel model)
+        public async Task<IActionResult> Login([FromBody] LoginModel loginModel)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-            var request = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}/api/auth/login")
+            try
             {
-                Content = JsonContent.Create(model)
-            };
-            var response = await _httpClient.SendAsync(request);
-            if (response.IsSuccessStatusCode)
-            {
-                var result = await response.Content.ReadAsStringAsync();
-                return Ok(result);
+                var response = await _authFlow.HandleLogin(loginModel);
+                return Ok(response);
             }
-            else
+            catch (Exception ex)
             {
-                var error = await response.Content.ReadAsStringAsync();
-                return BadRequest(new { error });
+                return BadRequest(ex.Message);
             }
         }
-        [HttpPost("register")]
-        public async Task<IActionResult> Register(RegisterModel model)
+        
+        [HttpGet("demo"), Authorize]
+        public async Task<IActionResult> Demo()
         {
-            if(!ModelState.IsValid) return BadRequest(ModelState);
-            var request = new HttpRequestMessage()
+            try
             {
-                RequestUri = new Uri($"{_baseUrl}/api/auth/register"),
-                Method = HttpMethod.Post,
-                Content = JsonContent.Create(model),
-                Headers =
-                {
-                    { "Accept", "application/json" }
-                }
-            };
-            var response = await _httpClient.SendAsync(request);
-            if (response.IsSuccessStatusCode)
-            {
-                var result = await response.Content.ReadAsStringAsync();
-                return Ok(result);
+                var response = await _authFlow.HandleDemo();
+                return Ok(response);
             }
-            else
+            catch (Exception ex)
             {
-                var error = await response.Content.ReadAsStringAsync();
-                return BadRequest(new { error });
+                return BadRequest(ex.Message);
             }
-        }
-        [HttpPost("logout"), Authorize]
-        public Task<IActionResult> LogOut()
-        {
-            var userId = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            return Task.FromResult<IActionResult>(Ok(userId));
         }
     }
 }
