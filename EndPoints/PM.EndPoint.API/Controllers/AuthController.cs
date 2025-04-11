@@ -6,6 +6,7 @@ using PM.Shared.Dtos.Auths;
 namespace PM.EndPoint.API.Controllers
 {
     [Route("api/[controller]")]
+    
     [ApiController]
     public class AuthController : ControllerBase
     {
@@ -28,7 +29,7 @@ namespace PM.EndPoint.API.Controllers
             }
         }
         
-        [HttpGet("demo"), Authorize]
+        [HttpGet("demo")]
         public async Task<IActionResult> Demo()
         {
             try
