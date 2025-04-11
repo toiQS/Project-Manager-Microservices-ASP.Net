@@ -1,5 +1,3 @@
-using NSwag;
-using NSwag.Generation.Processors.Security;
 using PM.Identity.Application;
 
 var builder = WebApplication.CreateBuilder(args);
