@@ -1,5 +1,6 @@
 ﻿using PM.EndPoint.API.Flows.Interfaces;
 using PM.Shared.Dtos.Auths;
+using System.Diagnostics.CodeAnalysis;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
@@ -42,7 +43,6 @@ namespace PM.EndPoint.API.Flows.Implements
             if (responseSigninHandle.IsSuccessStatusCode)
             {
                 var responseContent = await responseSigninHandle.Content.ReadAsStringAsync();
-                _httpContextAccessor.HttpContext.Request.Headers.Add("demo", "demo");
                 return responseContent;
             }
             else
@@ -55,8 +55,12 @@ namespace PM.EndPoint.API.Flows.Implements
         public async Task<string> HandleDemo()
         {
 
-            var result = _httpContextAccessor.HttpContext.Response.Headers["demo"].ToString();
-            return result! ?? "Empty";
+            var user = _httpContextAccessor.HttpContext?.User;
+            if (user.Identity.IsAuthenticated)
+            {
+                return "auth";
+            }
+            return "not auth";
         }
     }
 }
