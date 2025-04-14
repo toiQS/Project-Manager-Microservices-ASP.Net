@@ -13,11 +13,11 @@
       "DownstreamPathTemplate": "/api/Auth/get-user",
       "DownstreamScheme": "https",
       "UpstreamHttpMethod": [ "Get" ],
-      "UpstreamPathTemplate": "/api/auth/get-user"
-      //"AuthenticationOptions": {
-      //  "AuthenticationProviderKey": "Bearer",
-      //  "AllowedScopes": []
-      //}
+      "UpstreamPathTemplate": "/api/auth/get-user",
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": []
+      }
     },
     {
       "DownstreamHostAndPorts": [
@@ -30,42 +30,6 @@
       "DownstreamScheme": "https",
       "UpstreamHttpMethod": [ "Post" ],
       "UpstreamPathTemplate": "/api/auth/login"
-    },
-    {
-      "DownstreamHostAndPorts": [
-        {
-          "Port": 7130,
-          "Host": "localhost"
-        }
-      ],
-      "DownstreamPathTemplate": "/api/Auth/register",
-      "DownstreamScheme": "https",
-      "UpstreamHttpMethod": [ "Post" ],
-      "UpstreamPathTemplate": "/api/auth/register"
-    },
-    {
-      "DownstreamHostAndPorts": [
-        {
-          "Port": 7130,
-          "Host": "localhost"
-        }
-      ],
-      "DownstreamPathTemplate": "/api/Auth/change-password",
-      "DownstreamScheme": "https",
-      "UpstreamHttpMethod": [ "Post" ],
-      "UpstreamPathTemplate": "/api/auth/change-password"
-    },
-    {
-      "DownstreamHostAndPorts": [
-        {
-          "Port": 7130,
-          "Host": "localhost"
-        }
-      ],
-      "DownstreamPathTemplate": "/api/Auth/logout",
-      "DownstreamScheme": "https",
-      "UpstreamHttpMethod": [ "Post" ],
-      "UpstreamPathTemplate": "/api/auth/logout"
     }
   ]
 }
