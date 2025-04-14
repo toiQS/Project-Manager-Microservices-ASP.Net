@@ -1,46 +1,59 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using PM.EndPoint.API.Flows.Interfaces;
+﻿using Microsoft.AspNetCore.Mvc;
 using PM.Shared.Dtos.Auths;
+using System.Security.Claims;
+using System.Text;
+using System.Text.Json;
+using YamlDotNet.Serialization.NodeTypeResolvers;
 
 namespace PM.EndPoint.API.Controllers
 {
     [Route("api/[controller]")]
-    
+
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private readonly IAuthFlow _authFlow;
-        public AuthController(IAuthFlow authFlow)
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly HttpClient _httpClient;
+        private string _baseUrl = "https://localhost:8000/api/auth/";
+        public AuthController(IHttpContextAccessor httpContextAccessor)
         {
-            _authFlow = authFlow;
+            _httpContextAccessor = httpContextAccessor;
+            _httpClient = new HttpClient();
         }
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginModel loginModel)
+        public async Task<IActionResult> HandleLogin([FromBody] LoginModel model)
         {
-            try
+            var client = new HttpClient();
+           var request = new HttpRequestMessage(HttpMethod.Post, _baseUrl + "login")
+           {
+               Content = new StringContent(JsonSerializer.Serialize(model), Encoding.UTF8, "application/json")
+           };
+            var response = await client.SendAsync(request);
+            if (response.IsSuccessStatusCode)
             {
-                var response = await _authFlow.HandleLogin(loginModel);
-                return Ok(response);
+                var token = await response.Content.ReadAsStringAsync();
+                return Ok(token);
             }
-            catch (Exception ex)
+            else
             {
-                return BadRequest(ex.Message);
+                return BadRequest("Login failed");
             }
         }
-        
         [HttpGet("demo")]
-        public async Task<IActionResult> Demo()
+        public IActionResult demo()
         {
-            try
+            var user = _httpContextAccessor.HttpContext?.User;
+            if (user != null)
             {
-                var response = await _authFlow.HandleDemo();
-                return Ok(response);
+                return Ok(new
+                {
+                    Id = user.FindFirst(ClaimTypes.NameIdentifier)?.Value,
+                    Email = user.FindFirst(ClaimTypes.Email)?.Value,
+                    UserName = user.FindFirst(ClaimTypes.Name)?.Value
+                })
+                ;
             }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            return Unauthorized("User not authenticated");
         }
     }
 }
