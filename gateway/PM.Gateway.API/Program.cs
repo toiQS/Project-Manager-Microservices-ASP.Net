@@ -8,10 +8,12 @@ builder.Configuration.AddJsonFile("Ocelot/IdentityOcelot.json", optional: false,
 
 builder.Services.AddOcelot(builder.Configuration);
 builder.Services.AddControllers();
+
+
+
 var app = builder.Build();
 
 app.UseHttpsRedirection();
-
 app.UseAuthorization();
 
 app.MapControllers();
