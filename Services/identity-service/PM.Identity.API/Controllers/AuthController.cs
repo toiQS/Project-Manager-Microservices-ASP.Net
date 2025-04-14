@@ -29,7 +29,7 @@ public class AuthController : ControllerBase
         _logger.LogInformation("Login request received for email: {Email}", request.Email);
         var result = await _authServices.SignInAsync(request.Email, request.Password);
         if (result.Status)
-        { 
+        {
             var user = new User()
             {
                 UserName = "akai",
@@ -44,6 +44,7 @@ public class AuthController : ControllerBase
             return BadRequest(result);
         }
     }
+   
     [HttpPost("register")]
     public async Task<IActionResult> HandleRegister(RegisterModel register)
     {
@@ -86,7 +87,7 @@ public class AuthController : ControllerBase
             return BadRequest(result);
         }
     }
-    [HttpGet("get-user")]
+    [HttpGet("get-user")]       
     public IActionResult GetUser()
     {
         var user = _httpContextAccessor.HttpContext?.User;
