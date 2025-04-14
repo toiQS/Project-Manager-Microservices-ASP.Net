@@ -10,10 +10,14 @@
           "Host": "localhost"
         }
       ],
-      "DownstreamPathTemplate": "/api/Auth/test",
+      "DownstreamPathTemplate": "/api/Auth/get-user",
       "DownstreamScheme": "https",
       "UpstreamHttpMethod": [ "Get" ],
-      "UpstreamPathTemplate": "/api/auth/test"
+      "UpstreamPathTemplate": "/api/auth/get-user"
+      //"AuthenticationOptions": {
+      //  "AuthenticationProviderKey": "Bearer",
+      //  "AllowedScopes": []
+      //}
     },
     {
       "DownstreamHostAndPorts": [
