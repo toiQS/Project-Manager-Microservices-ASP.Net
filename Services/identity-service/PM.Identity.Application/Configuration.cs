@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using PM.Identity.Application.Implements;
@@ -9,6 +8,7 @@ using PM.Identity.Infrastructure.Config;
 using PM.Identity.Infrastructure.Data;
 using PM.Shared.Persistence.Implements;
 using PM.Shared.Persistence.Interfaces;
+using Microsoft.AspNetCore.Identity.UI;
 
 namespace PM.Identity.Application
 {
@@ -63,25 +63,7 @@ namespace PM.Identity.Application
                 options.User.RequireUniqueEmail = true;
             });
 
-            services.AddAuthentication(options =>
-            {
-                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-                
-            }).AddJwtBearer(options =>
-            {
-                options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
-                {
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
-                    ValidateLifetime = true,
-                    ValidateIssuerSigningKey = true,
-                    ValidIssuer = configuration.GetSection("Jwt:Issuer").Value,
-                    ValidAudiences = configuration.GetSection("Jwt:Audiences").Get<string[]>(),
-                    IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(configuration.GetSection("Jwt:SecretKey").Value!))
-                };
-                
-            });
+            
 
             services.AddIdentity<User, IdentityRole>(options =>
             {
