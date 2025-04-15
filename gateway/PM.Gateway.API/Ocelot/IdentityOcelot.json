@@ -13,11 +13,7 @@
       "DownstreamPathTemplate": "/api/Auth/get-user",
       "DownstreamScheme": "https",
       "UpstreamHttpMethod": [ "Get" ],
-      "UpstreamPathTemplate": "/api/auth/get-user",
-      "AuthenticationOptions": {
-        "AuthenticationProviderKey": "Bearer",
-        "AllowedScopes": []
-      }
+      "UpstreamPathTemplate": "/api/auth/get-user"
     },
     {
       "DownstreamHostAndPorts": [
