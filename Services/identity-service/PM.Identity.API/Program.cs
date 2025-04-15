@@ -1,5 +1,5 @@
-using PM.Identity.Application;
 using Microsoft.OpenApi.Models;
+using PM.Identity.Application;
 
 var builder = WebApplication.CreateBuilder(args);
 
