@@ -1,48 +1,35 @@
 ﻿namespace PM.Shared.Dtos
 {
+    public enum ResultStatus
+    {
+        Success,
+        Info,
+        Warning,
+        Error
+    }
+
     public class ServiceResult<T>
     {
         public string Message { get; set; } = string.Empty;
-        public bool Status { get; set; } = true;
-       
+        public string? MessageKey { get; set; }
+        public ResultStatus Status { get; set; } = ResultStatus.Success;
         public T? Data { get; set; }
-        public DateTime ActionAt { get; set; }
-        public ServiceResult(T? data)
-        {
-            Data = data;
-            Status = true;
-            Message = "Success";
-            
-            ActionAt = DateTime.UtcNow;
-        }
-        public static ServiceResult<T> Success(T data)
-        {
-            return new ServiceResult<T>(data);
-        }
-        public ServiceResult(Exception exception)
-        {
-            Data = default;
-            Status = false;
-            
-            Message = exception.InnerException != null ? exception.InnerException.Message : exception.Message;
-            ActionAt = DateTime.UtcNow;
-        }
-        public static ServiceResult<T> Failure(Exception exception)
-        {
-            return new ServiceResult<T>(exception);
-        }
+        public DateTime ActionAt { get; set; } = DateTime.UtcNow;
+        public object? Metadata { get; set; }
 
-        public ServiceResult(string message)
-        {
-            Data = default;
-            Status = false;
-            
-            Message = message;
-            ActionAt = DateTime.UtcNow;
-        }
-        public static ServiceResult<T> Failure(string message)
-        {
-            return new ServiceResult<T>(message);
-        }
+        private ServiceResult() { }
+
+        public static ServiceResult<T> Success(T data, string message = "Success") =>
+            new ServiceResult<T> { Data = data, Status = ResultStatus.Success, Message = message };
+
+        public static ServiceResult<T> Error(string message, string? messageKey = null) =>
+            new ServiceResult<T> { Status = ResultStatus.Error, Message = message, MessageKey = messageKey };
+
+        public static ServiceResult<T> FromException(Exception ex) =>
+            new ServiceResult<T>
+            {
+                Status = ResultStatus.Error,
+                Message = ex.InnerException?.Message ?? ex.Message
+            };
     }
 }
