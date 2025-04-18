@@ -1,3 +1,4 @@
+using PM.Identity.Application;
 using PM.Shared.Swagger;
 // Ensure correct namespace is included for SwaggerOptions
 
@@ -7,6 +8,8 @@ builder.Services.InitializeSwagger(
     builder.Configuration,
     "PM.Identity.API"
 );
+
+builder.Services.InitializeApplication(builder.Configuration);
 
 var app = builder.Build();
 
