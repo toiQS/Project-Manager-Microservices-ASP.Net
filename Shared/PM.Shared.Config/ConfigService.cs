@@ -1,9 +1,13 @@
-﻿namespace PM.Shared.Config
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace PM.Shared.Config
 {
     public static class ConfigService
 
     {
-        public static void Initialize<TContext>(IServiceCollection services, IConfiguration configuration) where TContext : DbContext
+        public static void Initialize<TContext>(this IServiceCollection services, IConfiguration configuration) where TContext : DbContext
         {
             services.InitializeSQL<TContext>(configuration);
         }
@@ -11,7 +15,7 @@
         {
             services.AddDbContext<TContext>(options =>
             {
-                options.UseSqlServer(configuration.GetConnectionString("DefaultConnection"));
+                options.UseSqlServer(configuration.GetConnectionString("DockerConnectString"));
             });
         }
 
