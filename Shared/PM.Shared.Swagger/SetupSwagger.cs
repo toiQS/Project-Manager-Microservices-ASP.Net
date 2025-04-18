@@ -1,4 +1,7 @@
-﻿namespace PM.Shared.Swagger
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace PM.Shared.Swagger
 {
     public static class SetupSwagger
     {
