@@ -8,18 +8,16 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsAspireHost>true</IsAspireHost>
-    <UserSecretsId>182967cb-6a4b-4772-93ce-bb744478dbb8</UserSecretsId>
+    <UserSecretsId>571c0e3c-0cde-4c78-94e3-bfa5b8c1485d</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Aspire.Hosting.AppHost" Version="9.2.0" />
+    <PackageReference Include="Aspire.Hosting.AppHost" Version="9.0.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\EndPoints\PM.EndPoint.API\PM.EndPoint.API.csproj" />
     <ProjectReference Include="..\..\Services\identity-service\PM.Identity.API\PM.Identity.API.csproj" />
-    <ProjectReference Include="..\..\Services\project-service\PM.Project.API\PM.Project.API.csproj" />
-    <ProjectReference Include="..\PM.Gateway.API\PM.Gateway.API.csproj" />
+    <ProjectReference Include="..\..\Web\PM.Web.API\PM.Web.API.csproj" />
   </ItemGroup>
 
 </Project>
