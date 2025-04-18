@@ -6,4 +6,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\PM.Shared.Dtos\PM.Shared.Dtos.csproj" />
+    <ProjectReference Include="..\PM.Shared.Library\PM.Shared.Library.csproj" />
+  </ItemGroup>
+
 </Project>
