@@ -1,6 +1,7 @@
 var builder = DistributedApplication.CreateBuilder(args);
-var identityService = builder.AddProject<Projects.PM_Identity_API>("identity-service");
-var projectService = builder.AddProject<Projects.PM_Project_API>("project-service");
-builder.AddProject<Projects.PM_EndPoint_API>("pm-endpoint-api");
-builder.AddProject<Projects.PM_Gateway_API>("pm-gateway-api");
+
+builder.AddProject<Projects.PM_Identity_API>("pm-identity-api");
+
+builder.AddProject<Projects.PM_Web_API>("pm-web-api");
+
 builder.Build().Run();
