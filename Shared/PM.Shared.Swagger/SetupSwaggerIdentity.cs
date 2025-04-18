@@ -1,4 +1,7 @@
-﻿using OpenApiSecurityRequirement = Microsoft.OpenApi.Models.OpenApiSecurityRequirement;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.OpenApi.Models;
+using OpenApiSecurityRequirement = Microsoft.OpenApi.Models.OpenApiSecurityRequirement;
 using OpenApiSecurityScheme = Microsoft.OpenApi.Models.OpenApiSecurityScheme;
 
 namespace PM.Shared.Swagger
