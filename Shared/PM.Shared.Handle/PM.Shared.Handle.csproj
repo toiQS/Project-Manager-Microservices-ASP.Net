@@ -7,8 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.4" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\PM.Shared.Dtos\PM.Shared.Dtos.csproj" />
-    <ProjectReference Include="..\PM.Shared.Library\PM.Shared.Library.csproj" />
   </ItemGroup>
 
 </Project>
