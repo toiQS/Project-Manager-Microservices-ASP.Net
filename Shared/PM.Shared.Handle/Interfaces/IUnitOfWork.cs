@@ -1,4 +1,5 @@
-﻿using PM.Shared.Dtos;
+﻿using Microsoft.EntityFrameworkCore;
+using PM.Shared.Dtos;
 
 namespace PM.Shared.Handle.Interfaces
 {
