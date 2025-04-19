@@ -18,6 +18,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Services\identity-service\PM.Identity.API\PM.Identity.API.csproj" />
     <ProjectReference Include="..\..\Web\PM.Web.API\PM.Web.API.csproj" />
+    <ProjectReference Include="..\PM.Gateway\PM.Gateway.csproj" />
   </ItemGroup>
 
 </Project>
