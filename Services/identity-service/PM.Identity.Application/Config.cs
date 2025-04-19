@@ -1,9 +1,12 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using PM.Identity.Application.Implements;
+using PM.Identity.Application.Interfaces;
 using PM.Identity.Entities;
 using PM.Identity.Infrastructure.Data;
 using PM.Shared.Config;
+using PM.Shared.Jwt;
 
 namespace PM.Identity.Application
 {
@@ -13,22 +16,29 @@ namespace PM.Identity.Application
         {
             services.Initialize<AuthDbContext>(configuration);
             services.RegisterIdentity(configuration);
+            services.InitializeUnitOfWork(configuration); // Fixed method call
+            services.InitializeRepositories(configuration); // Fixed method call
+            services.InitializeServices(configuration); // Fixed method call
         }
-        private static void InitializeUnitOfWork(IServiceCollection services, IConfiguration configuration)
+
+        private static void InitializeUnitOfWork(this IServiceCollection services, IConfiguration configuration)
         {
             //services.AddScoped<IUnitOfWork, UnitOfWork>();
         }
-        private static void InitializeRepositories(IServiceCollection services, IConfiguration configuration)
+
+        private static void InitializeRepositories(this IServiceCollection services, IConfiguration configuration)
         {
-           
+
         }
-        private static void InitializeServices(IServiceCollection services, IConfiguration configuration)
+
+        private static void InitializeServices(this IServiceCollection services, IConfiguration configuration) // Fixed method signature
         {
-            
+            services.AddScoped<IAuthHandle, AuthHandle>();
+            services.AddScoped<IJwtService, JwtService>();
         }
+
         private static void RegisterIdentity(this IServiceCollection services, IConfiguration configuration)
         {
-            
             services.AddIdentity<AppUser, IdentityRole>(options =>
             {
                 options.Password.RequiredLength = 3;
@@ -55,6 +65,5 @@ namespace PM.Identity.Application
                 options.Password.RequiredUniqueChars = 1;
             });
         }
-
     }
 }
