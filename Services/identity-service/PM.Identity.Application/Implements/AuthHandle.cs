@@ -1,12 +1,89 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Microsoft.AspNetCore.Identity;
+using PM.Identity.Application.Interfaces;
+using PM.Identity.Entities;
+using PM.Shared.Dtos;
+using PM.Shared.Jwt;
 
 namespace PM.Identity.Application.Implements
 {
-    public class AuthHandle
+    public class AuthHandle : IAuthHandle
     {
+        private readonly UserManager<AppUser> _userManager;
+        private readonly SignInManager<AppUser> _signInManager;
+        private readonly IPasswordHasher<AppUser> _passwordHasher;
+        private readonly IPasswordValidator<AppUser> _passwordValidator;
+        private readonly IJwtService _jwtService;
+        public AuthHandle(
+            UserManager<AppUser> userManager,
+            SignInManager<AppUser> signInManager,
+            IPasswordHasher<AppUser> passwordHasher,
+            IPasswordValidator<AppUser> passwordValidator,
+            IJwtService jwtService)
+        {
+            _userManager = userManager;
+            _signInManager = signInManager;
+            _passwordHasher = passwordHasher;
+            _passwordValidator = passwordValidator;
+            _jwtService = jwtService;
+        }
+        public async Task<ServiceResult<string>> RegisterHandleAsync(RegisterModel model)
+        {
+            if (string.IsNullOrEmpty(model.Username) || string.IsNullOrEmpty(model.Email) || string.IsNullOrEmpty(model.Password))
+            {
+                return ServiceResult<string>.Error("Username, email and password are required.");
+            }
+            try
+            {
+                var user = new AppUser
+                {
+                    UserName = model.Username,
+                    Email = model.Email,
+                    EmailConfirmed = false
+                };
+                var result = await _userManager.CreateAsync(user, model.Password);
+                if (result.Succeeded)
+                {
+                    return ServiceResult<string>.Success(user.Id, "User registered successfully.");
+                }
+                else
+                {
+                    var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                    return ServiceResult<string>.Error(errors);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                return ServiceResult<string>.FromException(ex);
+            }
+        }
+        public async Task<ServiceResult<string>> LoginHandleAsync(LoginModel model)
+        {
+            if(string.IsNullOrEmpty(model.Email) || string.IsNullOrEmpty(model.Password))
+            {
+                return ServiceResult<string>.Error("Email and password are required.");
+            }
+            try
+            {
+                var user = await _userManager.FindByEmailAsync(model.Email);
+                if (user == null)
+                {
+                    return ServiceResult<string>.Error("Invalid email or password.");
+                }
+                var result = await _signInManager.PasswordSignInAsync(user, model.Password, isPersistent: false, lockoutOnFailure: false);
+                if (result.Succeeded)
+                {
+                    return ServiceResult<string>.Success(user.Id, "Login successful.");
+                }
+                else
+                {
+                    return ServiceResult<string>.Error("Invalid email or password.");
+                }
+            }
+            catch (Exception ex)
+            {
+                return ServiceResult<string>.FromException(ex);
+            }
+        }
     }
 }
