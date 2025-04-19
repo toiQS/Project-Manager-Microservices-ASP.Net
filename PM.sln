@@ -41,6 +41,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PM.Identity.Application", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PM.Shared.Jwt", "Shared\PM.Shared.Jwt\PM.Shared.Jwt.csproj", "{82E12CA7-A4E1-442A-A9A4-D6E45AE0922D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PM.Gateway", "Gateway\PM.Gateway\PM.Gateway.csproj", "{F87AEE8F-0DE9-89CC-3534-24945F7A1364}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -91,6 +93,10 @@ Global
 		{82E12CA7-A4E1-442A-A9A4-D6E45AE0922D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{82E12CA7-A4E1-442A-A9A4-D6E45AE0922D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{82E12CA7-A4E1-442A-A9A4-D6E45AE0922D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F87AEE8F-0DE9-89CC-3534-24945F7A1364}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F87AEE8F-0DE9-89CC-3534-24945F7A1364}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F87AEE8F-0DE9-89CC-3534-24945F7A1364}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F87AEE8F-0DE9-89CC-3534-24945F7A1364}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -111,6 +117,7 @@ Global
 		{56097B98-DB7C-4868-9623-586BC5C76F0A} = {54830A64-37C1-47FA-82A4-3BF8FA9BE4FF}
 		{27BE0711-B0FD-42A5-A9D6-EFD87B0445C9} = {54830A64-37C1-47FA-82A4-3BF8FA9BE4FF}
 		{82E12CA7-A4E1-442A-A9A4-D6E45AE0922D} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{F87AEE8F-0DE9-89CC-3534-24945F7A1364} = {598F8D28-4050-41D2-853F-D7AF006C4205}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C895F6A9-DBC0-4EDF-A441-7CB6B92CB0BD}
