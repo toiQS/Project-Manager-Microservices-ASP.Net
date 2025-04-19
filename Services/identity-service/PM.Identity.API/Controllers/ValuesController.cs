@@ -6,12 +6,14 @@ namespace PM.Identity.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class ValuesController : ControllerBase
     {
-        [HttpGet, Authorize]
-        public async Task<IActionResult> Demo()
+        public ValuesController() { }
+        [HttpGet("demo")]
+        public IActionResult Get()
         {
-            return Ok("Identity API");
+            return Ok(new { message = "Hello from Identity API" });
         }
     }
 }
