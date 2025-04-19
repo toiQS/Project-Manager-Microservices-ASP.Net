@@ -34,7 +34,9 @@ else
     app.UseHsts();
 }
 
-app.MapGet("/", () => "Hello World!");
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.MapControllers();
 
 app.Run();
