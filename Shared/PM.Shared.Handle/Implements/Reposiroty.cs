@@ -1,25 +1,33 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using LinqKit;
 using PM.Shared.Dtos;
 using PM.Shared.Handle.Interfaces;
 
 namespace PM.Shared.Handle.Implements
 {
-    public class Repository<TData, TEntity> : IRepository<TData, TEntity> where TData : DbContext where TEntity : class
+    public class Repository<TData, TEntity> : IRepository<TData, TEntity>
+        where TData : DbContext
+        where TEntity : class
     {
         private readonly TData _context;
         private readonly DbSet<TEntity> _dbSet;
+
         public Repository(TData context)
         {
             _context = context;
             _dbSet = _context.Set<TEntity>();
         }
 
-        public async Task<ServiceResult<IEnumerable<TEntity>>> GetAllAsync()
+        public async Task<ServiceResult<IEnumerable<TEntity>>> GetAllAsync(int page = 1, int pageSize = 50, CancellationToken cancellationToken = default)
         {
             try
             {
-                CancellationToken cancellationToken = default;
-                var response = await _dbSet.AsNoTracking().Skip(50 * 1).Take(50).ToListAsync(cancellationToken);
+                var response = await _dbSet
+                    .AsNoTracking()
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync(cancellationToken);
+
                 return ServiceResult<IEnumerable<TEntity>>.Success(response);
             }
             catch (Exception ex)
@@ -27,16 +35,23 @@ namespace PM.Shared.Handle.Implements
                 return ServiceResult<IEnumerable<TEntity>>.FromException(ex);
             }
         }
-        public async Task<ServiceResult<IEnumerable<TEntity>>> GetManyAsync(string key, string valueKey)
+
+        public async Task<ServiceResult<IEnumerable<TEntity>>> GetManyAsync(string key, string valueKey, CancellationToken cancellationToken = default)
         {
             try
             {
-                bool isCheckProperty = typeof(TEntity).GetProperty(key) != null;
-                if (!isCheckProperty)
-                {
+                if (typeof(TEntity).GetProperty(key) == null)
                     return ServiceResult<IEnumerable<TEntity>>.Error("Property not found");
-                }
-                var response = await _dbSet.AsNoTracking().Where(x => EF.Property<string>(x, key) == valueKey).ToListAsync();
+
+                var predicate = PredicateBuilder.New<TEntity>();
+                predicate = predicate.And(x => EF.Property<string>(x, key) == valueKey);
+
+                var response = await _dbSet
+                    .AsNoTracking()
+                    .AsExpandable()
+                    .Where(predicate)
+                    .ToListAsync(cancellationToken);
+
                 return ServiceResult<IEnumerable<TEntity>>.Success(response);
             }
             catch (Exception ex)
@@ -44,66 +59,71 @@ namespace PM.Shared.Handle.Implements
                 return ServiceResult<IEnumerable<TEntity>>.FromException(ex);
             }
         }
-        public async Task<ServiceResult<TEntity>> GetOneAsync(string key, string valueKey)
+
+        public async Task<ServiceResult<TEntity>> GetOneAsync(string key, string valueKey, CancellationToken cancellationToken = default)
         {
             try
             {
-                bool isCheckProperty = typeof(TEntity).GetProperty(key) != null;
-                if (!isCheckProperty)
-                {
+                if (typeof(TEntity).GetProperty(key) == null)
                     return ServiceResult<TEntity>.Error("Property not found");
-                }
-                var response = await _dbSet.AsNoTracking().FirstOrDefaultAsync(x => EF.Property<string>(x, key) == valueKey);
-                if (response == null) return ServiceResult<TEntity>.Error("Data not found");
-                return ServiceResult<TEntity>.Success(response);
+
+                var response = await _dbSet
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(x => EF.Property<string>(x, key) == valueKey, cancellationToken);
+
+                return response == null
+                    ? ServiceResult<TEntity>.Error("Data not found")
+                    : ServiceResult<TEntity>.Success(response);
             }
             catch (Exception ex)
             {
                 return ServiceResult<TEntity>.FromException(ex);
             }
         }
+
         public Task<ServiceResult<bool>> IsExistName(IEnumerable<TEntity> arr, string name)
         {
-            var isCheckNameProperty = typeof(TEntity).GetProperty("Name") != null;
-            if (!isCheckNameProperty)
-            {
+            if (typeof(TEntity).GetProperty("Name") == null)
                 return Task.FromResult(ServiceResult<bool>.Error("Property not found"));
-            }
+
             var isExist = arr.Any(x => EF.Property<string>(x, "Name") == name);
-            if (isExist)
-            {   
-                return Task.FromResult(ServiceResult<bool>.Error("Name already exists"));
-            }
-            return Task.FromResult(ServiceResult<bool>.Success(true));
+
+            return isExist
+                ? Task.FromResult(ServiceResult<bool>.Error("Name already exists"))
+                : Task.FromResult(ServiceResult<bool>.Success(true));
         }
-        public Task AddAsync(TEntity entity)
+
+        public async Task AddAsync(TEntity entity, CancellationToken cancellationToken = default)
         {
-            _dbSet.AddAsync(entity);
-            return Task.CompletedTask;
+            await _dbSet.AddAsync(entity, cancellationToken);
         }
-        public Task UpdateAsync(TEntity entity)
+
+        public Task UpdateAsync(TEntity entity, CancellationToken cancellationToken = default)
         {
             _dbSet.Update(entity);
             return Task.CompletedTask;
         }
-        public Task PacthAsync(TEntity entity, Dictionary<string, object> keyValuePairs)
+
+        public Task PatchAsync(TEntity entity, Dictionary<string, object> keyValuePairs, CancellationToken cancellationToken = default)
         {
-            foreach (var keyValuePair in keyValuePairs)
+            foreach (var pair in keyValuePairs)
             {
-                var property = typeof(TEntity).GetProperty(keyValuePair.Key);
-                if (property != null)
-                {
-                    property.SetValue(entity, keyValuePair.Value);
-                }
-                Task.FromException(new Exception("Property not found"));
+                var property = typeof(TEntity).GetProperty(pair.Key);
+                if (property == null)
+                    throw new ArgumentException($"Property '{pair.Key}' not found");
+
+                property.SetValue(entity, pair.Value);
             }
+
             _context.Entry(entity).State = EntityState.Modified;
             return Task.CompletedTask;
         }
-        public Task DeleteAsync(TEntity entity)
+
+        public Task DeleteAsync(TEntity entity, CancellationToken cancellationToken = default)
         {
             _dbSet.Remove(entity);
             return Task.CompletedTask;
         }
+
     }
 }
