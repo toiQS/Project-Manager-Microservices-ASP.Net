@@ -9,6 +9,8 @@ builder.Services.InitializeSwagger(
     "PM.Identity.API"
 );
 
+builder.Services.AddHttpContextAccessor();
+
 builder.Services.InitializeApplication(builder.Configuration);
 
 var app = builder.Build();
