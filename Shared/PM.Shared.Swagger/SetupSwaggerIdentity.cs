@@ -8,7 +8,7 @@ namespace PM.Shared.Swagger
 {
     public static class SetupSwaggerIdentity
     {
-        public static void InitializeSwaggerInitalize(this IServiceCollection services, IConfiguration configuration, string title)
+        public static void InitializeSwaggerIdentity(this IServiceCollection services, IConfiguration configuration, string title)
         {
             services.AddSwaggerGen(c =>
             {
