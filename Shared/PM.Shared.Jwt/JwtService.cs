@@ -28,7 +28,7 @@ namespace PM.Shared.Jwt
                     new Claim(ClaimTypes.Email, email),
                     new Claim(ClaimTypes.Role, role)
                 };
-                var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
+                var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:SecretKey"]!));
                 var credentials = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
                 var token = new JwtSecurityToken(
                     issuer: _configuration["Jwt:Issuer"],
