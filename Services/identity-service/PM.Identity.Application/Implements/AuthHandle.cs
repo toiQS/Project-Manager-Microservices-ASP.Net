@@ -73,7 +73,14 @@ namespace PM.Identity.Application.Implements
                 var result = await _signInManager.PasswordSignInAsync(user, model.Password, isPersistent: false, lockoutOnFailure: false);
                 if (result.Succeeded)
                 {
-                    return ServiceResult<string>.Success(user.Id, "Login successful.");
+                    //var role = await _userManager.GetRolesAsync(user);
+                    var token = _jwtService.GenerateToken(user.Id, user.Email!, "customer");
+                    if(token.Status != ResultStatus.Success)
+                    {
+                        return ServiceResult<string>.Error(token.Message);
+                    }
+                    
+                    return ServiceResult<string>.Success(token.Data!, "Login successful.");
                 }
                 else
                 {
