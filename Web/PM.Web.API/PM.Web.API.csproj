@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Shared\PM.Shared.Dtos\PM.Shared.Dtos.csproj" />
+    <ProjectReference Include="..\..\Shared\PM.Shared.Jwt\PM.Shared.Jwt.csproj" />
     <ProjectReference Include="..\..\Shared\PM.Shared.Swagger\PM.Shared.Swagger.csproj" />
   </ItemGroup>
 
