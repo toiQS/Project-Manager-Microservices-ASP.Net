@@ -1,6 +1,9 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Namotion.Reflection;
 using PM.Shared.Dtos;
+using System.Security.Claims;
 
 namespace PM.Web.API.Controllers
 {
@@ -34,7 +37,7 @@ namespace PM.Web.API.Controllers
             if (response.IsSuccessStatusCode)
             {
                 var token = await response.Content.ReadAsStringAsync();
-                return Ok(token);
+               return Ok(token);
             }
             else
             {
@@ -42,18 +45,21 @@ namespace PM.Web.API.Controllers
                 return BadRequest(error);
             }
         }
-        [HttpGet("test")]
-        public IActionResult demo()
+        [Authorize]  // Đảm bảo người dùng đã được xác thực
+        [HttpGet("userinfo")]
+        public IActionResult GetUserInfo()
         {
-            var user = _content.HttpContext.User;
-            if(user.Identity.IsAuthenticated)
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var userEmail = User.FindFirst(ClaimTypes.Email)?.Value;
+
+            if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(userEmail))
             {
-                return Ok(new { message = "Hello from Identity API" });
+                return Unauthorized("User information is missing.");
             }
-            else
-            {
-                return Unauthorized();
-            }
+
+            // Bạn có thể lấy thông tin người dùng từ database hoặc trả về dữ liệu theo yêu cầu
+            return Ok(new { UserId = userId, UserEmail = userEmail });
         }
+
     }
 }
