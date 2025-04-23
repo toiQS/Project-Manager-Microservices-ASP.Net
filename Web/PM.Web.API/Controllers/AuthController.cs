@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Namotion.Reflection;
-using PM.Shared.Dtos;
+using PM.Shared.Dtos.auths;
 using System.Security.Claims;
 
 namespace PM.Web.API.Controllers
