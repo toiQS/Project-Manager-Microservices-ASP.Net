@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using PM.Identity.Application.Interfaces;
 using PM.Shared.Dtos;
+using PM.Shared.Dtos.auths;
 
 namespace PM.Identity.API.Controllers
 {
