@@ -11,9 +11,45 @@
         }
       ],
       "DownstreamPathTemplate": "/api/Auth/login",
-      "DownstreamScheme": "Https",
-      "UpstreamHttpMethod": [ "Post" ],
+      "DownstreamScheme": "https",
+      "UpstreamHttpMethod": [ "POST" ],
       "UpstreamPathTemplate": "/api/auth/login"
+    },
+    {
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7193
+        }
+      ],
+      "DownstreamPathTemplate": "/api/Auth/register",
+      "DownstreamScheme": "https",
+      "UpstreamHttpMethod": [ "POST" ],
+      "UpstreamPathTemplate": "/api/auth/register"
+    },
+    {
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7193
+        }
+      ],
+      "DownstreamPathTemplate": "/api/User/get-user",
+      "DownstreamScheme": "https",
+      "UpstreamHttpMethod": [ "GET" ],
+      "UpstreamPathTemplate": "/api/user/get-user"
+    },
+    {
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7193
+        }
+      ],
+      "DownstreamPathTemplate": "/api/User/pacth-user",
+      "DownstreamScheme": "https",
+      "UpstreamHttpMethod": [ "PATCH" ],
+      "UpstreamPathTemplate": "/api/user/pacth-user"
     }
   ]
 }
