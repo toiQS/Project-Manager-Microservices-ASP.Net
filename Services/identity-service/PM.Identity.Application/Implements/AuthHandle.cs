@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
 using PM.Identity.Application.Interfaces;
 using PM.Identity.Entities;
 using PM.Shared.Dtos;
+using PM.Shared.Dtos.auths;
 using PM.Shared.Jwt;
 
 namespace PM.Identity.Application.Implements
@@ -88,6 +90,75 @@ namespace PM.Identity.Application.Implements
                 }
             }
             catch (Exception ex)
+            {
+                return ServiceResult<string>.FromException(ex);
+            }
+        }
+        public async Task<ServiceResult<string>> ForgotPasswordHandle(ForgotPasswordModel model)
+        {
+            if(string.IsNullOrEmpty(model.Email))
+            {
+                return ServiceResult<string>.Error("Email is required.");
+            }
+            if(string.IsNullOrEmpty(model.NewPassword))
+            {
+                return ServiceResult<string>.Error("New password is required.");
+            }
+            try
+            {
+                var user = await _userManager.FindByEmailAsync(model.Email);
+                if (user == null)
+                {
+                    return ServiceResult<string>.Error("Invalid email.");
+                }
+                var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+                var result = await _userManager.ResetPasswordAsync(user, token, model.NewPassword);
+                if (result.Succeeded)
+                {
+                    return ServiceResult<string>.Success(user.Id, "Password reset successfully.");
+                }
+                else
+                {
+                    var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                    return ServiceResult<string>.Error(errors);
+                }
+            }
+            catch (Exception ex)
+            {
+                return ServiceResult<string>.FromException(ex);
+            }
+        }
+        public async Task<ServiceResult<string>> ChangePasswordHandle(ChangePasswordModel model)
+        {
+            if(string.IsNullOrEmpty(model.Email) || string.IsNullOrEmpty(model.OldPassword) || string.IsNullOrEmpty(model.NewPassword))
+            {
+                return ServiceResult<string>.Error("Email, old password and new password are required.");
+            }
+            try
+            {
+                var user = await _userManager.FindByEmailAsync(model.Email);
+                if(user == null)
+                {
+                    return ServiceResult<string>.Error("Invalid email.");
+                }
+                var result = await _signInManager.CheckPasswordSignInAsync(user, model.OldPassword, false);
+                if (!result.Succeeded)
+                {
+                    return ServiceResult<string>.Error("Invalid old password.");
+                }
+                var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+                var resetResult = await _userManager.ResetPasswordAsync(user, token, model.NewPassword);
+                if (resetResult.Succeeded)
+                {
+                    return ServiceResult<string>.Success(user.Id, "Password changed successfully.");
+                }
+                else
+                {
+                    var errors = string.Join(", ", resetResult.Errors.Select(e => e.Description));
+                    return ServiceResult<string>.Error(errors);
+                }
+            }
+            catch(Exception ex)
             {
                 return ServiceResult<string>.FromException(ex);
             }
