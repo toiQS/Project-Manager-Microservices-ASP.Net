@@ -6,4 +6,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Shared\PM.Shared.Handle\PM.Shared.Handle.csproj" />
+    <ProjectReference Include="..\PM.Tracking.Infrastructure\PM.Tracking.Infrastructure.csproj" />
+  </ItemGroup>
+
 </Project>
