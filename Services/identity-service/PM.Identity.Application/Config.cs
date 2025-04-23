@@ -6,6 +6,8 @@ using PM.Identity.Application.Interfaces;
 using PM.Identity.Entities;
 using PM.Identity.Infrastructure.Data;
 using PM.Shared.Config;
+using PM.Shared.Handle.Implements;
+using PM.Shared.Handle.Interfaces;
 using PM.Shared.Jwt;
 
 namespace PM.Identity.Application
@@ -23,17 +25,20 @@ namespace PM.Identity.Application
 
         private static void InitializeUnitOfWork(this IServiceCollection services, IConfiguration configuration)
         {
-            //services.AddScoped<IUnitOfWork, UnitOfWork>();
+           
+           services.AddScoped<IUnitOfWork<AuthDbContext>, UnitOfWork<AuthDbContext>>(); 
         }
 
         private static void InitializeRepositories(this IServiceCollection services, IConfiguration configuration)
         {
-
+            services.AddScoped(typeof(IRepository<,>), typeof(Repository<,>));
         }
 
         private static void InitializeServices(this IServiceCollection services, IConfiguration configuration) // Fixed method signature
         {
             services.AddScoped<IAuthHandle, AuthHandle>();
+            services.AddScoped<IUserHandle, UserHandle>();
+
             services.AddScoped<IJwtService, JwtService>();
         }
 
