@@ -7,11 +7,7 @@ namespace PM.Shared.Config
     public static class ConfigService
 
     {
-        public static void Initialize<TContext>(this IServiceCollection services, IConfiguration configuration) where TContext : DbContext
-        {
-            services.InitializeSQL<TContext>(configuration);
-        }
-        public static void InitializeSQL<TContext>(this IServiceCollection services, IConfiguration configuration) where TContext : DbContext
+        public static void InitializeSQL<TContext>(this IServiceCollection services, IConfiguration configuration, string nameConnectString) where TContext : DbContext
         {
             services.AddDbContext<TContext>(options =>
             {
@@ -19,11 +15,5 @@ namespace PM.Shared.Config
             });
         }
 
-    }
-
-    // Move the extension method to a non-generic static class
-    public static class ServiceCollectionExtensions
-    {
-       
     }
 }
