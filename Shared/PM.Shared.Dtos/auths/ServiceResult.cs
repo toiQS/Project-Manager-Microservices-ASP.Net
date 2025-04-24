@@ -1,4 +1,4 @@
-﻿namespace PM.Shared.Dtos
+﻿namespace PM.Shared.Dtos.auths
 {
     public enum ResultStatus
     {
