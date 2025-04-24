@@ -2,7 +2,7 @@
 using PM.Identity.Application.Interfaces;
 using PM.Identity.Entities;
 using PM.Identity.Infrastructure.Data;
-using PM.Shared.Dtos;
+using PM.Shared.Dtos.auths;
 using PM.Shared.Dtos.users;
 using PM.Shared.Handle.Interfaces;
 
