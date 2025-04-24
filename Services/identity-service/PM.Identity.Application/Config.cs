@@ -16,11 +16,11 @@ namespace PM.Identity.Application
     {
         public static void InitializeApplication(this IServiceCollection services, IConfiguration configuration)
         {
-            services.Initialize<AuthDbContext>(configuration);
+            services.InitializeSQL<AuthDbContext>(configuration, "IdentityConnectString");
             services.RegisterIdentity(configuration);
-            services.InitializeUnitOfWork(configuration); // Fixed method call
-            services.InitializeRepositories(configuration); // Fixed method call
-            services.InitializeServices(configuration); // Fixed method call
+            services.InitializeUnitOfWork(configuration); 
+            services.InitializeRepositories(configuration); 
+            services.InitializeServices(configuration); 
         }
 
         private static void InitializeUnitOfWork(this IServiceCollection services, IConfiguration configuration)
