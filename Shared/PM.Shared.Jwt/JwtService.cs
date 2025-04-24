@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using PM.Shared.Dtos;
+using PM.Shared.Dtos.auths;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
