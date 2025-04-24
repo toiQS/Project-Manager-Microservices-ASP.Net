@@ -11,7 +11,7 @@ namespace PM.Shared.Config
         {
             services.AddDbContext<TContext>(options =>
             {
-                options.UseSqlServer(configuration.GetConnectionString("DockerConnectString"));
+                options.UseSqlServer(configuration.GetConnectionString(nameConnectString));
             });
         }
 
