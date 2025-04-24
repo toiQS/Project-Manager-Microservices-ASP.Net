@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using LinqKit;
-using PM.Shared.Dtos;
 using PM.Shared.Handle.Interfaces;
+using PM.Shared.Dtos.auths;
 
 namespace PM.Shared.Handle.Implements
 {
