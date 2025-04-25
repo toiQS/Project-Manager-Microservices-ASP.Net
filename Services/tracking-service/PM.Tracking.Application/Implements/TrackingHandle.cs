@@ -1,15 +1,20 @@
 ﻿using PM.Shared.Dtos.auths;
 using PM.Shared.Dtos.tracking;
 using PM.Shared.Handle.Interfaces;
+using PM.Tracking.Application.Interfaces;
 using PM.Tracking.Entities;
 using PM.Tracking.Infrastructure.Data;
-using System.Security.Principal;
 
-namespace PM.Tracking.Application.Implements
+namespace PM.Tracking.Application.Implements 
 {
-    public class TrackingHandle
+    public class TrackingHandle : ITrackingHandle
     {
         private readonly IUnitOfWork<TrackingDbContext> _unitOfWork;
+        public TrackingHandle(IUnitOfWork<TrackingDbContext> unitOfWork)
+        {
+            _unitOfWork = unitOfWork;
+        }
+
         public async Task<ServiceResult<bool>> AddHandle(AddTrackingModel model)
         {
             if(model.ActionName == null)
@@ -24,16 +29,12 @@ namespace PM.Tracking.Application.Implements
             };
             try
             {
-                var addResult = await _unitOfWork.ExecuteTransactionAsync(async () => await _unitOfWork.Repository<ActivityLog>().AddAsync(tracking));
+                var addResult = await _unitOfWork.ExecuteTransactionAsync( async () => await _unitOfWork.Repository<ActivityLog>().AddAsync(tracking));
                 if(addResult.Status != ResultStatus.Success)
                 {
                     return ServiceResult<bool>.Error("Failed to add tracking");
                 }
                 var saveResult = await _unitOfWork.SaveChangesAsync();
-                if (saveResult <= 0)
-                {
-                    return ServiceResult<bool>.Error("Failed to save changes");
-                }
                 return ServiceResult<bool>.Success(true, "Tracking added successfully");
             }
             catch (Exception ex)
