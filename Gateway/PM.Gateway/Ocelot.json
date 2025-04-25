@@ -6,6 +6,7 @@
     {
 
       /// auth and user ///
+      // auth
       "DownstreamHostAndPorts": [
         {
           "Host": "localhost",
@@ -29,6 +30,32 @@
       "UpstreamHttpMethod": [ "POST" ],
       "UpstreamPathTemplate": "/api/auth/register"
     },
+    {
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7193
+        }
+      ],
+      "DownstreamPathTemplate": "/api/Auth/change-password",
+      "DownstreamScheme": "https",
+      "UpstreamHttpMethod": [ "POST" ],
+      "UpstreamPathTemplate": "/api/auth/change-password"
+    },
+    {
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7193
+        }
+      ],
+      "DownstreamPathTemplate": "/api/Auth/forgot-password",
+      "DownstreamScheme": "https",
+      "UpstreamHttpMethod": [ "POST" ],
+      "UpstreamPathTemplate": "/api/auth/forgot-password"
+    },
+
+    // user
     {
       "DownstreamHostAndPorts": [
         {
