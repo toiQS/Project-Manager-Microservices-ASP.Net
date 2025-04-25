@@ -13,6 +13,7 @@
 		</PackageReference>
 	</ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\..\Shared\PM.Shared.Swagger\PM.Shared.Swagger.csproj" />
     <ProjectReference Include="..\PM.Tracking.Application\PM.Tracking.Application.csproj" />
   </ItemGroup>
 
