@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace PM.Shared.Dtos.tracking
+﻿namespace PM.Shared.Dtos.tracking
 {
     public class AddTrackingModel
     {
