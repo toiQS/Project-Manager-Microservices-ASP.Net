@@ -36,8 +36,8 @@ namespace PM.Web.API.Controllers
             var response = await _httpClient.SendAsync(request);
             if (response.IsSuccessStatusCode)
             {
-                var token = await response.Content.ReadAsStringAsync();
-               return Ok(token);
+                var responseResult = await response.Content.ReadAsStringAsync();
+                return Ok(responseResult);
             }
             else
             {
