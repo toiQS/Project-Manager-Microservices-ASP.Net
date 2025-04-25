@@ -4,6 +4,8 @@
   },
   "Routes": [
     {
+
+      /// auth and user ///
       "DownstreamHostAndPorts": [
         {
           "Host": "localhost",
@@ -50,6 +52,20 @@
       "DownstreamScheme": "https",
       "UpstreamHttpMethod": [ "PATCH" ],
       "UpstreamPathTemplate": "/api/user/pacth-user"
+    },
+    /// tracking activity log
+    {
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7207
+        }
+      ],
+      "DownstreamPathTemplate": "/api/Tracking/add-tracking-log",
+      "DownstreamScheme": "https",
+      "UpstreamHttpMethod": [ "PATCH" ],
+      "UpstreamPathTemplate": "/api/tracking/add-tracking-log"
     }
+
   ]
 }
