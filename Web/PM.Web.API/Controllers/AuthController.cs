@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Mvc;
 using PM.Shared.Dtos.auths;
 using PM.Shared.Handle.Interfaces;
-using System.Net.Http.Json;
 using System.Security.Claims;
 
 namespace PM.Web.API.Controllers
@@ -11,115 +10,60 @@ namespace PM.Web.API.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private readonly HttpClient _httpClient;
         private readonly ILogger<AuthController> _logger;
         private readonly IAPIService<string> _aPIService;
-        private readonly string _baseUrl = "https://localhost:5000/api/auth";
 
         public AuthController(ILogger<AuthController> logger, IAPIService<string> aPIService)
         {
-            _httpClient = new HttpClient();
             _logger = logger;
             _aPIService = aPIService;
         }
 
-        /// <summary>
-        /// Đăng nhập người dùng qua API Identity
-        /// </summary>
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginModel model)
-        {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+        public Task<IActionResult> Login([FromBody] LoginModel model) => PostToIdentityAsync("login", model);
 
-            //return await ForwardToIdentityAsync("login", model);
-            var response = await _aPIService.APIsPostAsync("api/auth/login", model);
-            if (response.Status != ResultStatus.Success)
-                return BadRequest(response);
-            return Ok(response);
-        }
-
-        /// <summary>
-        /// Đăng ký tài khoản mới
-        /// </summary>
         [HttpPost("register")]
-        public async Task<IActionResult> RegisterAsync([FromBody] RegisterModel model)
-        {
-            if (!ModelState.IsValid)
-            {
-                _logger.LogWarning("Register model invalid");
-                return BadRequest(ModelState);
-            }
+        public Task<IActionResult> Register([FromBody] RegisterModel model) => PostToIdentityAsync("register", model);
 
-            return await ForwardToIdentityAsync("register", model);
-        }
-
-        /// <summary>
-        /// Thay đổi mật khẩu (yêu cầu đăng nhập)
-        /// </summary>
         [Authorize]
         [HttpPost("change-password")]
-        public async Task<IActionResult> ChangePasswordAsync([FromBody] ChangePasswordModel model)
+        public async Task<IActionResult> ChangePassword(string newPassword, string oldPassword)
         {
-            if (!ModelState.IsValid)
+            var userEmail = User.FindFirst(ClaimTypes.Email)?.Value;
+            if (userEmail == null) return BadRequest("User is not authorize");
+            var model = new ChangePasswordModel()
             {
-                _logger.LogWarning("Change password model invalid");
-                return BadRequest(ModelState);
-            }
-
-            return await ForwardToIdentityAsync("change-password", model);
+                Email = userEmail,
+                OldPassword = oldPassword,  
+                NewPassword = newPassword
+            };
+            return await PostToIdentityAsync("change-password", model);
         }
 
-        /// <summary>
-        /// Yêu cầu đặt lại mật khẩu (yêu cầu đăng nhập)
-        /// </summary>
         [Authorize]
         [HttpPost("forgot-password")]
-        public async Task<IActionResult> ForgotPasswordAsync([FromBody] ForgotPasswordModel model)
+        public Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordModel model) => PostToIdentityAsync("forgot-password", model);
+
+        /// <summary>
+        /// Hàm xử lý chung cho các post auth
+        /// </summary>
+        private async Task<IActionResult> PostToIdentityAsync(string endpoint, object model)
         {
             if (!ModelState.IsValid)
             {
-                _logger.LogWarning("Forgot password model invalid");
+                _logger.LogWarning("Invalid model for {Endpoint}", endpoint);
                 return BadRequest(ModelState);
             }
 
-            return await ForwardToIdentityAsync("forgot-password", model);
-        }
-
-        /// <summary>
-        /// Forward các request tới Identity API
-        /// </summary>
-        /// <param name="endpoint">Tên endpoint của Identity API</param>
-        /// <param name="payload">Dữ liệu cần gửi</param>
-        private async Task<IActionResult> ForwardToIdentityAsync(string endpoint, object payload)
-        {
-            try
+            var response = await _aPIService.APIsPostAsync($"api/auth/{endpoint}", model);
+            if (response.Status != ResultStatus.Success)
             {
-                var request = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}/{endpoint}")
-                {
-                    Content = JsonContent.Create(payload)
-                };
-                request.Headers.Add("Accept", "application/json");
-
-               
-
-                var response = await _httpClient.SendAsync(request);
-                var content = await response.Content.ReadAsStringAsync();
-
-                if (response.IsSuccessStatusCode)
-                {
-                    _logger.LogInformation("Forwarded to Identity API - {Endpoint} - SUCCESS", endpoint);
-                    return Ok(content);
-                }
-
-                _logger.LogWarning("Forwarded to Identity API - {Endpoint} - FAILED: {Content}", endpoint, content);
-                return BadRequest(content);
+                _logger.LogWarning("API call failed for {Endpoint}", endpoint);
+                return BadRequest(response);
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Exception when forwarding to Identity API - {Endpoint}", endpoint);
-                return StatusCode(500, "Internal server error");
-            }
+
+            _logger.LogInformation("API call succeeded for {Endpoint}", endpoint);
+            return Ok(response);
         }
     }
 }
