@@ -12,8 +12,4 @@
     <ProjectReference Include="..\PM.Core.Infrastructure\PM.Core.Infrastructure.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Interfaces\" />
-  </ItemGroup>
-
 </Project>
