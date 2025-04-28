@@ -44,7 +44,7 @@ namespace PM.Identity.Application.Implements
                 var result = await _userManager.CreateAsync(user, model.Password);
                 if (result.Succeeded)
                 {
-                    return ServiceResult<string>.Success(user.Id, "User registered successfully.");
+                    return ServiceResult<string>.Success(user.Id);
                 }
                 else
                 {
@@ -81,7 +81,7 @@ namespace PM.Identity.Application.Implements
                         return ServiceResult<string>.Error(token.Message);
                     }
                     
-                    return ServiceResult<string>.Success(token.Data!, "Login successful.");
+                    return ServiceResult<string>.Success(token.Data!);
                 }
                 else
                 {
@@ -114,7 +114,7 @@ namespace PM.Identity.Application.Implements
                 var result = await _userManager.ResetPasswordAsync(user, token, model.NewPassword);
                 if (result.Succeeded)
                 {
-                    return ServiceResult<string>.Success(user.Id, "Password reset successfully.");
+                    return ServiceResult<string>.Success(user.Id);
                 }
                 else
                 {
@@ -149,7 +149,7 @@ namespace PM.Identity.Application.Implements
                 var resetResult = await _userManager.ResetPasswordAsync(user, token, model.NewPassword);
                 if (resetResult.Succeeded)
                 {
-                    return ServiceResult<string>.Success(user.Id, "Password changed successfully.");
+                    return ServiceResult<string>.Success(user.Id);
                 }
                 else
                 {

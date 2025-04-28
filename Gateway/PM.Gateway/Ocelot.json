@@ -1,4 +1,4 @@
-{
+  {
   "GlobalConfiguration": {
     "BaseUrl": "http://localhost:5000"
   },
@@ -90,7 +90,7 @@
       ],
       "DownstreamPathTemplate": "/api/Tracking/add-tracking-log",
       "DownstreamScheme": "https",
-      "UpstreamHttpMethod": [ "PATCH" ],
+      "UpstreamHttpMethod": [ "Post" ],
       "UpstreamPathTemplate": "/api/tracking/add-tracking-log"
     }
 

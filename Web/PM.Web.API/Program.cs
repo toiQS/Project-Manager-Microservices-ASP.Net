@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using PM.Shared.Handle.Implements;
+using PM.Shared.Handle.Interfaces;
 using PM.Shared.Swagger;
 using System.Text;
 var builder = WebApplication.CreateBuilder(args);
@@ -8,6 +10,7 @@ builder.Services.InitializeSwaggerIdentity(
     "PM.Web.API"
 );
 
+builder.Services.AddScoped(typeof(IAPIService<>), typeof(APIService<>));
 // Add services to the container.
 
 builder.Services.AddControllers();

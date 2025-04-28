@@ -51,7 +51,7 @@ namespace PM.Identity.Application.Implements
                 return ServiceResult<UserDetail>.FromException(ex);
             }
         }
-        public async Task<ServiceResult<UserDetail>> PacthUserHandle(string userId, UserPacthModel model)
+        public async Task<ServiceResult<UserDetail>> PatchUserHandle(string userId, UserPatchModel model)
         {
             if(userId == null)
             {

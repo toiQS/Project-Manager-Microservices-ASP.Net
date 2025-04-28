@@ -6,6 +6,6 @@ namespace PM.Identity.Application.Interfaces
     public interface IUserHandle
     {
         Task<ServiceResult<UserDetail>> GetUser(string userId);
-        Task<ServiceResult<UserDetail>> PacthUserHandle(string userId, UserPacthModel model);
+        Task<ServiceResult<UserDetail>> PatchUserHandle(string userId, UserPatchModel model);
     }
 }

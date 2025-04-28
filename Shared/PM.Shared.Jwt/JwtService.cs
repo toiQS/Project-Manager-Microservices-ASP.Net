@@ -38,11 +38,11 @@ namespace PM.Shared.Jwt
                     signingCredentials: credentials
                 );
                 var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
-                return ServiceResult<string>.Success(tokenString, "Token generated successfully");
+                return ServiceResult<string>.Success(tokenString);
             }
             catch (Exception ex)
             {
-                return ServiceResult<string>.Error("Token generation failed", ex.Message);
+                return ServiceResult<string>.FromException(ex);
             }
         }
 

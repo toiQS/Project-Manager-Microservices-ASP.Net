@@ -1,6 +1,6 @@
 ﻿namespace PM.Shared.Dtos.users
 {
-    public class UserPacthModel
+    public class UserPatchModel
     {
         public string Email { get; set; } = string.Empty;
         public string PhoneNumber { get; set; } = string.Empty;

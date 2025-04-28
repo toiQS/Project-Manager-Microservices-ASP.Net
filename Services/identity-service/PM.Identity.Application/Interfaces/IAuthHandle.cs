@@ -8,6 +8,6 @@ namespace PM.Identity.Application.Interfaces
         public Task<ServiceResult<string>> RegisterHandleAsync(RegisterModel model);
         public Task<ServiceResult<string>> LoginHandleAsync(LoginModel model);
         Task<ServiceResult<string>> ChangePasswordHandle(ChangePasswordModel model);
-        Task<ServiceResult<string>> ForgotPasswordHandle(ForgotPasswordModel model);
+        Task<ServiceResult<string>> ForgotPasswordHandle(ForgotPasswordModel model);    
     }
 }

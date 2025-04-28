@@ -7,4 +7,6 @@ builder.AddProject<Projects.PM_Gateway>("pm-gateway");
 
 builder.AddProject<Projects.PM_Tracking_API>("pm-tracking-api");
 
+builder.AddProject<Projects.PM_Core_API>("pm-core-api");
+
 builder.Build().Run();

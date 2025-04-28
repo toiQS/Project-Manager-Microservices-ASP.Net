@@ -26,6 +26,8 @@ namespace PM.Tracking.Application.Implements
                 Id =Guid.NewGuid().ToString(),
                 UserId = model.UserId,
                 ProjectId = model.ProjectId,
+                ActionName = model.ActionName,
+                ActionAt = DateTime.Now,
             };
             try
             {
@@ -35,7 +37,7 @@ namespace PM.Tracking.Application.Implements
                     return ServiceResult<bool>.Error("Failed to add tracking");
                 }
                 var saveResult = await _unitOfWork.SaveChangesAsync();
-                return ServiceResult<bool>.Success(true, "Tracking added successfully");
+                return ServiceResult<bool>.Success(true);
             }
             catch (Exception ex)
             {
