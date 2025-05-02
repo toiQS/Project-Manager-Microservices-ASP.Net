@@ -132,24 +132,31 @@ namespace PM.Shared.Handle.Implements
             _dbSet.Remove(entity);
             return Task.CompletedTask;
         }
-        public async Task DeleteAsync(TEntity entity, Func<TData, TEntity, Task>? deleteDependencies = null, CancellationToken cancellationToken = default)
+        public async Task<ServiceResult<bool>> DeleteAsyncWithDependencies(
+    object id,
+    Func<DbContext, object, Task> deleteDependencies,
+    CancellationToken cancellationToken = default)
         {
             try
             {
-                // Gọi hàm xử lý bản ghi con nếu có
+                var entity = await _dbSet.FindAsync(new object[] { id }, cancellationToken);
+
+                if (entity == null)
+                    return ServiceResult<bool>.Error("Entity not found");
+
+                // Xử lý xóa các liên kết phụ thuộc
                 if (deleteDependencies != null)
-                {
-                    await deleteDependencies(_context, entity);
-                }
+                    await deleteDependencies(_context, id);
 
                 _dbSet.Remove(entity);
+
+                return ServiceResult<bool>.Success(true);
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException($"Error deleting {typeof(TEntity).Name}: {ex.Message}", ex);
+                return ServiceResult<bool>.FromException(ex);
             }
         }
-
 
     }
 }
