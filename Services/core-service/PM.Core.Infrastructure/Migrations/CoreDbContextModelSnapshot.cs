@@ -41,6 +41,14 @@ namespace PM.Core.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("PlanId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ProjectMemberId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<string>("Request")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -52,6 +60,10 @@ namespace PM.Core.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("PlanId");
+
+                    b.HasIndex("ProjectMemberId");
 
                     b.ToTable("Missions");
                 });
@@ -207,6 +219,25 @@ namespace PM.Core.Infrastructure.Migrations
                     b.HasIndex("ProjectId");
 
                     b.ToTable("Members");
+                });
+
+            modelBuilder.Entity("PM.Core.Entities.Mission", b =>
+                {
+                    b.HasOne("PM.Core.Entities.Plan", "Plan")
+                        .WithMany()
+                        .HasForeignKey("PlanId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("PM.Core.Entities.ProjectMember", "ProjectMember")
+                        .WithMany()
+                        .HasForeignKey("ProjectMemberId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Plan");
+
+                    b.Navigation("ProjectMember");
                 });
 
             modelBuilder.Entity("PM.Core.Entities.MissionMember", b =>
