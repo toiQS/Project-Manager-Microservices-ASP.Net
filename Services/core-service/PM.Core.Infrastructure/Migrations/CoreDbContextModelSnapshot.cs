@@ -63,21 +63,17 @@ namespace PM.Core.Infrastructure.Migrations
 
                     b.Property<string>("MemberId")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("MissionId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("ProjectMemberId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("MissionId");
+                    b.HasIndex("MemberId");
 
-                    b.HasIndex("ProjectMemberId");
+                    b.HasIndex("MissionId");
 
                     b.ToTable("MissionMembers");
                 });
@@ -86,10 +82,6 @@ namespace PM.Core.Infrastructure.Migrations
                 {
                     b.Property<string>("Id")
                         .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("CreateBy")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("CreateDate")
                         .HasColumnType("datetime2");
@@ -109,6 +101,10 @@ namespace PM.Core.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<string>("ProjectMemberId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
 
@@ -118,6 +114,8 @@ namespace PM.Core.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ProjectId");
+
+                    b.HasIndex("ProjectMemberId");
 
                     b.ToTable("Plans");
                 });
@@ -213,15 +211,15 @@ namespace PM.Core.Infrastructure.Migrations
 
             modelBuilder.Entity("PM.Core.Entities.MissionMember", b =>
                 {
+                    b.HasOne("PM.Core.Entities.ProjectMember", "ProjectMember")
+                        .WithMany()
+                        .HasForeignKey("MemberId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("PM.Core.Entities.Mission", "Mission")
                         .WithMany()
                         .HasForeignKey("MissionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("PM.Core.Entities.ProjectMember", "ProjectMember")
-                        .WithMany()
-                        .HasForeignKey("ProjectMemberId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -238,7 +236,15 @@ namespace PM.Core.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("PM.Core.Entities.ProjectMember", "ProjectMember")
+                        .WithMany()
+                        .HasForeignKey("ProjectMemberId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.Navigation("Project");
+
+                    b.Navigation("ProjectMember");
                 });
 
             modelBuilder.Entity("PM.Core.Entities.ProjectMember", b =>
@@ -246,13 +252,13 @@ namespace PM.Core.Infrastructure.Migrations
                     b.HasOne("PM.Core.Entities.Position", "Position")
                         .WithMany()
                         .HasForeignKey("PositionId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("PM.Core.Entities.Project", "Project")
                         .WithMany()
                         .HasForeignKey("ProjectId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Position");
