@@ -1,7 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
-using LinqKit;
-using PM.Shared.Handle.Interfaces;
+﻿using LinqKit;
+using Microsoft.EntityFrameworkCore;
 using PM.Shared.Dtos.auths;
+using PM.Shared.Handle.Interfaces;
 
 namespace PM.Shared.Handle.Implements
 {
@@ -22,7 +22,7 @@ namespace PM.Shared.Handle.Implements
         {
             try
             {
-                var response = await _dbSet
+                List<TEntity> response = await _dbSet
                     .AsNoTracking()
                     .Skip((page - 1) * pageSize)
                     .Take(pageSize)
@@ -41,12 +41,14 @@ namespace PM.Shared.Handle.Implements
             try
             {
                 if (typeof(TEntity).GetProperty(key) == null)
+                {
                     return ServiceResult<IEnumerable<TEntity>>.Error("Property not found");
+                }
 
-                var predicate = PredicateBuilder.New<TEntity>();
+                ExpressionStarter<TEntity> predicate = PredicateBuilder.New<TEntity>();
                 predicate = predicate.And(x => EF.Property<string>(x, key) == valueKey);
 
-                var response = await _dbSet
+                List<TEntity> response = await _dbSet
                     .AsNoTracking()
                     .AsExpandable()
                     .Where(predicate)
@@ -65,9 +67,11 @@ namespace PM.Shared.Handle.Implements
             try
             {
                 if (typeof(TEntity).GetProperty(key) == null)
+                {
                     return ServiceResult<TEntity>.Error("Property not found");
+                }
 
-                var response = await _dbSet
+                TEntity? response = await _dbSet
                     .AsNoTracking()
                     .FirstOrDefaultAsync(x => EF.Property<string>(x, key) == valueKey, cancellationToken);
 
@@ -84,9 +88,11 @@ namespace PM.Shared.Handle.Implements
         public Task<ServiceResult<bool>> IsExistName(IEnumerable<TEntity> arr, string name)
         {
             if (typeof(TEntity).GetProperty("Name") == null)
+            {
                 return Task.FromResult(ServiceResult<bool>.Error("Property not found"));
+            }
 
-            var isExist = arr.Any(x => EF.Property<string>(x, "Name") == name);
+            bool isExist = arr.Any(x => EF.Property<string>(x, "Name") == name);
 
             return isExist
                 ? Task.FromResult(ServiceResult<bool>.Error("Name already exists"))
@@ -106,11 +112,13 @@ namespace PM.Shared.Handle.Implements
 
         public Task PatchAsync(TEntity entity, Dictionary<string, object> keyValuePairs, CancellationToken cancellationToken = default)
         {
-            foreach (var pair in keyValuePairs)
+            foreach (KeyValuePair<string, object> pair in keyValuePairs)
             {
-                var property = typeof(TEntity).GetProperty(pair.Key);
+                System.Reflection.PropertyInfo? property = typeof(TEntity).GetProperty(pair.Key);
                 if (property == null)
+                {
                     throw new ArgumentException($"Property '{pair.Key}' not found");
+                }
 
                 property.SetValue(entity, pair.Value);
             }
@@ -124,6 +132,24 @@ namespace PM.Shared.Handle.Implements
             _dbSet.Remove(entity);
             return Task.CompletedTask;
         }
+        public async Task DeleteAsync(TEntity entity, Func<TData, TEntity, Task>? deleteDependencies = null, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                // Gọi hàm xử lý bản ghi con nếu có
+                if (deleteDependencies != null)
+                {
+                    await deleteDependencies(_context, entity);
+                }
+
+                _dbSet.Remove(entity);
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException($"Error deleting {typeof(TEntity).Name}: {ex.Message}", ex);
+            }
+        }
+
 
     }
 }
