@@ -13,6 +13,11 @@ namespace PM.Core.Application.Implements
     public class PositionHandle
     {
         private readonly IUnitOfWork<CoreDbContext> _unitOfWork;
+        public PositionHandle(IUnitOfWork<CoreDbContext> unitOfWork)
+        {
+            _unitOfWork = unitOfWork;
+        }
+
         public async Task<ServiceResult<Position>> GetPositionByName(string name)
         {
             if (string.IsNullOrEmpty(name))
