@@ -13,5 +13,13 @@ namespace PM.Core.Application.Implements
             _unitOfWork = unitOfWork;
             _userAPI = userAPI;
         }
+
+        // lấy kế hoạch trong dự án
+
+        // chi tiết kế hoạch
+        // thêm kế hoạch
+        // chỉnh sửa kế hoạch
+        // xóa kế hoạch
+        // xóa nhiều kế hoạch cùng lúc
     }
 }
