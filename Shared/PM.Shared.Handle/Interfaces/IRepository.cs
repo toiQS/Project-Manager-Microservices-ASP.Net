@@ -23,5 +23,6 @@ namespace PM.Shared.Handle.Interfaces
 
         Task DeleteAsync(TEntity entity, CancellationToken cancellationToken = default);
         //Task DeleteAsync(TEntity entity, Func<TData, TEntity, Task>? deleteDependencies = null, CancellationToken cancellationToken = default);
+        Task DeleteAsync(List<TEntity> entities, CancellationToken cancellationToken = default);
     }
 }
