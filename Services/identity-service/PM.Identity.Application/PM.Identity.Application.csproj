@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="9.0.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Shared\PM.Shared.Config\PM.Shared.Config.csproj" />
+    <ProjectReference Include="..\..\..\Shared\PM.Shared.Dtos\PM.Shared.Dtos.csproj" />
+    <ProjectReference Include="..\..\..\Shared\PM.Shared.Handle\PM.Shared.Handle.csproj" />
+    <ProjectReference Include="..\..\..\Shared\PM.Shared.Jwt\PM.Shared.Jwt.csproj" />
+    <ProjectReference Include="..\PM.Identity.Infrastructure\PM.Identity.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>

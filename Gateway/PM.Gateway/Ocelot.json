@@ -1,0 +1,98 @@
+  {
+  "GlobalConfiguration": {
+    "BaseUrl": "http://localhost:5000"
+  },
+  "Routes": [
+    {
+
+      /// auth and user ///
+      // auth
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7193
+        }
+      ],
+      "DownstreamPathTemplate": "/api/Auth/login",
+      "DownstreamScheme": "https",
+      "UpstreamHttpMethod": [ "POST" ],
+      "UpstreamPathTemplate": "/api/auth/login"
+    },
+    {
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7193
+        }
+      ],
+      "DownstreamPathTemplate": "/api/Auth/register",
+      "DownstreamScheme": "https",
+      "UpstreamHttpMethod": [ "POST" ],
+      "UpstreamPathTemplate": "/api/auth/register"
+    },
+    {
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7193
+        }
+      ],
+      "DownstreamPathTemplate": "/api/Auth/change-password",
+      "DownstreamScheme": "https",
+      "UpstreamHttpMethod": [ "POST" ],
+      "UpstreamPathTemplate": "/api/auth/change-password"
+    },
+    {
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7193
+        }
+      ],
+      "DownstreamPathTemplate": "/api/Auth/forgot-password",
+      "DownstreamScheme": "https",
+      "UpstreamHttpMethod": [ "POST" ],
+      "UpstreamPathTemplate": "/api/auth/forgot-password"
+    },
+
+    // user
+    {
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7193
+        }
+      ],
+      "DownstreamPathTemplate": "/api/User/get-user",
+      "DownstreamScheme": "https",
+      "UpstreamHttpMethod": [ "GET" ],
+      "UpstreamPathTemplate": "/api/user/get-user"
+    },
+    {
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7193
+        }
+      ],
+      "DownstreamPathTemplate": "/api/User/pacth-user",
+      "DownstreamScheme": "https",
+      "UpstreamHttpMethod": [ "PATCH" ],
+      "UpstreamPathTemplate": "/api/user/pacth-user"
+    },
+    /// tracking activity log
+    {
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7207
+        }
+      ],
+      "DownstreamPathTemplate": "/api/Tracking/add-tracking-log",
+      "DownstreamScheme": "https",
+      "UpstreamHttpMethod": [ "Post" ],
+      "UpstreamPathTemplate": "/api/tracking/add-tracking-log"
+    }
+
+  ]
+}

@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Shared\PM.Shared.Config\PM.Shared.Config.csproj" />
+    <ProjectReference Include="..\..\..\Shared\PM.Shared.Handle\PM.Shared.Handle.csproj" />
+    <ProjectReference Include="..\PM.Core.Infrastructure\PM.Core.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>
