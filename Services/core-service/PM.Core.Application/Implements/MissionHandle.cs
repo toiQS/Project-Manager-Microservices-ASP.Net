@@ -87,7 +87,7 @@ namespace PM.Core.Application.Implements
 
                 ServiceResult<UserDetail> user = await _userAPI.APIsGetAsync($"/api/user/get-user?userId={member.Data.UserId}");
 
-                DetailMissionModel detail = new DetailMissionModel
+                DetailMissionModel detail = new()
                 {
                     Id = mission.Data.Id,
                     Name = mission.Data.Name,
@@ -141,7 +141,7 @@ namespace PM.Core.Application.Implements
                     return ServiceResult<DetailMissionModel>.Error("Không tìm thấy thành viên dự án.");
                 }
 
-                Mission mission = new Mission
+                Mission mission = new()
                 {
                     Id = Guid.NewGuid().ToString(),
                     Name = model.Name,
@@ -160,12 +160,9 @@ namespace PM.Core.Application.Implements
                 ServiceResult<bool> result = await _unitOfWork.ExecuteTransactionAsync(() =>
                     _unitOfWork.Repository<Mission>().AddAsync(mission));
 
-                if (result.Status != ResultStatus.Success)
-                {
-                    return ServiceResult<DetailMissionModel>.Error("Thêm nhiệm vụ thất bại.");
-                }
-
-                return await GetDetailAsync(mission.Id);
+                return result.Status != ResultStatus.Success
+                    ? ServiceResult<DetailMissionModel>.Error("Thêm nhiệm vụ thất bại.")
+                    : await GetDetailAsync(mission.Id);
             }
             catch (Exception ex)
             {
@@ -202,8 +199,8 @@ namespace PM.Core.Application.Implements
                     return ServiceResult<DetailMissionModel>.Error("Không có quyền chỉnh sửa nhiệm vụ này.");
                 }
 
-                Dictionary<string, object> patchData = new Dictionary<string, object>
-            {
+                Dictionary<string, object> patchData = new()
+                {
                 { nameof(model.Name), model.Name },
                 { nameof(model.Request), model.Request },
                 { nameof(model.StartDate), new DateTime(model.StartDate.Year, model.StartDate.Month, model.StartDate.Day) },
@@ -213,12 +210,9 @@ namespace PM.Core.Application.Implements
                 ServiceResult<bool> patchResult = await _unitOfWork.ExecuteTransactionAsync(() =>
                     _unitOfWork.Repository<Mission>().PatchAsync(mission.Data, patchData));
 
-                if (patchResult.Status != ResultStatus.Success)
-                {
-                    return ServiceResult<DetailMissionModel>.Error("Cập nhật thất bại.");
-                }
-
-                return await GetDetailAsync(missionId);
+                return patchResult.Status != ResultStatus.Success
+                    ? ServiceResult<DetailMissionModel>.Error("Cập nhật thất bại.")
+                    : await GetDetailAsync(missionId);
             }
             catch (Exception ex)
             {
@@ -258,12 +252,9 @@ namespace PM.Core.Application.Implements
                 ServiceResult<bool> deleteResult = await _unitOfWork.ExecuteTransactionAsync(() =>
                     _unitOfWork.Repository<Mission>().DeleteAsync(mission.Data));
 
-                if (deleteResult.Status != ResultStatus.Success)
-                {
-                    return ServiceResult<IEnumerable<IndexMissionModel>>.Error("Xóa nhiệm vụ thất bại.");
-                }
-
-                return await GetAsync(mission.Data.PlanId);
+                return deleteResult.Status != ResultStatus.Success
+                    ? ServiceResult<IEnumerable<IndexMissionModel>>.Error("Xóa nhiệm vụ thất bại.")
+                    : await GetAsync(mission.Data.PlanId);
             }
             catch (Exception ex)
             {
@@ -306,12 +297,9 @@ namespace PM.Core.Application.Implements
                 ServiceResult<bool> delete = await _unitOfWork.ExecuteTransactionAsync(() =>
                     _unitOfWork.Repository<Mission>().DeleteAsync(missions.Data.ToList()));
 
-                if (delete.Status != ResultStatus.Success)
-                {
-                    return ServiceResult<IEnumerable<IndexMissionModel>>.Error("Xóa nhiệm vụ thất bại.");
-                }
-
-                return await GetAsync(planId);
+                return delete.Status != ResultStatus.Success
+                    ? ServiceResult<IEnumerable<IndexMissionModel>>.Error("Xóa nhiệm vụ thất bại.")
+                    : await GetAsync(planId);
             }
             catch (Exception ex)
             {
