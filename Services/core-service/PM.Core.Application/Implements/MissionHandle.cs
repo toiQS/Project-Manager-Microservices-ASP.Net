@@ -3,7 +3,7 @@ using PM.Core.Entities;
 using PM.Core.Infrastructure.Data;
 using PM.Shared.Dtos;
 using PM.Shared.Dtos.cores;
-using PM.Shared.Dtos.cores.members;
+using PM.Shared.Dtos.cores.members.missions;
 using PM.Shared.Dtos.cores.missions;
 using PM.Shared.Dtos.users;
 using PM.Shared.Handle.Implements;
@@ -243,7 +243,7 @@ namespace PM.Core.Application.Implements
                     return ServiceResult<IEnumerable<IndexMissionModel>>.Error("Không có quyền xóa nhiệm vụ này.");
                 }
 
-                ServiceResult<IEnumerable<IndexMemberModel>> deleteSubResult = await _missionMemberHandle.DeleteManyAsync(missionId);
+                ServiceResult<IEnumerable<IndexMemberMissionModel>> deleteSubResult = await _missionMemberHandle.DeleteManyAsync(missionId);
                 if (deleteSubResult.Status != ResultStatus.Success)
                 {
                     return ServiceResult<IEnumerable<IndexMissionModel>>.Error("Xóa thành viên nhiệm vụ thất bại.");
@@ -278,7 +278,7 @@ namespace PM.Core.Application.Implements
                 ServiceResult<IEnumerable<Mission>> missions = await _unitOfWork.Repository<Mission>().GetManyAsync("PlanId", planId);
                 foreach (Mission m in missions.Data)
                 {
-                    ServiceResult<IEnumerable<IndexMemberModel>> subDelete = await _missionMemberHandle.DeleteManyAsync(m.Id);
+                    ServiceResult<IEnumerable<IndexMemberMissionModel>> subDelete = await _missionMemberHandle.DeleteManyAsync(m.Id);
                     if (subDelete.Status != ResultStatus.Success)
                     {
                         return ServiceResult<IEnumerable<IndexMissionModel>>.Error("Xóa phụ nhiệm vụ thất bại.");
