@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
 using PM.Identity.Application.Interfaces;
 using PM.Identity.Entities;
+using PM.Shared.Dtos;
 using PM.Shared.Dtos.auths;
 using PM.Shared.Jwt;
 
