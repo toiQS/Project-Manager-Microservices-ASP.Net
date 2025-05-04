@@ -3,7 +3,7 @@
 using PM.Core.Application.Interfaces;
 using PM.Core.Entities;
 using PM.Core.Infrastructure.Data;
-using PM.Shared.Dtos.auths;
+using PM.Shared.Dtos;
 using PM.Shared.Dtos.cores;
 using PM.Shared.Dtos.cores.missions;
 using PM.Shared.Dtos.cores.plans;
@@ -13,7 +13,7 @@ using PM.Shared.Handle.Interfaces;
 
 namespace PM.Core.Application.Implements
 {
-    public class PlanHandle
+    public class PlanHandle : IPlanHandle
     {
         private readonly IUnitOfWork<CoreDbContext> _unitOfWork;
         private readonly IAPIService<UserDetail> _userAPI;
