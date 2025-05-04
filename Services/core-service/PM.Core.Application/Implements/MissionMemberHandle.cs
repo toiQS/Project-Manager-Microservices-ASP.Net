@@ -44,7 +44,7 @@ namespace PM.Core.Application.Implements
                     return ServiceResult<IEnumerable<IndexMemberModel>>.Error("Failed to retrieve mission members.");
                 }
 
-                List<IndexMemberModel> results = new List<IndexMemberModel>();
+                List<IndexMemberModel> results = [];
                 foreach (MissionMember missionMember in missionMembers.Data)
                 {
                     ServiceResult<ProjectMember> projectMemberResult = await _unitOfWork.Repository<ProjectMember>().GetOneAsync("Id", missionMember.MemberId);
@@ -113,7 +113,7 @@ namespace PM.Core.Application.Implements
                     return ServiceResult<IEnumerable<IndexMemberModel>>.Error("Member already exists.");
                 }
 
-                MissionMember newMember = new MissionMember
+                MissionMember newMember = new()
                 {
                     Id = Guid.NewGuid().ToString(),
                     MemberId = model.MemberId,
@@ -123,12 +123,7 @@ namespace PM.Core.Application.Implements
                 ServiceResult<bool> addResult = await _unitOfWork.ExecuteTransactionAsync(async () =>
                     await _unitOfWork.Repository<MissionMember>().AddAsync(newMember));
 
-                if (!addResult.IsSuccess())
-                {
-                    return ServiceResult<IEnumerable<IndexMemberModel>>.Error("Add failed.");
-                }
-
-                return await GetAsync(model.MissionId);
+                return !addResult.IsSuccess() ? ServiceResult<IEnumerable<IndexMemberModel>>.Error("Add failed.") : await GetAsync(model.MissionId);
             }
             catch (Exception ex)
             {
@@ -176,12 +171,9 @@ namespace PM.Core.Application.Implements
                 ServiceResult<bool> deleteResult = await _unitOfWork.ExecuteTransactionAsync(async () =>
                     await _unitOfWork.Repository<MissionMember>().DeleteAsync(memberToRemove));
 
-                if (!deleteResult.IsSuccess())
-                {
-                    return ServiceResult<IEnumerable<IndexMemberModel>>.Error("Delete failed.");
-                }
-
-                return await GetAsync(model.MissionId);
+                return !deleteResult.IsSuccess()
+                    ? ServiceResult<IEnumerable<IndexMemberModel>>.Error("Delete failed.")
+                    : await GetAsync(model.MissionId);
             }
             catch (Exception ex)
             {
@@ -213,12 +205,7 @@ namespace PM.Core.Application.Implements
                 ServiceResult<bool> deleteResult = await _unitOfWork.ExecuteTransactionAsync(async () =>
                     await _unitOfWork.Repository<MissionMember>().DeleteAsync(members.Data.ToList()));
 
-                if (!deleteResult.IsSuccess())
-                {
-                    return ServiceResult<IEnumerable<IndexMemberModel>>.Error("Delete failed.");
-                }
-
-                return await GetAsync(missionId);
+                return !deleteResult.IsSuccess() ? ServiceResult<IEnumerable<IndexMemberModel>>.Error("Delete failed.") : await GetAsync(missionId);
             }
             catch (Exception ex)
             {
@@ -229,7 +216,9 @@ namespace PM.Core.Application.Implements
 
     internal static class ServiceResultExtensions
     {
-        public static bool IsSuccess<T>(this ServiceResult<T> result) =>
-            result.Status == ResultStatus.Success && result.Data != null;
+        public static bool IsSuccess<T>(this ServiceResult<T> result)
+        {
+            return result.Status == ResultStatus.Success && result.Data != null;
+        }
     }
 }
