@@ -1,4 +1,6 @@
-﻿using PM.Core.Application.Interfaces;
+﻿// Refactored PlanHandle.cs - Clean Code, SOLID, DDD Principles
+
+using PM.Core.Application.Interfaces;
 using PM.Core.Entities;
 using PM.Core.Infrastructure.Data;
 using PM.Shared.Dtos.auths;
@@ -16,201 +18,140 @@ namespace PM.Core.Application.Implements
         private readonly IUnitOfWork<CoreDbContext> _unitOfWork;
         private readonly IAPIService<UserDetail> _userAPI;
         private readonly IPositionHandle _positionHandle;
-        private readonly Position _ownerPosition;
-        private readonly Position _managerPosition;
         private readonly IMissionHandle _missionHandle;
-        public PlanHandle(IUnitOfWork<CoreDbContext> unitOfWork, IAPIService<UserDetail> userAPI, IPositionHandle positionHandle)
+
+        private Position _ownerPosition;
+        private Position _managerPosition;
+
+        public PlanHandle(
+            IUnitOfWork<CoreDbContext> unitOfWork,
+            IAPIService<UserDetail> userAPI,
+            IPositionHandle positionHandle,
+            IMissionHandle missionHandle)
         {
             _unitOfWork = unitOfWork;
             _userAPI = userAPI;
             _positionHandle = positionHandle;
-            _ownerPosition = _positionHandle.GetPositionByName("Product Owner").GetAwaiter().GetResult().Data;
-            _managerPosition = _positionHandle.GetPositionByName("Project Manager").GetAwaiter().GetResult().Data;
+            _missionHandle = missionHandle;
+            InitializeAsync().GetAwaiter().GetResult();
         }
 
-        /// <summary>
-        /// Lấy danh sách kế hoạch theo project
-        /// </summary>
+        public async Task InitializeAsync()
+        {
+            _ownerPosition = (await _positionHandle.GetPositionByName("Product Owner")).Data;
+            _managerPosition = (await _positionHandle.GetPositionByName("Project Manager")).Data;
+        }
+
         public async Task<ServiceResult<IEnumerable<IndexPlanModel>>> GetPlansProject(string projectId)
         {
             if (string.IsNullOrWhiteSpace(projectId))
-            {
                 return ServiceResult<IEnumerable<IndexPlanModel>>.Error("Project ID is required.");
-            }
 
-            try
+            var plans = await _unitOfWork.Repository<Plan>().GetManyAsync("ProjectId", projectId);
+            if (plans.Status != ResultStatus.Success)
+                return ServiceResult<IEnumerable<IndexPlanModel>>.Error(plans.Message);
+
+            var result = plans.Data?.Select(x => new IndexPlanModel
             {
-                ServiceResult<IEnumerable<Plan>> plans = await _unitOfWork.Repository<Plan>().GetManyAsync("ProjectId", projectId);
-                if (plans.Status != ResultStatus.Success)
-                {
-                    return ServiceResult<IEnumerable<IndexPlanModel>>.Error(plans.Message);
-                }
+                Id = x.Id,
+                Name = x.Name,
+                Goal = x.Goal,
+            }).ToList() ?? new List<IndexPlanModel>();
 
-                List<IndexPlanModel> result = plans.Data?.Select(x => new IndexPlanModel
-                {
-                    Id = x.Id,
-                    Name = x.Name,
-                    Goal = x.Goal,
-                }).ToList() ?? [];
-
-                return ServiceResult<IEnumerable<IndexPlanModel>>.Success(result);
-            }
-            catch (Exception ex)
-            {
-                return ServiceResult<IEnumerable<IndexPlanModel>>.FromException(ex);
-            }
+            return ServiceResult<IEnumerable<IndexPlanModel>>.Success(result);
         }
 
-        /// <summary>
-        /// Lấy chi tiết kế hoạch
-        /// </summary>
         public async Task<ServiceResult<DetailPlanModel>> GetDetailPlan(string planId)
         {
             if (string.IsNullOrWhiteSpace(planId))
-            {
                 return ServiceResult<DetailPlanModel>.Error("Plan ID is required.");
-            }
 
-            try
+            var planResult = await _unitOfWork.Repository<Plan>().GetOneAsync("Id", planId);
+            if (planResult.Status != ResultStatus.Success || planResult.Data == null)
+                return ServiceResult<DetailPlanModel>.Error("Plan not found.");
+
+            var memberResult = await _unitOfWork.Repository<ProjectMember>().GetOneAsync("Id", planResult.Data.ProjectMemberId);
+            if (memberResult.Data == null)
+                return ServiceResult<DetailPlanModel>.Error("Project member not found.");
+
+            var userResult = await _userAPI.APIsGetAsync($"api/user/get-user?userId={memberResult.Data.UserId}");
+            if (userResult.Status != ResultStatus.Success)
+                return ServiceResult<DetailPlanModel>.Error(userResult.Message);
+
+            var detail = new DetailPlanModel
             {
-                ServiceResult<Plan> planResult = await _unitOfWork.Repository<Plan>().GetOneAsync("Id", planId);
-                if (planResult.Status != ResultStatus.Success || planResult.Data == null)
-                {
-                    return ServiceResult<DetailPlanModel>.Error("Plan not found.");
-                }
+                Id = planResult.Data.Id,
+                Name = planResult.Data.Name,
+                Goal = planResult.Data.Goal,
+                CreateBy = userResult.Data.UserName,
+                CreateDate = planResult.Data.CreateDate,
+                StartDate = planResult.Data.StartDate,
+                EndDate = planResult.Data.EndDate,
+                ProjectId = planResult.Data.ProjectId,
+                Status = planResult.Data.Status.ToString()
+            };
 
-                ServiceResult<ProjectMember> memberResult = await _unitOfWork.Repository<ProjectMember>().GetOneAsync("Id", planResult.Data.ProjectMemberId);
-                if (memberResult.Data == null)
-                {
-                    return ServiceResult<DetailPlanModel>.Error("Project member not found.");
-                }
-
-                ServiceResult<UserDetail> userResult = await _userAPI.APIsGetAsync($"api/user/get-user?userId={memberResult.Data.UserId}");
-                if (userResult.Status != ResultStatus.Success)
-                {
-                    return ServiceResult<DetailPlanModel>.Error(userResult.Message);
-                }
-
-                DetailPlanModel detail = new()
-                {
-                    Id = planResult.Data.Id,
-                    Name = planResult.Data.Name,
-                    Goal = planResult.Data.Goal,
-                    CreateBy = userResult.Data.UserName,
-                    CreateDate = planResult.Data.CreateDate,
-                    StartDate = planResult.Data.StartDate,
-                    EndDate = planResult.Data.EndDate,
-                    ProjectId = planResult.Data.ProjectId,
-                    Status = planResult.Data.Status.ToString()
-                };
-
-                return ServiceResult<DetailPlanModel>.Success(detail);
-            }
-            catch (Exception ex)
-            {
-                return ServiceResult<DetailPlanModel>.FromException(ex);
-            }
+            return ServiceResult<DetailPlanModel>.Success(detail);
         }
 
-        /// <summary>
-        /// Thêm mới kế hoạch
-        /// </summary>
         public async Task<ServiceResult<DetailPlanModel>> AddAsync(string userId, AddPlanModel model)
         {
             if (string.IsNullOrWhiteSpace(userId) ||
                 string.IsNullOrWhiteSpace(model.Name) ||
                 string.IsNullOrWhiteSpace(model.Goal) ||
                 string.IsNullOrWhiteSpace(model.ProjectId))
-            {
                 return ServiceResult<DetailPlanModel>.Error("Invalid input data.");
-            }
 
-            try
+            var plans = await _unitOfWork.Repository<Plan>().GetManyAsync("ProjectId", model.ProjectId);
+            if (plans.Status != ResultStatus.Success)
+                return ServiceResult<DetailPlanModel>.Error("Failed to fetch existing plans.");
+
+            if (plans.Data != null)
             {
-                ServiceResult<IEnumerable<Plan>> plans = await _unitOfWork.Repository<Plan>().GetManyAsync("ProjectId", model.ProjectId);
-                if (plans.Status != ResultStatus.Success)
-                {
-                    return ServiceResult<DetailPlanModel>.Error("Failed to fetch existing plans.");
-                }
-
-                if (plans.Data != null)
-                {
-                    ServiceResult<bool> isDuplicate = await _unitOfWork.Repository<Plan>().IsExistName(plans.Data, model.Name);
-                    if (isDuplicate.Status != ResultStatus.Success || isDuplicate.Data)
-                    {
-                        return ServiceResult<DetailPlanModel>.Error("Plan name already exists.");
-                    }
-                }
-
-                return await AddAction(userId, model);
+                var isDuplicate = await _unitOfWork.Repository<Plan>().IsExistName(plans.Data, model.Name);
+                if (isDuplicate.Status != ResultStatus.Success || isDuplicate.Data)
+                    return ServiceResult<DetailPlanModel>.Error("Plan name already exists.");
             }
-            catch (Exception ex)
-            {
-                return ServiceResult<DetailPlanModel>.FromException(ex);
-            }
+
+            return await AddAction(userId, model);
         }
 
-        /// <summary>
-        /// Cập nhật kế hoạch
-        /// </summary>
-        public async Task<ServiceResult<DetailPlanModel>> PacthAsync(string userId, string planId, PacthPlanModel model)
+        public async Task<ServiceResult<DetailPlanModel>> PatchAsync(string userId, string planId, PacthPlanModel model)
         {
             if (string.IsNullOrWhiteSpace(planId) ||
                 string.IsNullOrWhiteSpace(userId) ||
                 string.IsNullOrWhiteSpace(model.Name) ||
                 string.IsNullOrWhiteSpace(model.Goal))
-            {
                 return ServiceResult<DetailPlanModel>.Error("Invalid input data.");
-            }
 
-            try
-            {
-                ServiceResult<Plan> planResult = await _unitOfWork.Repository<Plan>().GetOneAsync("Id", planId);
-                if (planResult.Status != ResultStatus.Success || planResult.Data == null)
-                {
-                    return ServiceResult<DetailPlanModel>.Error("Plan not found.");
-                }
+            var planResult = await _unitOfWork.Repository<Plan>().GetOneAsync("Id", planId);
+            if (planResult.Status != ResultStatus.Success || planResult.Data == null)
+                return ServiceResult<DetailPlanModel>.Error("Plan not found.");
 
-                // Check user is Product Owner or Project Manager
-                IEnumerable<ProjectMember> members = (await _unitOfWork.Repository<ProjectMember>().GetManyAsync("ProjectId", planResult.Data.ProjectId)).Data;
-                bool hasPermission = members.Any(x => x.UserId == userId && (x.PositionId == _ownerPosition.Id || x.PositionId == _managerPosition.Id));
-                if (!hasPermission)
-                {
-                    return ServiceResult<DetailPlanModel>.Error("You do not have permission to edit this plan.");
-                }
+            var members = (await _unitOfWork.Repository<ProjectMember>().GetManyAsync("ProjectId", planResult.Data.ProjectId)).Data;
+            if (!HasManagerPermission(userId, members))
+                return ServiceResult<DetailPlanModel>.Error("Permission denied.");
 
-                ServiceResult<IEnumerable<Plan>> plans = await _unitOfWork.Repository<Plan>().GetManyAsync("ProjectId", planResult.Data.ProjectId);
-                if (plans.Status != ResultStatus.Success)
-                {
-                    return ServiceResult<DetailPlanModel>.Error("Could not verify name uniqueness.");
-                }
+            var plans = await _unitOfWork.Repository<Plan>().GetManyAsync("ProjectId", planResult.Data.ProjectId);
+            if (plans.Status != ResultStatus.Success)
+                return ServiceResult<DetailPlanModel>.Error("Could not verify name uniqueness.");
 
-                ServiceResult<bool> isDuplicate = await _unitOfWork.Repository<Plan>().IsExistName(plans.Data, model.Name);
-                return isDuplicate.Status != ResultStatus.Success || isDuplicate.Data
-                    ? ServiceResult<DetailPlanModel>.Error("Plan name already exists.")
-                    : await PacthAction(planResult.Data, model);
-            }
-            catch (Exception ex)
-            {
-                return ServiceResult<DetailPlanModel>.FromException(ex);
-            }
+            var isDuplicate = await _unitOfWork.Repository<Plan>().IsExistName(plans.Data, model.Name);
+            if (isDuplicate.Status != ResultStatus.Success || isDuplicate.Data)
+                return ServiceResult<DetailPlanModel>.Error("Plan name already exists.");
+
+            return await PatchAction(planResult.Data, model);
         }
-
-        // ------------------------------------
-        // PRIVATE HELPERS
-        // ------------------------------------
 
         private async Task<ServiceResult<DetailPlanModel>> AddAction(string userId, AddPlanModel model)
         {
-            IEnumerable<ProjectMember> members = (await _unitOfWork.Repository<ProjectMember>().GetManyAsync("ProjectId", model.ProjectId)).Data;
-            ProjectMember? member = members.FirstOrDefault(x => x.UserId == userId);
+            var members = (await _unitOfWork.Repository<ProjectMember>().GetManyAsync("ProjectId", model.ProjectId)).Data;
+            var member = members.FirstOrDefault(x => x.UserId == userId);
 
             if (member == null)
-            {
                 return ServiceResult<DetailPlanModel>.Error("User is not a member of the project.");
-            }
 
-            Plan plan = new()
+            var plan = new Plan
             {
                 Id = Guid.NewGuid().ToString(),
                 Name = model.Name,
@@ -218,118 +159,99 @@ namespace PM.Core.Application.Implements
                 ProjectId = model.ProjectId,
                 ProjectMemberId = member.Id,
                 CreateDate = DateTime.Now,
-                StartDate = new DateTime(model.StartDate.Year, model.StartDate.Month, model.StartDate.Day),
-                EndDate = new DateTime(model.EndDate.Year, model.EndDate.Month, model.EndDate.Day),
+                StartDate = new DateTime(model.StartDate.Day, model.StartDate.Month, model.StartDate.Year),
+                EndDate = new DateTime(model.EndDate.Day, model.EndDate.Month, model.EndDate.Year),
+                Status = (TypeStatus)new StatusHandle(new DateTime(model.StartDate.Day, model.StartDate.Month, model.StartDate.Year), new DateTime(model.EndDate.Day, model.EndDate.Month, model.EndDate.Year), false).GetStatus()
             };
 
-            plan.Status = (TypeStatus)new StatusHandle(plan.StartDate, plan.EndDate, false).GetStatus();
-
-            ServiceResult<bool> result = await _unitOfWork.ExecuteTransactionAsync(() => _unitOfWork.Repository<Plan>().AddAsync(plan));
+            var result = await _unitOfWork.ExecuteTransactionAsync(() => _unitOfWork.Repository<Plan>().AddAsync(plan));
             return result.Status != ResultStatus.Success
                 ? ServiceResult<DetailPlanModel>.Error("Failed to create plan.")
                 : await GetDetailPlan(plan.Id);
         }
 
-        private async Task<ServiceResult<DetailPlanModel>> PacthAction(Plan plan, PacthPlanModel model)
+        private async Task<ServiceResult<DetailPlanModel>> PatchAction(Plan plan, PacthPlanModel model)
         {
-            Dictionary<string, object> parameters = new()
+            var parameters = new Dictionary<string, object>
             {
                 { nameof(plan.Name), model.Name },
                 { nameof(plan.Goal), model.Goal },
-                { nameof(plan.StartDate), new DateTime(model.StartDate.Year, model.StartDate.Month, model.StartDate.Day) },
-                { nameof(plan.EndDate), new DateTime(model.EndDate.Year, model.EndDate.Month, model.EndDate.Day) },
-                { "Status", (TypeStatus)new StatusHandle( new DateTime(model.StartDate.Year, model.StartDate.Month, model.StartDate.Day), new DateTime(model.EndDate.Year, model.EndDate.Month, model.EndDate.Day), false).GetStatus() }
+                { nameof(plan.StartDate), new DateTime(model.StartDate.Day, model.StartDate.Month, model.StartDate.Year) },
+                { nameof(plan.EndDate), new DateTime(model.EndDate.Day, model.EndDate.Month, model.EndDate.Year) },
+                { "Status", (TypeStatus)new StatusHandle(new DateTime(model.StartDate.Day, model.StartDate.Month, model.StartDate.Year), new DateTime(model.EndDate.Day, model.EndDate.Month, model.EndDate.Year), false).GetStatus() }
             };
 
-            ServiceResult<bool> result = await _unitOfWork.ExecuteTransactionAsync(() => _unitOfWork.Repository<Plan>().PatchAsync(plan, parameters));
+            var result = await _unitOfWork.ExecuteTransactionAsync(() => _unitOfWork.Repository<Plan>().PatchAsync(plan, parameters));
             return result.Status != ResultStatus.Success
                 ? ServiceResult<DetailPlanModel>.Error("Failed to update plan.")
                 : await GetDetailPlan(plan.Id);
         }
+
+        private bool HasManagerPermission(string userId, IEnumerable<ProjectMember> members)
+        {
+            return members.Any(x => x.UserId == userId &&
+                (x.PositionId == _managerPosition.Id || x.PositionId == _ownerPosition.Id));
+        }
         public async Task<ServiceResult<IEnumerable<IndexPlanModel>>> DeleteAsync(string userId, string planId)
         {
-            if (string.IsNullOrEmpty(userId))
-            {
-                return ServiceResult<IEnumerable<IndexPlanModel>>.Error("");
-            }
-
-            if (string.IsNullOrEmpty(planId))
-            {
-                return ServiceResult<IEnumerable<IndexPlanModel>>.Error("");
-            }
+            if (string.IsNullOrWhiteSpace(userId) || string.IsNullOrWhiteSpace(planId))
+                return ServiceResult<IEnumerable<IndexPlanModel>>.Error("User ID and Plan ID are required.");
 
             try
             {
-                ServiceResult<Plan> plan = await _unitOfWork.Repository<Plan>().GetOneAsync("Id", planId);
-                if (plan.Status != ResultStatus.Success)
-                {
-                    return ServiceResult<IEnumerable<IndexPlanModel>>.Error("");
-                }
+                var planResult = await _unitOfWork.Repository<Plan>().GetOneAsync("Id", planId);
+                if (planResult.Status != ResultStatus.Success || planResult.Data == null)
+                    return ServiceResult<IEnumerable<IndexPlanModel>>.Error("Plan not found.");
 
-                ServiceResult<Project> project = await _unitOfWork.Repository<Project>().GetOneAsync("Id", plan.Data.ProjectId);
-                if (project.Status != ResultStatus.Success)
-                {
-                    return ServiceResult<IEnumerable<IndexPlanModel>>.Error("");
-                }
+                if (!await HasManagerPermission(userId, planResult.Data.ProjectId))
+                    return ServiceResult<IEnumerable<IndexPlanModel>>.Error("Permission denied.");
 
-                IEnumerable<ProjectMember> member = (await _unitOfWork.Repository<ProjectMember>().GetManyAsync("ProjetId", project.Data.Id)).Data.Where(x => x.UserId == userId && (x.PositionId == _managerPosition.Id || x.PositionId == _ownerPosition.Id));
-                if (member == null)
-                {
-                    return ServiceResult<IEnumerable<IndexPlanModel>>.Error("");
-                }
+                var deleteMissionResult = await _missionHandle.DeleteManyAsync(userId, planId);
+                if (deleteMissionResult.Status != ResultStatus.Success)
+                    return ServiceResult<IEnumerable<IndexPlanModel>>.Error("Failed to delete missions in plan.");
 
-                ServiceResult<IEnumerable<IndexMissionModel>> deleteSubResult = await _missionHandle.DeleteManyAsync(userId, planId);
-                if (deleteSubResult.Status != ResultStatus.Success)
-                {
-                    return ServiceResult<IEnumerable<IndexPlanModel>>.Error("");
-                }
+                var deletePlanResult = await _unitOfWork.ExecuteTransactionAsync(
+                    () => _unitOfWork.Repository<Plan>().DeleteAsync(planResult.Data)
+                );
 
-                ServiceResult<bool> deletePlanResult = await _unitOfWork.ExecuteTransactionAsync(async () => await _unitOfWork.Repository<Plan>().DeleteAsync(plan.Data));
                 return deletePlanResult.Status != ResultStatus.Success
-                    ? ServiceResult<IEnumerable<IndexPlanModel>>.Error("")
-                    : await GetPlansProject(plan.Data.ProjectId);
+                    ? ServiceResult<IEnumerable<IndexPlanModel>>.Error("Failed to delete plan.")
+                    : await GetPlansProject(planResult.Data.ProjectId);
             }
             catch (Exception ex)
             {
                 return ServiceResult<IEnumerable<IndexPlanModel>>.FromException(ex);
             }
         }
+
         public async Task<ServiceResult<IEnumerable<IndexPlanModel>>> DeleteManyAsync(string userId, string projectId)
         {
-            if (string.IsNullOrEmpty(userId))
-            {
-                return ServiceResult<IEnumerable<IndexPlanModel>>.Error("");
-            }
-
-            if (string.IsNullOrEmpty(projectId))
-            {
-                return ServiceResult<IEnumerable<IndexPlanModel>>.Error("");
-            }
+            if (string.IsNullOrWhiteSpace(userId) || string.IsNullOrWhiteSpace(projectId))
+                return ServiceResult<IEnumerable<IndexPlanModel>>.Error("User ID and Project ID are required.");
 
             try
             {
-                ServiceResult<IEnumerable<Plan>> plans = await _unitOfWork.Repository<Plan>().GetManyAsync("ProjectId", projectId);
-                if (plans.Status != ResultStatus.Success)
-                {
-                    return ServiceResult<IEnumerable<IndexPlanModel>>.Error("");
-                }
+                var plansResult = await _unitOfWork.Repository<Plan>().GetManyAsync("ProjectId", projectId);
+                if (plansResult.Status != ResultStatus.Success)
+                    return ServiceResult<IEnumerable<IndexPlanModel>>.Error("Could not retrieve plans.");
 
-                if (plans.Data == null)
-                {
+                var plans = plansResult.Data?.ToList();
+                if (plans == null || !plans.Any())
                     return await GetPlansProject(projectId);
+
+                foreach (var plan in plans)
+                {
+                    var deleteMissionResult = await _missionHandle.DeleteManyAsync(userId, plan.Id);
+                    if (deleteMissionResult.Status != ResultStatus.Success)
+                        return ServiceResult<IEnumerable<IndexPlanModel>>.Error($"Failed to delete missions in plan: {plan.Name}");
                 }
 
-                foreach (Plan item in plans.Data)
-                {
-                    ServiceResult<IEnumerable<IndexMissionModel>> deleteSubResult = await _missionHandle.DeleteManyAsync(userId, item.Id);
-                    if (deleteSubResult.Status != ResultStatus.Success)
-                    {
-                        return ServiceResult<IEnumerable<IndexPlanModel>>.Error("");
-                    }
-                }
-                ServiceResult<bool> deletePlanResult = await _unitOfWork.ExecuteTransactionAsync(() => _unitOfWork.Repository<Plan>().DeleteAsync(plans.Data.ToList()));
-                return deletePlanResult.Status != ResultStatus.Success
-                    ? ServiceResult<IEnumerable<IndexPlanModel>>.Error("")
+                var deletePlansResult = await _unitOfWork.ExecuteTransactionAsync(
+                    () => _unitOfWork.Repository<Plan>().DeleteAsync(plans)
+                );
+
+                return deletePlansResult.Status != ResultStatus.Success
+                    ? ServiceResult<IEnumerable<IndexPlanModel>>.Error("Failed to delete plans.")
                     : await GetPlansProject(projectId);
             }
             catch (Exception ex)
@@ -337,6 +259,18 @@ namespace PM.Core.Application.Implements
                 return ServiceResult<IEnumerable<IndexPlanModel>>.FromException(ex);
             }
         }
-    }
 
+        private async Task<bool> HasManagerPermission(string userId, string projectId)
+        {
+            var memberResult = await _unitOfWork.Repository<ProjectMember>().GetManyAsync("ProjectId", projectId);
+            if (memberResult.Status != ResultStatus.Success || memberResult.Data == null)
+                return false;
+
+            return memberResult.Data.Any(x =>
+                x.UserId == userId &&
+                (x.PositionId == _managerPosition.Id || x.PositionId == _ownerPosition.Id)
+            );
+        }
+
+    }
 }
