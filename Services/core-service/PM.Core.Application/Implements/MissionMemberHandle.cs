@@ -1,7 +1,7 @@
 ﻿using PM.Core.Application.Interfaces;
 using PM.Core.Entities;
 using PM.Core.Infrastructure.Data;
-using PM.Shared.Dtos.auths;
+using PM.Shared.Dtos;
 using PM.Shared.Dtos.cores.members;
 using PM.Shared.Dtos.users;
 using PM.Shared.Handle.Interfaces;
@@ -24,11 +24,7 @@ namespace PM.Core.Application.Implements
             _positionHandle = positionHandle;
         }
 
-        /// <summary>
-        /// Lấy danh sách các thành viên đang tham gia một nhiệm vụ cụ thể.
-        /// </summary>
-        /// <param name="missionId">ID của nhiệm vụ</param>
-        /// <returns>Danh sách thành viên kiểu IndexMemberModel</returns>
+        
         public async Task<ServiceResult<IEnumerable<IndexMemberModel>>> GetAsync(string missionId)
         {
             if (string.IsNullOrWhiteSpace(missionId))
@@ -78,12 +74,7 @@ namespace PM.Core.Application.Implements
             }
         }
 
-        /// <summary>
-        /// Thêm một thành viên vào nhiệm vụ, với điều kiện người dùng hiện tại là chủ nhiệm vụ.
-        /// </summary>
-        /// <param name="userId">ID của người thực hiện yêu cầu</param>
-        /// <param name="model">Model chứa thông tin thành viên cần thêm</param>
-        /// <returns>Danh sách thành viên mới sau khi thêm</returns>
+        
         public async Task<ServiceResult<IEnumerable<IndexMemberModel>>> AddAsync(string userId, AddMemberModel model)
         {
             if (string.IsNullOrWhiteSpace(userId) || string.IsNullOrWhiteSpace(model.MissionId) || string.IsNullOrWhiteSpace(model.MemberId))
@@ -131,12 +122,7 @@ namespace PM.Core.Application.Implements
             }
         }
 
-        // <summary>
-        /// Xoá một thành viên ra khỏi nhiệm vụ, với điều kiện người dùng hiện tại là chủ nhiệm vụ.
-        /// </summary>
-        /// <param name="userId">ID người thực hiện thao tác</param>
-        /// <param name="model">Model chứa thông tin thành viên cần xoá</param>
-        /// <returns>Danh sách thành viên còn lại sau khi xoá</returns>
+        
         public async Task<ServiceResult<IEnumerable<IndexMemberModel>>> DeleteAsync(string userId, DeleteMemberModel model)
         {
             if (string.IsNullOrWhiteSpace(userId) || string.IsNullOrWhiteSpace(model.MemberId) || string.IsNullOrWhiteSpace(model.MissionId))
@@ -181,12 +167,7 @@ namespace PM.Core.Application.Implements
             }
         }
 
-        // <summary>
-        /// Xoá toàn bộ thành viên ra khỏi một nhiệm vụ cụ thể.
-        /// Dùng khi xoá nhiệm vụ hoặc làm mới danh sách.
-        /// </summary>
-        /// <param name="missionId">ID của nhiệm vụ</param>
-        /// <returns>Danh sách thành viên trống (sau khi xoá)</returns>
+        
         public async Task<ServiceResult<IEnumerable<IndexMemberModel>>> DeleteManyAsync(string missionId)
         {
             if (string.IsNullOrWhiteSpace(missionId))
