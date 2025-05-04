@@ -1,4 +1,4 @@
-﻿using PM.Shared.Dtos.auths;
+﻿using PM.Shared.Dtos;
 using PM.Shared.Dtos.tracking;
 
 namespace PM.Tracking.Application.Interfaces
