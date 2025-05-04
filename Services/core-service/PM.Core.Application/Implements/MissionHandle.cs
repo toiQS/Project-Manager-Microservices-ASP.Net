@@ -1,7 +1,7 @@
 ﻿using PM.Core.Application.Interfaces;
 using PM.Core.Entities;
 using PM.Core.Infrastructure.Data;
-using PM.Shared.Dtos.auths;
+using PM.Shared.Dtos;
 using PM.Shared.Dtos.cores;
 using PM.Shared.Dtos.cores.members;
 using PM.Shared.Dtos.cores.missions;
@@ -274,15 +274,6 @@ namespace PM.Core.Application.Implements
 
             try
             {
-                ServiceResult<Plan> plan = await _unitOfWork.Repository<Plan>().GetOneAsync("Id", planId);
-                ServiceResult<Project> project = await _unitOfWork.Repository<Project>().GetOneAsync("Id", plan.Data.ProjectId);
-                ProjectMember? member = (await _unitOfWork.Repository<ProjectMember>().GetManyAsync("ProjectId", project.Data.Id)).Data
-                    .FirstOrDefault(m => m.UserId == userId);
-
-                if (member == null || member.Id != plan.Data.ProjectMemberId)
-                {
-                    return ServiceResult<IEnumerable<IndexMissionModel>>.Error("Không có quyền xóa kế hoạch này.");
-                }
 
                 ServiceResult<IEnumerable<Mission>> missions = await _unitOfWork.Repository<Mission>().GetManyAsync("PlanId", planId);
                 foreach (Mission m in missions.Data)
@@ -306,5 +297,8 @@ namespace PM.Core.Application.Implements
                 return ServiceResult<IEnumerable<IndexMissionModel>>.FromException(ex);
             }
         }
+
     }
+
+
 }
