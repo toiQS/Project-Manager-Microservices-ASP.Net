@@ -1,4 +1,4 @@
-﻿using PM.Shared.Dtos.auths;
+﻿using PM.Shared.Dtos;
 using PM.Shared.Dtos.cores.members;
 
 namespace PM.Core.Application.Interfaces
