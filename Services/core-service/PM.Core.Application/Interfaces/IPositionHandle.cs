@@ -1,5 +1,5 @@
 ﻿using PM.Core.Entities;
-using PM.Shared.Dtos.auths;
+using PM.Shared.Dtos;
 using System;
 using System.Collections.Generic;
 using System.Linq;
