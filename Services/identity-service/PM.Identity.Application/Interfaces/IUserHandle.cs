@@ -1,5 +1,5 @@
 ﻿using PM.Shared.Dtos.users;
-using PM.Shared.Dtos.auths;
+using PM.Shared.Dtos;
 
 namespace PM.Identity.Application.Interfaces
 {
