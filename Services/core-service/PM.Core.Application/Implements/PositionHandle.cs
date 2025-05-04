@@ -1,6 +1,6 @@
 ﻿using PM.Core.Entities;
 using PM.Core.Infrastructure.Data;
-using PM.Shared.Dtos.auths;
+using PM.Shared.Dtos;
 using PM.Shared.Handle.Interfaces;
 
 namespace PM.Core.Application.Implements
