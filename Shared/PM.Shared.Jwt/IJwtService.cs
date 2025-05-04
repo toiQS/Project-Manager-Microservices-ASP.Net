@@ -1,4 +1,4 @@
-﻿using PM.Shared.Dtos.auths;
+﻿using PM.Shared.Dtos;
 
 namespace PM.Shared.Jwt
 {
