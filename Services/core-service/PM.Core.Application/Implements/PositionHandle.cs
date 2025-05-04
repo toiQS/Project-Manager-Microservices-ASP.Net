@@ -2,11 +2,6 @@
 using PM.Core.Infrastructure.Data;
 using PM.Shared.Dtos.auths;
 using PM.Shared.Handle.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PM.Core.Application.Implements
 {
@@ -26,13 +21,10 @@ namespace PM.Core.Application.Implements
             }
             try
             {
-                var position = await _unitOfWork.Repository<Position>().GetOneAsync("Name", name);
-                if (position.Status != ResultStatus.Success || position.Data == null)
-                {
-                    return ServiceResult<Position>.Error("");
-                }
-
-                return ServiceResult<Position>.Success(position.Data);
+                ServiceResult<Position> position = await _unitOfWork.Repository<Position>().GetOneAsync("Name", name);
+                return position.Status != ResultStatus.Success || position.Data == null
+                    ? ServiceResult<Position>.Error("")
+                    : ServiceResult<Position>.Success(position.Data);
             }
             catch (Exception ex)
             {
