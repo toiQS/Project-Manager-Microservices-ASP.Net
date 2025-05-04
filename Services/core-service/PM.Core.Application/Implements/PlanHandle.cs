@@ -3,6 +3,7 @@ using PM.Core.Entities;
 using PM.Core.Infrastructure.Data;
 using PM.Shared.Dtos.auths;
 using PM.Shared.Dtos.cores;
+using PM.Shared.Dtos.cores.missions;
 using PM.Shared.Dtos.cores.plans;
 using PM.Shared.Dtos.users;
 using PM.Shared.Handle.Implements;
@@ -17,7 +18,7 @@ namespace PM.Core.Application.Implements
         private readonly IPositionHandle _positionHandle;
         private readonly Position _ownerPosition;
         private readonly Position _managerPosition;
-
+        private readonly IMissionHandle _missionHandle;
         public PlanHandle(IUnitOfWork<CoreDbContext> unitOfWork, IAPIService<UserDetail> userAPI, IPositionHandle positionHandle)
         {
             _unitOfWork = unitOfWork;
@@ -50,7 +51,7 @@ namespace PM.Core.Application.Implements
                     Id = x.Id,
                     Name = x.Name,
                     Goal = x.Goal,
-                }).ToList() ?? new List<IndexPlanModel>();
+                }).ToList() ?? [];
 
                 return ServiceResult<IEnumerable<IndexPlanModel>>.Success(result);
             }
@@ -90,7 +91,7 @@ namespace PM.Core.Application.Implements
                     return ServiceResult<DetailPlanModel>.Error(userResult.Message);
                 }
 
-                DetailPlanModel detail = new DetailPlanModel
+                DetailPlanModel detail = new()
                 {
                     Id = planResult.Data.Id,
                     Name = planResult.Data.Name,
@@ -185,12 +186,9 @@ namespace PM.Core.Application.Implements
                 }
 
                 ServiceResult<bool> isDuplicate = await _unitOfWork.Repository<Plan>().IsExistName(plans.Data, model.Name);
-                if (isDuplicate.Status != ResultStatus.Success || isDuplicate.Data)
-                {
-                    return ServiceResult<DetailPlanModel>.Error("Plan name already exists.");
-                }
-
-                return await PacthAction(planResult.Data, model);
+                return isDuplicate.Status != ResultStatus.Success || isDuplicate.Data
+                    ? ServiceResult<DetailPlanModel>.Error("Plan name already exists.")
+                    : await PacthAction(planResult.Data, model);
             }
             catch (Exception ex)
             {
@@ -212,7 +210,7 @@ namespace PM.Core.Application.Implements
                 return ServiceResult<DetailPlanModel>.Error("User is not a member of the project.");
             }
 
-            Plan plan = new Plan
+            Plan plan = new()
             {
                 Id = Guid.NewGuid().ToString(),
                 Name = model.Name,
@@ -227,17 +225,14 @@ namespace PM.Core.Application.Implements
             plan.Status = (TypeStatus)new StatusHandle(plan.StartDate, plan.EndDate, false).GetStatus();
 
             ServiceResult<bool> result = await _unitOfWork.ExecuteTransactionAsync(() => _unitOfWork.Repository<Plan>().AddAsync(plan));
-            if (result.Status != ResultStatus.Success)
-            {
-                return ServiceResult<DetailPlanModel>.Error("Failed to create plan.");
-            }
-
-            return await GetDetailPlan(plan.Id);
+            return result.Status != ResultStatus.Success
+                ? ServiceResult<DetailPlanModel>.Error("Failed to create plan.")
+                : await GetDetailPlan(plan.Id);
         }
 
         private async Task<ServiceResult<DetailPlanModel>> PacthAction(Plan plan, PacthPlanModel model)
         {
-            Dictionary<string, object> parameters = new Dictionary<string, object>
+            Dictionary<string, object> parameters = new()
             {
                 { nameof(plan.Name), model.Name },
                 { nameof(plan.Goal), model.Goal },
@@ -247,12 +242,100 @@ namespace PM.Core.Application.Implements
             };
 
             ServiceResult<bool> result = await _unitOfWork.ExecuteTransactionAsync(() => _unitOfWork.Repository<Plan>().PatchAsync(plan, parameters));
-            if (result.Status != ResultStatus.Success)
+            return result.Status != ResultStatus.Success
+                ? ServiceResult<DetailPlanModel>.Error("Failed to update plan.")
+                : await GetDetailPlan(plan.Id);
+        }
+        public async Task<ServiceResult<IEnumerable<IndexPlanModel>>> DeleteAsync(string userId, string planId)
+        {
+            if (string.IsNullOrEmpty(userId))
             {
-                return ServiceResult<DetailPlanModel>.Error("Failed to update plan.");
+                return ServiceResult<IEnumerable<IndexPlanModel>>.Error("");
             }
 
-            return await GetDetailPlan(plan.Id);
+            if (string.IsNullOrEmpty(planId))
+            {
+                return ServiceResult<IEnumerable<IndexPlanModel>>.Error("");
+            }
+
+            try
+            {
+                ServiceResult<Plan> plan = await _unitOfWork.Repository<Plan>().GetOneAsync("Id", planId);
+                if (plan.Status != ResultStatus.Success)
+                {
+                    return ServiceResult<IEnumerable<IndexPlanModel>>.Error("");
+                }
+
+                ServiceResult<Project> project = await _unitOfWork.Repository<Project>().GetOneAsync("Id", plan.Data.ProjectId);
+                if (project.Status != ResultStatus.Success)
+                {
+                    return ServiceResult<IEnumerable<IndexPlanModel>>.Error("");
+                }
+
+                IEnumerable<ProjectMember> member = (await _unitOfWork.Repository<ProjectMember>().GetManyAsync("ProjetId", project.Data.Id)).Data.Where(x => x.UserId == userId && (x.PositionId == _managerPosition.Id || x.PositionId == _ownerPosition.Id));
+                if (member == null)
+                {
+                    return ServiceResult<IEnumerable<IndexPlanModel>>.Error("");
+                }
+
+                ServiceResult<IEnumerable<IndexMissionModel>> deleteSubResult = await _missionHandle.DeleteManyAsync(userId, planId);
+                if (deleteSubResult.Status != ResultStatus.Success)
+                {
+                    return ServiceResult<IEnumerable<IndexPlanModel>>.Error("");
+                }
+
+                ServiceResult<bool> deletePlanResult = await _unitOfWork.ExecuteTransactionAsync(async () => await _unitOfWork.Repository<Plan>().DeleteAsync(plan.Data));
+                return deletePlanResult.Status != ResultStatus.Success
+                    ? ServiceResult<IEnumerable<IndexPlanModel>>.Error("")
+                    : await GetPlansProject(plan.Data.ProjectId);
+            }
+            catch (Exception ex)
+            {
+                return ServiceResult<IEnumerable<IndexPlanModel>>.FromException(ex);
+            }
+        }
+        public async Task<ServiceResult<IEnumerable<IndexPlanModel>>> DeleteManyAsync(string userId, string projectId)
+        {
+            if (string.IsNullOrEmpty(userId))
+            {
+                return ServiceResult<IEnumerable<IndexPlanModel>>.Error("");
+            }
+
+            if (string.IsNullOrEmpty(projectId))
+            {
+                return ServiceResult<IEnumerable<IndexPlanModel>>.Error("");
+            }
+
+            try
+            {
+                ServiceResult<IEnumerable<Plan>> plans = await _unitOfWork.Repository<Plan>().GetManyAsync("ProjectId", projectId);
+                if (plans.Status != ResultStatus.Success)
+                {
+                    return ServiceResult<IEnumerable<IndexPlanModel>>.Error("");
+                }
+
+                if (plans.Data == null)
+                {
+                    return await GetPlansProject(projectId);
+                }
+
+                foreach (Plan item in plans.Data)
+                {
+                    ServiceResult<IEnumerable<IndexMissionModel>> deleteSubResult = await _missionHandle.DeleteManyAsync(userId, item.Id);
+                    if (deleteSubResult.Status != ResultStatus.Success)
+                    {
+                        return ServiceResult<IEnumerable<IndexPlanModel>>.Error("");
+                    }
+                }
+                ServiceResult<bool> deletePlanResult = await _unitOfWork.ExecuteTransactionAsync(() => _unitOfWork.Repository<Plan>().DeleteAsync(plans.Data.ToList()));
+                return deletePlanResult.Status != ResultStatus.Success
+                    ? ServiceResult<IEnumerable<IndexPlanModel>>.Error("")
+                    : await GetPlansProject(projectId);
+            }
+            catch (Exception ex)
+            {
+                return ServiceResult<IEnumerable<IndexPlanModel>>.FromException(ex);
+            }
         }
     }
 
