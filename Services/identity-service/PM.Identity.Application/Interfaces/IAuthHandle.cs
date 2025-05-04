@@ -1,4 +1,5 @@
-﻿using PM.Shared.Dtos.auths;
+﻿using PM.Shared.Dtos;
+using PM.Shared.Dtos.auths;
 using System.Data;
 
 namespace PM.Identity.Application.Interfaces
