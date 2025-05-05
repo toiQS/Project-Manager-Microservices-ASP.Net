@@ -265,9 +265,9 @@ namespace PM.Core.Application.Implements
         /// <summary>
         /// Xóa tất cả các nhiệm vụ thuộc một kế hoạch.
         /// </summary>
-        public async Task<ServiceResult<IEnumerable<IndexMissionModel>>> DeleteManyAsync(string userId, string planId)
+        public async Task<ServiceResult<IEnumerable<IndexMissionModel>>> DeleteManyAsync( string planId)
         {
-            if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(planId))
+            if ( string.IsNullOrEmpty(planId))
             {
                 return ServiceResult<IEnumerable<IndexMissionModel>>.Error("Thông tin không hợp lệ.");
             }
