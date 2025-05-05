@@ -176,7 +176,7 @@ namespace PM.Core.Application.Implements
                 if (!members.IsSuccess())
                     return ServiceResult<IEnumerable<IndexProjectMemberModel>>.Error("Failed to retrieve project members.");
 
-                var deletePlanResult = await _planHandle.DeleteManyAsync(userId, projectId);
+                var deletePlanResult = await _planHandle.DeleteManyAsync( projectId);
                 if (!deletePlanResult.IsSuccess())
                     return ServiceResult<IEnumerable<IndexProjectMemberModel>>.Error("Failed to delete plans.");
 
