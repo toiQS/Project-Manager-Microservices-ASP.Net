@@ -20,8 +20,8 @@ namespace PM.Core.Application.Implements
         private readonly IPositionHandle _positionHandle;
         private readonly IMissionHandle _missionHandle;
 
-        private Position _ownerPosition;
-        private Position _managerPosition;
+        private Position _ownerPosition= new Position();
+        private Position _managerPosition = new Position();
 
         public PlanHandle(
             IUnitOfWork<CoreDbContext> unitOfWork,
@@ -206,7 +206,7 @@ namespace PM.Core.Application.Implements
                 if (!await HasManagerPermission(userId, planResult.Data.ProjectId))
                     return ServiceResult<IEnumerable<IndexPlanModel>>.Error("Permission denied.");
 
-                var deleteMissionResult = await _missionHandle.DeleteManyAsync(userId, planId);
+                var deleteMissionResult = await _missionHandle.DeleteManyAsync( planId);
                 if (deleteMissionResult.Status != ResultStatus.Success)
                     return ServiceResult<IEnumerable<IndexPlanModel>>.Error("Failed to delete missions in plan.");
 
@@ -224,9 +224,9 @@ namespace PM.Core.Application.Implements
             }
         }
 
-        public async Task<ServiceResult<IEnumerable<IndexPlanModel>>> DeleteManyAsync(string userId, string projectId)
+        public async Task<ServiceResult<IEnumerable<IndexPlanModel>>> DeleteManyAsync(string projectId)
         {
-            if (string.IsNullOrWhiteSpace(userId) || string.IsNullOrWhiteSpace(projectId))
+            if (string.IsNullOrWhiteSpace(projectId))
                 return ServiceResult<IEnumerable<IndexPlanModel>>.Error("User ID and Project ID are required.");
 
             try
@@ -241,7 +241,7 @@ namespace PM.Core.Application.Implements
 
                 foreach (var plan in plans)
                 {
-                    var deleteMissionResult = await _missionHandle.DeleteManyAsync(userId, plan.Id);
+                    var deleteMissionResult = await _missionHandle.DeleteManyAsync( plan.Id);
                     if (deleteMissionResult.Status != ResultStatus.Success)
                         return ServiceResult<IEnumerable<IndexPlanModel>>.Error($"Failed to delete missions in plan: {plan.Name}");
                 }
