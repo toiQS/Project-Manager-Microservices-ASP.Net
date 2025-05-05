@@ -1,10 +1,5 @@
-﻿using PM.Shared.Dtos.cores.members.projects;
-using PM.Shared.Dtos;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using PM.Shared.Dtos;
+using PM.Shared.Dtos.cores.members.projects;
 
 namespace PM.Core.Application.Interfaces
 {
@@ -14,6 +9,6 @@ namespace PM.Core.Application.Interfaces
         Task<ServiceResult<IEnumerable<IndexProjectMemberModel>>> AddAsync(string userId, AddProjectMemberModel model);
         Task<ServiceResult<IEnumerable<IndexProjectMemberModel>>> PatchAsync(string userId, string memberId, PacthProjectMemberModel model);
         Task<ServiceResult<IEnumerable<IndexProjectMemberModel>>> DeleteAsync(string userId, string memberId); 
-        Task<ServiceResult<IEnumerable<IndexProjectMemberModel>>> DeteleManyAsync(string userId, string projectId);
+        Task<ServiceResult<IEnumerable<IndexProjectMemberModel>>> DeteleManyAsync(string projectId);
     }
 }
