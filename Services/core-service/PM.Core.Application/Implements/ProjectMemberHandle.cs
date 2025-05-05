@@ -165,9 +165,9 @@ namespace PM.Core.Application.Implements
         }
 
         // Xoá toàn bộ thành viên và kế hoạch khi xoá dự án
-        public async Task<ServiceResult<IEnumerable<IndexProjectMemberModel>>> DeteleManyAsync(string userId, string projectId)
+        public async Task<ServiceResult<IEnumerable<IndexProjectMemberModel>>> DeteleManyAsync(string projectId)
         {
-            if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(projectId))
+            if (string.IsNullOrEmpty(projectId))
                 return ServiceResult<IEnumerable<IndexProjectMemberModel>>.Error("User ID or Project ID is missing.");
 
             try
