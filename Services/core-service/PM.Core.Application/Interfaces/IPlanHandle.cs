@@ -10,6 +10,6 @@ namespace PM.Core.Application.Interfaces
         Task<ServiceResult<DetailPlanModel>> AddAsync(string userId, AddPlanModel model);
         Task<ServiceResult<DetailPlanModel>> PatchAsync(string userId, string planId, PacthPlanModel model);
         Task<ServiceResult<IEnumerable<IndexPlanModel>>> DeleteAsync(string userId, string planId);
-        Task<ServiceResult<IEnumerable<IndexPlanModel>>> DeleteManyAsync(string userId, string projectId);
+        Task<ServiceResult<IEnumerable<IndexPlanModel>>> DeleteManyAsync(string projectId);
     }
 }
