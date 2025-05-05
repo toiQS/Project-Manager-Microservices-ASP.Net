@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using PM.Core.Infrastructure.Data;
-using PM.Identity.Infrastructure.Data;
 using PM.Shared.Config;
 using PM.Shared.Handle.Implements;
 using PM.Shared.Handle.Interfaces;
