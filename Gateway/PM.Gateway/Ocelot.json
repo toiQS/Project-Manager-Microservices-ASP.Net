@@ -1,12 +1,13 @@
-  {
+{
   "GlobalConfiguration": {
     "BaseUrl": "http://localhost:5000"
   },
   "Routes": [
-    {
+    // ============================
+    // Auth and User
+    // ============================
 
-      /// auth and user ///
-      // auth
+    {
       "DownstreamHostAndPorts": [
         {
           "Host": "localhost",
@@ -55,7 +56,6 @@
       "UpstreamPathTemplate": "/api/auth/forgot-password"
     },
 
-    // user
     {
       "DownstreamHostAndPorts": [
         {
@@ -80,7 +80,11 @@
       "UpstreamHttpMethod": [ "PATCH" ],
       "UpstreamPathTemplate": "/api/user/pacth-user"
     },
-    /// tracking activity log
+
+    // ============================
+    // Tracking Activity Log
+    // ============================
+
     {
       "DownstreamHostAndPorts": [
         {
@@ -90,9 +94,357 @@
       ],
       "DownstreamPathTemplate": "/api/Tracking/add-tracking-log",
       "DownstreamScheme": "https",
-      "UpstreamHttpMethod": [ "Post" ],
+      "UpstreamHttpMethod": [ "POST" ],
       "UpstreamPathTemplate": "/api/tracking/add-tracking-log"
-    }
+    },
 
+    // ============================
+    // Mission
+    // ============================
+
+    {
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7254
+        }
+      ],
+      "DownstreamPathTemplate": "/api/Mission/missions-plan",
+      "DownstreamScheme": "https",
+      "UpstreamHttpMethod": [ "GET" ],
+      "UpstreamPathTemplate": "/api/mission/missions-plan"
+    },
+    {
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7254
+        }
+      ],
+      "DownstreamPathTemplate": "/api/Mission/mission-detail",
+      "DownstreamScheme": "https",
+      "UpstreamHttpMethod": [ "GET" ],
+      "UpstreamPathTemplate": "/api/mission/mission-detail"
+    },
+    {
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7254
+        }
+      ],
+      "DownstreamPathTemplate": "/api/Mission/add-mission",
+      "DownstreamScheme": "https",
+      "UpstreamHttpMethod": [ "POST" ],
+      "UpstreamPathTemplate": "/api/mission/add-mission"
+    },
+    {
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7254
+        }
+      ],
+      "DownstreamPathTemplate": "/api/Mission/update-mission",
+      "DownstreamScheme": "https",
+      "UpstreamHttpMethod": [ "PATCH" ],
+      "UpstreamPathTemplate": "/api/mission/update-mission"
+    },
+    {
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7254
+        }
+      ],
+      "DownstreamPathTemplate": "/api/Mission/delete-mission",
+      "DownstreamScheme": "https",
+      "UpstreamHttpMethod": [ "DELETE" ],
+      "UpstreamPathTemplate": "/api/mission/delete-mission"
+    },
+    {
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7254
+        }
+      ],
+      "DownstreamPathTemplate": "/api/Mission/delete-many-missions",
+      "DownstreamScheme": "https",
+      "UpstreamHttpMethod": [ "DELETE" ],
+      "UpstreamPathTemplate": "/api/mission/delete-many-missions"
+    },
+
+    // ============================
+    // Mission Member
+    // ============================
+
+    {
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7254
+        }
+      ],
+      "DownstreamPathTemplate": "/api/MissionMember/members-in-mission",
+      "DownstreamScheme": "https",
+      "UpstreamHttpMethod": [ "GET" ],
+      "UpstreamPathTemplate": "/api/mission-member/members-in-mission"
+    },
+    {
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7254
+        }
+      ],
+      "DownstreamPathTemplate": "/api/MissionMember/add-member",
+      "DownstreamScheme": "https",
+      "UpstreamHttpMethod": [ "POST" ],
+      "UpstreamPathTemplate": "/api/mission-member/add-member"
+    },
+    {
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7254
+        }
+      ],
+      "DownstreamPathTemplate": "/api/MissionMember/delete-member",
+      "DownstreamScheme": "https",
+      "UpstreamHttpMethod": [ "DELETE" ],
+      "UpstreamPathTemplate": "/api/mission-member/delete-member"
+    },
+    {
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7254
+        }
+      ],
+      "DownstreamPathTemplate": "/api/MissionMember/delete-many-members",
+      "DownstreamScheme": "https",
+      "UpstreamHttpMethod": [ "DELETE" ],
+      "UpstreamPathTemplate": "/api/mission-member/delete-many-members"
+    },
+
+    // ============================
+    // Plan
+    // ============================
+
+    {
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7254
+        }
+      ],
+      "DownstreamPathTemplate": "/api/Plan/plans-project",
+      "DownstreamScheme": "https",
+      "UpstreamPathTemplate": "/api/plan/plans-project",
+      "UpstreamHttpMethod": [ "GET" ]
+    },
+    {
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7254
+        }
+      ],
+      "DownstreamPathTemplate": "/api/Plan/plan-detail",
+      "DownstreamScheme": "https",
+      "UpstreamPathTemplate": "/api/plan/plan-detail",
+      "UpstreamHttpMethod": [ "GET" ]
+    },
+    {
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7254
+        }
+      ],
+      "DownstreamPathTemplate": "/api/Plan/add-plan",
+      "DownstreamScheme": "https",
+      "UpstreamPathTemplate": "/api/plan/add-plan",
+      "UpstreamHttpMethod": [ "POST" ]
+    },
+    {
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7254
+        }
+      ],
+      "DownstreamPathTemplate": "/api/Plan/update-plan",
+      "DownstreamScheme": "https",
+      "UpstreamPathTemplate": "/api/plan/update-plan",
+      "UpstreamHttpMethod": [ "PATCH" ]
+    },
+    {
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7254
+        }
+      ],
+      "DownstreamPathTemplate": "/api/Plan/delete-plan",
+      "DownstreamScheme": "https",
+      "UpstreamPathTemplate": "/api/plan/delete-plan",
+      "UpstreamHttpMethod": [ "DELETE" ]
+    },
+    {
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7254
+        }
+      ],
+      "DownstreamPathTemplate": "/api/Plan/delete-many-plans",
+      "DownstreamScheme": "https",
+      "UpstreamPathTemplate": "/api/plan/delete-many-plans",
+      "UpstreamHttpMethod": [ "DELETE" ]
+    },
+
+    // ============================
+    // Project
+    // ============================
+
+    {
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7254
+        }
+      ],
+      "DownstreamPathTemplate": "/api/Project/projects-user-joined",
+      "DownstreamScheme": "https",
+      "UpstreamPathTemplate": "/api/project/projects-user-joined",
+      "UpstreamHttpMethod": [ "GET" ]
+    },
+    {
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7254
+        }
+      ],
+      "DownstreamPathTemplate": "/api/Project/projects-user-owner",
+      "DownstreamScheme": "https",
+      "UpstreamPathTemplate": "/api/project/projects-user-owner",
+      "UpstreamHttpMethod": [ "GET" ]
+    },
+    {
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7254
+        }
+      ],
+      "DownstreamPathTemplate": "/api/Project/search-projects",
+      "DownstreamScheme": "https",
+      "UpstreamPathTemplate": "/api/project/search-projects",
+      "UpstreamHttpMethod": [ "GET" ]
+    },
+    {
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7254
+        }
+      ],
+      "DownstreamPathTemplate": "/api/Project/add-project",
+      "DownstreamScheme": "https",
+      "UpstreamPathTemplate": "/api/project/add-project",
+      "UpstreamHttpMethod": [ "POST" ]
+    },
+    {
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7254
+        }
+      ],
+      "DownstreamPathTemplate": "/api/Project/update-project",
+      "DownstreamScheme": "https",
+      "UpstreamPathTemplate": "/api/project/update-project",
+      "UpstreamHttpMethod": [ "PATCH" ]
+    },
+    {
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7254
+        }
+      ],
+      "DownstreamPathTemplate": "/api/Project/delete-project",
+      "DownstreamScheme": "https",
+      "UpstreamPathTemplate": "/api/project/delete-project",
+      "UpstreamHttpMethod": [ "DELETE" ]
+    },
+
+    // ============================
+    // Project Member
+    // ============================
+
+    {
+      "DownstreamPathTemplate": "/api/ProjectMember/members-in-project",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7254
+        }
+      ],
+      "UpstreamPathTemplate": "/api/project-member/members-in-project",
+      "UpstreamHttpMethod": [ "GET" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/ProjectMember/add-member",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7254
+        }
+      ],
+      "UpstreamPathTemplate": "/api/project-member/add-member",
+      "UpstreamHttpMethod": [ "POST" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/ProjectMember/update-member",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7254
+        }
+      ],
+      "UpstreamPathTemplate": "/api/project-member/update-member",
+      "UpstreamHttpMethod": [ "PATCH" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/ProjectMember/delete-member",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7254
+        }
+      ],
+      "UpstreamPathTemplate": "/api/project-member/delete-member",
+      "UpstreamHttpMethod": [ "DELETE" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/ProjectMember/delete-many-members",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7254
+        }
+      ],
+      "UpstreamPathTemplate": "/api/project-member/delete-many-members",
+      "UpstreamHttpMethod": [ "DELETE" ]
+    }
   ]
 }
