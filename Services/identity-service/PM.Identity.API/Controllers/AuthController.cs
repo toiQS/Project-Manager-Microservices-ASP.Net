@@ -1,10 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using PM.Identity.Application.Dtos.auths;
 using PM.Identity.Application.Interfaces;
-using PM.Shared.Dtos;
-using PM.Shared.Dtos.auths;
-using PM.Shared.Dtos.tracking;
-using System.Net.Http.Json;
-using System.Threading.Tasks;
+using PM.Shared.Dtos.Models;
 
 namespace PM.Identity.API.Controllers
 {
@@ -40,7 +37,6 @@ namespace PM.Identity.API.Controllers
 
             if (result.Status == ResultStatus.Success)
             {
-                await LogTrackingAsync($"A user registered an account with email: {model.Email}");
                 return Ok(result);
             }
 
@@ -64,7 +60,6 @@ namespace PM.Identity.API.Controllers
 
             if (result.Status == ResultStatus.Success)
             {
-                await LogTrackingAsync($"A user logged in with email: {model.Email}");
                 return Ok(result);
             }
 
@@ -88,7 +83,6 @@ namespace PM.Identity.API.Controllers
 
             if (result.Status == ResultStatus.Success)
             {
-                await LogTrackingAsync($"User changed password for email: {model.Email}");
                 return Ok(result);
             }
 
@@ -110,49 +104,11 @@ namespace PM.Identity.API.Controllers
 
             var result = await _authHandle.ForgotPasswordHandle(model);
 
-            if (result.Status == ResultStatus.Success)
-            {
-                await LogTrackingAsync($"User requested password reset for email: {model.Email}");
-                return Ok(result);
-            }
 
             _logger.LogError("Forgot password failed: {Message}", result.Message);
             return BadRequest(result);
         }
 
-        /// <summary>
-        /// Gửi log tracking đến API tracking
-        /// </summary>
-        private async Task LogTrackingAsync(string actionName)
-        {
-            var context = new AddTrackingModel
-            {
-                ProjectId = string.Empty,
-                UserId = string.Empty,
-                ActionName = actionName
-            };
-
-            try
-            {
-                var request = new HttpRequestMessage
-                {
-                    RequestUri = new Uri($"{_baseUrl}/api/tracking/add-tracking-log"),
-                    Method = HttpMethod.Post,
-                    Content = JsonContent.Create(context)
-                };
-
-                var response = await _httpClient.SendAsync(request);
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    var content = await response.Content.ReadAsStringAsync();
-                    _logger.LogWarning("Tracking failed: {Response}", content);
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Exception occurred during tracking call.");
-            }
-        }
+       
     }
 }

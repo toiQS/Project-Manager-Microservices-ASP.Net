@@ -11,9 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Shared\PM.Shared.Config\PM.Shared.Config.csproj" />
-    <ProjectReference Include="..\..\..\Shared\PM.Shared.Dtos\PM.Shared.Dtos.csproj" />
-    <ProjectReference Include="..\..\..\Shared\PM.Shared.Handle\PM.Shared.Handle.csproj" />
+    <ProjectReference Include="..\..\..\Shareds\PM.Shared.Infrastructure\PM.Shared.Infrastructure.csproj" />
     <ProjectReference Include="..\PM.Tracking.Infrastructure\PM.Tracking.Infrastructure.csproj" />
   </ItemGroup>
 

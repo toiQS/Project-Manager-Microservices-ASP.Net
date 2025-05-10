@@ -1,5 +1,5 @@
-using PM.Tracking.Application;
 using PM.Shared.Swagger;
+using PM.Tracking.Application;
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.InitializeSwagger(builder.Configuration,"PM.Tracking.API");
 builder.Services.InitializeApplication(builder.Configuration);

@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Shared\PM.Shared.Swagger\PM.Shared.Swagger.csproj" />
+    <ProjectReference Include="..\..\..\Shareds\PM.Shared.Swagger\PM.Shared.Swagger.csproj" />
     <ProjectReference Include="..\PM.Identity.Application\PM.Identity.Application.csproj" />
   </ItemGroup>
 

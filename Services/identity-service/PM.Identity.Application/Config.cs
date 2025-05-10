@@ -5,9 +5,8 @@ using PM.Identity.Application.Implements;
 using PM.Identity.Application.Interfaces;
 using PM.Identity.Entities;
 using PM.Identity.Infrastructure.Data;
-using PM.Shared.Config;
-using PM.Shared.Handle.Implements;
-using PM.Shared.Handle.Interfaces;
+using PM.Shared.Infrastructure.Implementations;
+using PM.Shared.Infrastructure.Interfaces;
 using PM.Shared.Jwt;
 
 namespace PM.Identity.Application
@@ -36,7 +35,7 @@ namespace PM.Identity.Application
 
         private static void InitializeServices(this IServiceCollection services, IConfiguration configuration) // Fixed method signature
         {
-            services.AddScoped<IAuthHandle, AuthHandle>();
+            //services.AddScoped<IAuthHandle, AuthHandle>();
             services.AddScoped<IUserHandle, UserHandle>();
 
             services.AddScoped<IJwtService, JwtService>();

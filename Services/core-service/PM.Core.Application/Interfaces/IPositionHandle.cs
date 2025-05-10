@@ -1,15 +1,7 @@
-﻿using PM.Core.Entities;
-using PM.Shared.Dtos;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace PM.Core.Application.Interfaces
+﻿namespace PM.Core.Application.Interfaces
 {
     public interface IPositionHandle
     {
-        Task<ServiceResult<Position>> GetPositionByName(string name);
+        //Task<ServiceResult<Position>> GetPositionByName(string name);
     }
 }

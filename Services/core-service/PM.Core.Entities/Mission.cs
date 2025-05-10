@@ -1,5 +1,4 @@
-﻿using PM.Shared.Dtos.cores;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace PM.Core.Entities
 {

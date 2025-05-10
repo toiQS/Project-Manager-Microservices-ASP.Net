@@ -11,10 +11,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Shared\PM.Shared.Config\PM.Shared.Config.csproj" />
-    <ProjectReference Include="..\..\..\Shared\PM.Shared.Dtos\PM.Shared.Dtos.csproj" />
-    <ProjectReference Include="..\..\..\Shared\PM.Shared.Handle\PM.Shared.Handle.csproj" />
-    <ProjectReference Include="..\..\..\Shared\PM.Shared.Jwt\PM.Shared.Jwt.csproj" />
+    <ProjectReference Include="..\..\..\Shareds\PM.Shared.Infrastructure\PM.Shared.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\Shareds\PM.Shared.Jwt\PM.Shared.Jwt.csproj" />
     <ProjectReference Include="..\PM.Identity.Infrastructure\PM.Identity.Infrastructure.csproj" />
   </ItemGroup>
 
